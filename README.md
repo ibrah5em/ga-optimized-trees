@@ -179,24 +179,14 @@ I = w1 * (1 - TreeComplexity) + w2 * FeatureCoherence +
     w3 * TreeBalance + w4 * SemanticCoherence
 ```
 
-## 📦 Installation Options
-
-### From PyPI
-```bash
-pip install ga-optimized-trees
-```
+## 📦 Installation 
 
 ### From Source (Development)
+
 ```bash
 git clone https://github.com/ibrah5em/ga-optimized-trees.git
 cd ga-optimized-trees
 pip install -e ".[dev,api,docs]"
-```
-
-### With Conda
-```bash
-conda env create -f environment.yml
-conda activate ga-trees
 ```
 
 ## 🧪 Testing & Quality
