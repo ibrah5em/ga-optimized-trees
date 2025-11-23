@@ -2,10 +2,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://ibrah5em.github.io/ga-optimized-trees/)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/ibrah5em/ga-optimized-trees/blob/main/CONTRIBUTING.md)
+[![GitHub Issues](https://img.shields.io/github/issues/ibrah5em/ga-optimized-trees)](https://github.com/ibrah5em/ga-optimized-trees/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/ibrah5em/ga-optimized-trees)](https://github.com/ibrah5em/ga-optimized-trees/pulls)
 
 # 🌳 GA-Optimized Decision Trees
 
-A production-ready framework for evolving interpretable decision trees using genetic algorithms with multi-objective optimization. Balance model performance with human-understandable explanations through evolutionary computation.
+We present a genetic algorithm framework for evolving decision trees that balance accuracy and interpretability. Unlike greedy algorithms like CART, our approach explores the Pareto front of solutions, allowing users to choose models based on domain requirements. On three benchmark datasets, our method produces 46-49% smaller trees on simple datasets (Iris, Wine) while maintaining competitive accuracy. On complex datasets (Breast Cancer), we achieve statistically equivalent performance to CART (91.92% vs 92.80%, p=0.55) with explicit interpretability control. Automated hyperparameter tuning with Optuna improves performance by 1.94%. Our open-source framework enables flexible model selection for interpretability-critical domains.
 
 ## 🚀 Quick Start
 
@@ -152,13 +155,11 @@ ga-optimized-trees/
 
 ### Accuracy vs Interpretability Trade-off
 
-<img width="2914" height="2351" alt="tradeoff_scatter" src="https://github.com/user-attachments/assets/2e7154a1-a262-465d-bf67-e11395b7abce" />
-
+<img width="2930" height="2351" alt="tradeoff_scatter" src="https://github.com/user-attachments/assets/09e4cf0a-f5e4-46a4-a1aa-9bedbf50763b" />
 
 ### 🏆 Tree Size Comparison - GA produces 2-7× smaller trees
 
-<img width="3547" height="1745" alt="tree_size_comparison" src="https://github.com/user-attachments/assets/6f53ddad-08de-4ef1-9be1-cd0e51af187c" />
-
+<img width="3547" height="1745" alt="tree_size_comparison" src="https://github.com/user-attachments/assets/83c90fd0-f64e-4dca-833c-99c617ee04d8" />
 
 ### Baseline Comparison (Breast Cancer Dataset)
 
@@ -172,6 +173,8 @@ ga-optimized-trees/
 
 
 ## 🐳 Docker Usage
+
+> **⚠️ Note:** The Docker setup is currently under development and these commands may not work as expected. We are working to stabilize the containerized environment.
 
 ```bash
 # Build image
@@ -272,6 +275,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [DEAP](https://github.com/DEAP/deap) for evolutionary algorithms
 - Uses [scikit-learn](https://scikit-learn.org/) for baseline models and metrics
 - Visualization with [Matplotlib](https://matplotlib.org/) and [Seaborn](https://seaborn.pydata.org/)
+- Special thanks to Leen Khalil, Yousef Deeb for their support and encouragement throughout this project.
 
 ## 📞 Support & Community
 
