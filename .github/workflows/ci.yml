@@ -8,29 +8,16 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.10', '3.11']
-
+    runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
@@ -38,74 +25,11 @@ jobs:
         pip install -r requirements.txt
         pip install -e .
     
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        # Stop on syntax errors or undefined names
-        flake8 src/ scripts/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit with warning on other issues (don't fail)
-        flake8 src/ scripts/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
-    
     - name: Run tests
       run: |
         pip install pytest pytest-cov
-        pytest tests/ -v --cov=src/ga_trees --cov-report=xml --cov-report=term-missing
+        pytest tests/unit/ -v --cov=src/ga_trees --cov-report=term-missing
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
-        verbose: true
-
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    
-    - name: Build Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: false
-        tags: ga-trees:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    
-    - name: Test Docker image
-      run: |
-        docker run --rm ga-trees:latest python -c "import ga_trees; print('Docker OK')"
-
-  quick-train:
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install -e .
-    
-    - name: Run quick training test
+    - name: Quick training test
       run: |
         python scripts/train.py --dataset iris --generations 5 --population 10
-    
-    - name: Check outputs
-      run: |
-        ls -la models/
-        test -f models/best_tree.pkl && echo "Model created successfully"

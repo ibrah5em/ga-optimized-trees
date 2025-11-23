@@ -76,15 +76,17 @@ models/*
 !models/.gitkeep
 !models/__init__.py
 
-# Results - ignore all experiment outputs but keep directory structure
-results/*
+
+# Results - ignore most, keep figures
+results/*.json
+results/*.csv
+results/*.pkl
+results/mlruns/
+results/benchmark/
+
+# BUT keep figures for README
+!results/figures/*.png
 !results/.gitkeep
-results/benchmark/*
-!results/benchmark/.gitkeep
-results/figures/*
-!results/figures/.gitkeep
-results/tables/*
-!results/tables/.gitkeep
 
 # MLFlow
 mlruns/

@@ -78,7 +78,7 @@ def create_accuracy_comparison():
                    color='#95E1D3', alpha=0.85, capsize=5, edgecolor='black', linewidth=1.2)
     
     # Customize
-    ax.set_ylabel('Test Accuracy (%)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Test Accuracy (%)', fontsize=12, fontweight='bold')
     ax.set_xlabel('Dataset', fontsize=14, fontweight='bold')
     ax.set_title('Model Accuracy Comparison', fontsize=16, fontweight='bold', pad=20)
     ax.set_xticks(x)
@@ -129,7 +129,7 @@ def create_tree_size_comparison():
     # Customize
     ax.set_ylabel('Number of Nodes', fontsize=14, fontweight='bold')
     ax.set_xlabel('Dataset', fontsize=14, fontweight='bold')
-    ax.set_title('Tree Complexity: GA Produces 2-7× Smaller Trees! 🏆', 
+    ax.set_title('Tree Complexity: GA Produces 2-7× Smaller Trees', 
                 fontsize=16, fontweight='bold', pad=20)
     ax.set_xticks(x)
     ax.set_xticklabels(datasets, fontsize=12)
@@ -198,8 +198,8 @@ def create_tradeoff_scatter():
     ax.axhspan(92, 100, alpha=0.1, color='green', label='High Accuracy Zone')
     ax.axvspan(5, 25, alpha=0.1, color='blue', label='High Interpretability Zone')
     
-    ax.set_xlabel('Interpretability Score (100 / nodes)', fontsize=13, fontweight='bold')
-    ax.set_ylabel('Test Accuracy (%)', fontsize=13, fontweight='bold')
+    ax.set_xlabel('Interpretability Score', fontsize=13, fontweight='bold')
+    ax.set_ylabel('Test Accuracy (%)', fontsize=13, fontweight='bold',labelpad=30)
     ax.set_title('Accuracy-Interpretability Trade-off', fontsize=15, fontweight='bold', pad=20)
     ax.grid(True, alpha=0.3, linestyle='--')
     
