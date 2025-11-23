@@ -105,6 +105,7 @@ def run_baseline(X, y, n_folds=5):
     print("="*70)
     
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+    results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': []}
     
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         X_train, X_test = X[train_idx], X[test_idx]
