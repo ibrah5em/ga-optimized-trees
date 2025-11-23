@@ -123,13 +123,6 @@ python scripts/test_optimized_config.py
 }
 ```
 
-#### 📊 Key Findings
-
-* Performance: Optimized GA achieves competitive accuracy (90.0%) vs CART (92.8%)
-* Complexity: GA models show higher variance in size but maintain interpretability
-* Statistical Significance: p-value < 0.05 indicates meaningful improvement
-
-
 ## 📁 Repository Structure
 
 ```
