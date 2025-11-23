@@ -1,0 +1,13 @@
+fitness:
+  accuracy_weight: 0.6727598960405373
+  interpretability_weight: 0.3272401039594627
+ga:
+  crossover_prob: 0.5646016151595842
+  mutation_prob: 0.25576213407723136
+  n_generations: 60
+  population_size: 130
+  tournament_size: 5
+tree:
+  max_depth: 6
+  min_samples_leaf: 8
+  min_samples_split: 16
