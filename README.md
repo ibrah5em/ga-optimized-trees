@@ -37,7 +37,7 @@ python scripts/experiment.py --config configs/optimized.yaml
 
 ## 📊 Key Features
 
-- **🧬 Multi-Objective Optimization**: Balance accuracy and interpretability using NSGA-II
+- **🧬 Multi-Objective Optimization**: Balance accuracy and interpretability using Weighted-sum fitness
 - **🌳 Flexible Genotype**: Constrained tree structures with validation and repair
 - **📈 Rich Baselines**: Compare against CART, Random Forest, XGBoost, and more
 - **📊 Statistical Rigor**: Automated significance testing and effect size calculation
@@ -196,7 +196,7 @@ The framework implements an advanced genetic algorithm for decision tree evoluti
 3. **🏆 Selection**: Tournament selection with elitism preservation
 4. **🔀 Crossover**: Subtree-aware swapping with constraint repair
 5. **🧬 Mutation**: Threshold perturbation, feature replacement, pruning
-6. **🎯 Multi-Objective**: NSGA-II for Pareto-optimal solutions
+6. **🎯 Multi-Objective**: Weighted-sum fitness for Pareto-optimal solutions
 
 
 ## 📦 Installation 
