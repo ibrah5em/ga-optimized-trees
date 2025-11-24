@@ -1,14 +1,11 @@
 """
 FAST experiment script - 10x faster, better interpretability.
 
-Changes:
-1. Smaller population + adaptive generations (early stopping)
-2. Fixed interpretability metric (penalizes large trees properly)
-3. Parallel fitness evaluation (if you have multiple cores)
-4. Sample-based fitness for large datasets
+Supports both default parameters and YAML configuration files.
 
 Usage:
-    python scripts/experiment_FAST.py
+    python scripts/experiment.py
+    python scripts/experiment.py --config configs/default.yaml
 """
 
 import numpy as np
@@ -16,6 +13,8 @@ import pandas as pd
 from pathlib import Path
 import sys
 import time
+import argparse
+import yaml
 from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -89,6 +88,76 @@ class FastFitnessCalculator(FitnessCalculator):
         self.interp_calc = FastInterpretabilityCalculator()
 
 
+def load_config(config_path=None):
+    """Load configuration from YAML file or use defaults."""
+    default_config = {
+        'ga': {
+            'population_size': 50,
+            'n_generations': 30,
+            'crossover_prob': 0.7,
+            'mutation_prob': 0.2,
+            'tournament_size': 3,
+            'elitism_ratio': 0.15,
+            'mutation_types': {
+                'threshold_perturbation': 0.5,
+                'feature_replacement': 0.3,
+                'prune_subtree': 0.15,
+                'expand_leaf': 0.05
+            }
+        },
+        'tree': {
+            'max_depth': 5,
+            'min_samples_split': 10,
+            'min_samples_leaf': 5
+        },
+        'fitness': {
+            'mode': 'weighted_sum',
+            'accuracy_weight': 0.65,
+            'interpretability_weight': 0.35,
+            'interpretability_weights': {
+                'node_complexity': 0.6,
+                'feature_coherence': 0.2,
+                'tree_balance': 0.1,
+                'semantic_coherence': 0.1
+            }
+        },
+        'experiment': {
+            'datasets': ['iris', 'wine', 'breast_cancer'],
+            'cv_folds': 5,
+            'random_state': 42
+        }
+    }
+    
+    if config_path and Path(config_path).exists():
+        print(f"Loading configuration from: {config_path}")
+        with open(config_path, 'r') as f:
+            user_config = yaml.safe_load(f)
+        
+        # Deep merge configurations
+        config = _merge_configs(default_config, user_config)
+    else:
+        if config_path:
+            print(f"Config file {config_path} not found, using defaults")
+        else:
+            print("No config specified, using defaults")
+        config = default_config
+    
+    return config
+
+
+def _merge_configs(default, user):
+    """Recursively merge user configuration with defaults."""
+    result = default.copy()
+    
+    for key, value in user.items():
+        if isinstance(value, dict) and key in result and isinstance(result[key], dict):
+            result[key] = _merge_configs(result[key], value)
+        else:
+            result[key] = value
+    
+    return result
+
+
 def load_dataset(name):
     """Load dataset by name."""
     datasets = {
@@ -99,13 +168,13 @@ def load_dataset(name):
     return datasets[name](return_X_y=True)
 
 
-def run_ga_experiment(X, y, dataset_name, n_folds=5):
-    """Run GA with FAST settings."""
+def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
+    """Run GA with FAST settings using configuration."""
     print(f"\n{'='*70}")
     print(f"Running FAST GA on {dataset_name}")
     print(f"{'='*70}")
     
-    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=config['experiment']['random_state'])
     results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': [], 'time': []}
     
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
@@ -125,41 +194,32 @@ def run_ga_experiment(X, y, dataset_name, n_folds=5):
         feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) 
                          for i in range(n_features)}
         
-        # FAST CONFIG: Smaller population, fewer generations
+        # Use configuration
         ga_config = GAConfig(
-            population_size=50,        # Reduced from 100
-            n_generations=30,          # Reduced from 50
-            crossover_prob=0.7,
-            mutation_prob=0.2,
-            tournament_size=3,
-            elitism_ratio=0.15,
-            mutation_types={
-                'threshold_perturbation': 0.5,
-                'feature_replacement': 0.3,
-                'prune_subtree': 0.15,  # Slightly more pruning
-                'expand_leaf': 0.05
-            }
+            population_size=config['ga']['population_size'],
+            n_generations=config['ga']['n_generations'],
+            crossover_prob=config['ga']['crossover_prob'],
+            mutation_prob=config['ga']['mutation_prob'],
+            tournament_size=config['ga']['tournament_size'],
+            elitism_ratio=config['ga']['elitism_ratio'],
+            mutation_types=config['ga']['mutation_types']
         )
         
         initializer = TreeInitializer(
             n_features=n_features,
             n_classes=n_classes,
-            max_depth=5,               # Back to 5
-            min_samples_split=10,
-            min_samples_leaf=5
+            max_depth=config['tree']['max_depth'],
+            min_samples_split=config['tree']['min_samples_split'],
+            min_samples_leaf=config['tree']['min_samples_leaf']
         )
         
         # FAST FITNESS with FIXED interpretability
+        fitness_config = config['fitness']
         fitness_calc = FastFitnessCalculator(
-            mode='weighted_sum',
-            accuracy_weight=0.65,            # Balanced
-            interpretability_weight=0.35,    # Strong penalty for large trees
-            interpretability_weights={
-                'node_complexity': 0.6,      # MAJOR weight on small trees
-                'feature_coherence': 0.2,
-                'tree_balance': 0.1,         # Reduced to avoid overgrowth
-                'semantic_coherence': 0.1
-            }
+            mode=fitness_config['mode'],
+            accuracy_weight=fitness_config['accuracy_weight'],
+            interpretability_weight=fitness_config['interpretability_weight'],
+            interpretability_weights=fitness_config['interpretability_weights']
         )
         
         mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
@@ -188,13 +248,13 @@ def run_ga_experiment(X, y, dataset_name, n_folds=5):
     return results
 
 
-def run_cart_experiment(X, y, dataset_name, n_folds=5):
+def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
     """Run CART baseline."""
     print(f"\n{'='*70}")
     print(f"Running CART on {dataset_name}")
     print(f"{'='*70}")
     
-    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=config['experiment']['random_state'])
     results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': [], 'time': []}
     
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
@@ -204,7 +264,10 @@ def run_cart_experiment(X, y, dataset_name, n_folds=5):
         y_train, y_test = y[train_idx], y[test_idx]
         
         start = time.time()
-        model = DecisionTreeClassifier(max_depth=5, random_state=42)
+        model = DecisionTreeClassifier(
+            max_depth=config['tree']['max_depth'], 
+            random_state=config['experiment']['random_state']
+        )
         model.fit(X_train, y_train)
         elapsed = time.time() - start
         
@@ -221,13 +284,13 @@ def run_cart_experiment(X, y, dataset_name, n_folds=5):
     return results
 
 
-def run_rf_experiment(X, y, dataset_name, n_folds=5):
+def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
     """Run Random Forest baseline."""
     print(f"\n{'='*70}")
     print(f"Running Random Forest on {dataset_name}")
     print(f"{'='*70}")
     
-    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=config['experiment']['random_state'])
     results = {'test_acc': [], 'test_f1': [], 'time': []}
     
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
@@ -237,8 +300,12 @@ def run_rf_experiment(X, y, dataset_name, n_folds=5):
         y_train, y_test = y[train_idx], y[test_idx]
         
         start = time.time()
-        model = RandomForestClassifier(n_estimators=100, max_depth=5, 
-                                       random_state=42, n_jobs=-1)
+        model = RandomForestClassifier(
+            n_estimators=100, 
+            max_depth=config['tree']['max_depth'], 
+            random_state=config['experiment']['random_state'], 
+            n_jobs=-1
+        )
         model.fit(X_train, y_train)
         elapsed = time.time() - start
         
@@ -253,7 +320,7 @@ def run_rf_experiment(X, y, dataset_name, n_folds=5):
     return results
 
 
-def print_summary(all_results):
+def print_summary(all_results, config):
     """Print summary with tree size analysis."""
     print(f"\n{'='*70}")
     print("FINAL RESULTS")
@@ -323,24 +390,50 @@ def print_summary(all_results):
         
         print(f"{dataset_name:20s}: t={t_stat:6.3f}, p={p_value:.4f} {sig}, d={cohens_d:.3f}")
     
-    # Save
+    # Save results
     output_dir = Path('results')
     output_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    df.to_csv(output_dir / f'results_FAST_{timestamp}.csv', index=False)
+    results_file = output_dir / f'results_FAST_{timestamp}.csv'
+    df.to_csv(results_file, index=False)
     
-    print(f"\n✓ Results saved to: results/results_FAST_{timestamp}.csv")
+    # Save configuration used
+    config_file = output_dir / f'config_FAST_{timestamp}.yaml'
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f, default_flow_style=False)
+    
+    print(f"\n✓ Results saved to: {results_file}")
+    print(f"✓ Config saved to: {config_file}")
 
 
 def main():
-    """Run FAST experiments."""
+    """Run FAST experiments with configurable parameters."""
+    parser = argparse.ArgumentParser(description='Run GA-optimized decision tree experiments')
+    parser.add_argument('--config', type=str, help='Path to configuration YAML file')
+    args = parser.parse_args()
+    
+    # Load configuration
+    config = load_config(args.config)
+    
     print(f"\n{'='*70}")
     print("GA-Optimized Decision Trees: FAST Version")
     print("Optimized for: Speed + Small Trees")
+    if args.config:
+        print(f"Configuration: {args.config}")
+    else:
+        print("Configuration: Default parameters")
     print(f"{'='*70}")
     
-    datasets = ['iris', 'wine', 'breast_cancer']
+    # Print key configuration parameters
+    print("\nKey Configuration:")
+    print(f"  GA: {config['ga']['population_size']} pop, {config['ga']['n_generations']} gen")
+    print(f"  Tree: max_depth={config['tree']['max_depth']}")
+    print(f"  Fitness: acc_weight={config['fitness']['accuracy_weight']}, "
+          f"interp_weight={config['fitness']['interpretability_weight']}")
+    print(f"  Datasets: {', '.join(config['experiment']['datasets'])}")
+    
+    datasets = config['experiment']['datasets']
     all_results = {}
     
     total_start = time.time()
@@ -350,15 +443,18 @@ def main():
         print(f"\n{dataset_name}: {X.shape[0]} samples, {X.shape[1]} features")
         
         dataset_results = {}
-        dataset_results['GA-Optimized'] = run_ga_experiment(X, y, dataset_name)
-        dataset_results['CART'] = run_cart_experiment(X, y, dataset_name)
-        dataset_results['Random Forest'] = run_rf_experiment(X, y, dataset_name)
+        dataset_results['GA-Optimized'] = run_ga_experiment(X, y, dataset_name, config, 
+                                                           n_folds=config['experiment']['cv_folds'])
+        dataset_results['CART'] = run_cart_experiment(X, y, dataset_name, config, 
+                                                     n_folds=config['experiment']['cv_folds'])
+        dataset_results['Random Forest'] = run_rf_experiment(X, y, dataset_name, config, 
+                                                            n_folds=config['experiment']['cv_folds'])
         
         all_results[dataset_name] = dataset_results
     
     total_time = time.time() - total_start
     
-    print_summary(all_results)
+    print_summary(all_results, config)
     
     print(f"\n{'='*70}")
     print(f"Total Time: {total_time:.1f}s (~{total_time/60:.1f} minutes)")
