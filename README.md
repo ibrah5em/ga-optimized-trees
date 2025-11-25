@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Documentation Status](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://ibrah5em.github.io/ga-optimized-trees/)
+[![GitHub Issues](https://img.shields.io/github/issues/ibrah5em/ga-optimized-trees)](https://github.com/ibrah5em/ga-optimized-trees/issues)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/ibrah5em/ga-optimized-trees/blob/main/CONTRIBUTING.md)
 
 # 🌳 GA-Optimized Decision Trees
