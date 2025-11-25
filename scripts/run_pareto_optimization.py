@@ -1,12 +1,14 @@
-"""Run Pareto optimization and visualize results - FIXED VERSION."""
+"""Run Pareto optimization and visualize results - FIXED TO USE CONFIG."""
 
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
+import argparse
+import yaml
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
@@ -15,19 +17,44 @@ from ga_trees.ga.engine import GAEngine, GAConfig, TreeInitializer, Mutation
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 
 
-def run_multiple_configs(X_train, y_train, X_test, y_test, n_configs=10):
+def load_config(config_path='configs/custom.yaml'):
+    """Load configuration from YAML file."""
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
+def load_dataset(name):
+    """Load dataset by name."""
+    datasets = {
+        'iris': load_iris,
+        'wine': load_wine,
+        'breast_cancer': load_breast_cancer
+    }
+    return datasets[name](return_X_y=True)
+
+
+def run_multiple_configs(X_train, y_train, X_test, y_test, base_config, n_configs=10):
     """
     Run GA with different accuracy/interpretability weight combinations
     to approximate Pareto front.
+    
+    Uses your base config for all GA parameters, only varies fitness weights.
     """
     print("="*70)
     print("PARETO FRONT APPROXIMATION")
+    print(f"Base config: {base_config.get('meta', {}).get('description', 'custom')}")
     print("Running GA with different objective weights...")
     print("="*70)
     
-    # Try different weight combinations
+    # Generate weight combinations around your base weights
+    base_acc_weight = base_config['fitness']['weights']['accuracy']
+    
+    # Create range: base_weight ± 0.25
+    min_weight = max(0.3, base_acc_weight - 0.25)
+    max_weight = min(0.95, base_acc_weight + 0.25)
+    
     weight_configs = []
-    for acc_weight in np.linspace(0.3, 0.95, n_configs):
+    for acc_weight in np.linspace(min_weight, max_weight, n_configs):
         weight_configs.append({
             'accuracy': acc_weight,
             'interpretability': 1.0 - acc_weight
@@ -39,33 +66,39 @@ def run_multiple_configs(X_train, y_train, X_test, y_test, n_configs=10):
         print(f"\nConfig {i}/{n_configs}: Accuracy={weights['accuracy']:.2f}, "
               f"Interpretability={weights['interpretability']:.2f}")
         
-        # Setup
+        # Setup with YOUR config parameters
         n_features = X_train.shape[1]
+        n_classes = len(np.unique(y_train))
         feature_ranges = {j: (X_train[:, j].min(), X_train[:, j].max()) 
                          for j in range(n_features)}
         
+        # Use your GA config
         ga_config = GAConfig(
-            population_size=50,
-            n_generations=30,
-            crossover_prob=0.7,
-            mutation_prob=0.2,
-            tournament_size=3,
-            elitism_ratio=0.15
+            population_size=base_config['ga']['population_size'],
+            n_generations=base_config['ga']['n_generations'],
+            crossover_prob=base_config['ga']['crossover_prob'],
+            mutation_prob=base_config['ga']['mutation_prob'],
+            tournament_size=base_config['ga']['tournament_size'],
+            elitism_ratio=base_config['ga']['elitism_ratio'],
+            mutation_types=base_config['ga']['mutation_types']
         )
         
-        # FIXED: Added missing arguments
+        # Use your tree constraints
+        tree_config = base_config['tree']
         initializer = TreeInitializer(
             n_features=n_features,
-            n_classes=2,
-            max_depth=5,
-            min_samples_split=10,  # ADDED
-            min_samples_leaf=5     # ADDED
+            n_classes=n_classes,
+            max_depth=tree_config['max_depth'],
+            min_samples_split=tree_config['min_samples_split'],
+            min_samples_leaf=tree_config['min_samples_leaf']
         )
         
+        # Use your interpretability sub-weights, vary main weights only
         fitness_calc = FitnessCalculator(
             mode='weighted_sum',
             accuracy_weight=weights['accuracy'],
-            interpretability_weight=weights['interpretability']
+            interpretability_weight=weights['interpretability'],
+            interpretability_weights=base_config['fitness']['interpretability_weights']
         )
         
         mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
@@ -96,7 +129,8 @@ def run_multiple_configs(X_train, y_train, X_test, y_test, n_configs=10):
     return results
 
 
-def plot_pareto_front(results, save_path='results/figures/pareto_front.png'):
+def plot_pareto_front(results, dataset_name, base_config, 
+                      save_path='results/figures/pareto_front.png'):
     """Visualize approximate Pareto front."""
     
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
@@ -112,16 +146,24 @@ def plot_pareto_front(results, save_path='results/figures/pareto_front.png'):
                          s=200, c=nodes, cmap='viridis', 
                          alpha=0.7, edgecolors='black', linewidth=2)
     
+    # Highlight your base config point
+    base_acc = base_config['fitness']['weights']['accuracy']
+    base_result = min(results, key=lambda r: abs(r['accuracy_weight'] - base_acc))
+    ax1.scatter(base_result['interpretability'], base_result['test_accuracy'],
+               s=400, color='red', marker='*', edgecolors='black', linewidth=2,
+               label='Your Config', zorder=10)
+    
     ax1.set_xlabel('Interpretability Score', fontsize=13, fontweight='bold')
     ax1.set_ylabel('Test Accuracy', fontsize=13, fontweight='bold')
-    ax1.set_title('Pareto Front: Accuracy vs Interpretability', 
+    ax1.set_title(f'Pareto Front: Accuracy vs Interpretability\n{dataset_name} Dataset', 
                  fontsize=15, fontweight='bold')
     ax1.grid(True, alpha=0.3)
+    ax1.legend(fontsize=11)
     
     cbar = plt.colorbar(scatter, ax=ax1)
     cbar.set_label('Number of Nodes', fontsize=11)
     
-    # Add annotations for extreme points
+    # Add annotations for extremes
     min_nodes_idx = np.argmin(nodes)
     max_acc_idx = np.argmax(accuracies)
     
@@ -144,21 +186,31 @@ def plot_pareto_front(results, save_path='results/figures/pareto_front.png'):
                           s=200, c=interpretabilities, cmap='coolwarm',
                           alpha=0.7, edgecolors='black', linewidth=2)
     
+    # Highlight your base config
+    ax2.scatter(base_result['nodes'], base_result['test_accuracy'],
+               s=400, color='red', marker='*', edgecolors='black', linewidth=2,
+               label='Your Config', zorder=10)
+    
     ax2.set_xlabel('Number of Nodes', fontsize=13, fontweight='bold')
     ax2.set_ylabel('Test Accuracy', fontsize=13, fontweight='bold')
-    ax2.set_title('Trade-off: Accuracy vs Tree Complexity', 
+    ax2.set_title(f'Trade-off: Accuracy vs Tree Complexity\n{dataset_name} Dataset', 
                  fontsize=15, fontweight='bold')
     ax2.grid(True, alpha=0.3)
+    ax2.legend(fontsize=11)
     
     cbar2 = plt.colorbar(scatter2, ax=ax2)
     cbar2.set_label('Interpretability Score', fontsize=11)
     
     # Add "sweet spot" region
-    ax2.axhspan(accuracies[max_acc_idx] - 0.02, max(accuracies), 
-               alpha=0.1, color='green', label='High Accuracy Zone')
-    ax2.axvspan(min(nodes), min(nodes) + 5, 
-               alpha=0.1, color='blue', label='High Interpretability Zone')
-    ax2.legend(loc='lower right')
+    if accuracies:
+        high_acc_threshold = max(accuracies) - 0.02
+        ax2.axhspan(high_acc_threshold, max(accuracies) + 0.01, 
+                   alpha=0.1, color='green', label='High Accuracy Zone')
+    
+    if nodes:
+        low_complexity = min(nodes) + (max(nodes) - min(nodes)) * 0.3
+        ax2.axvspan(min(nodes), low_complexity, 
+                   alpha=0.1, color='blue', label='Low Complexity Zone')
     
     plt.tight_layout()
     
@@ -170,7 +222,7 @@ def plot_pareto_front(results, save_path='results/figures/pareto_front.png'):
     plt.show()
 
 
-def print_pareto_summary(results):
+def print_pareto_summary(results, base_config):
     """Print summary of Pareto front."""
     print("\n" + "="*70)
     print("PARETO FRONT SUMMARY")
@@ -179,10 +231,13 @@ def print_pareto_summary(results):
     print(f"\n{'Config':<8} {'Acc Weight':<12} {'Test Acc':<12} {'Interp':<12} {'Nodes':<8} {'Depth'}")
     print("-"*70)
     
+    base_acc_weight = base_config['fitness']['weights']['accuracy']
+    
     for i, r in enumerate(results, 1):
+        marker = ' ★' if abs(r['accuracy_weight'] - base_acc_weight) < 0.05 else ''
         print(f"{i:<8} {r['accuracy_weight']:<12.2f} "
               f"{r['test_accuracy']:<12.4f} {r['interpretability']:<12.4f} "
-              f"{r['nodes']:<8} {r['depth']}")
+              f"{r['nodes']:<8} {r['depth']}{marker}")
     
     # Find interesting solutions
     print("\n" + "="*70)
@@ -193,8 +248,9 @@ def print_pareto_summary(results):
     smallest_tree_idx = np.argmin([r['nodes'] for r in results])
     best_interp_idx = np.argmax([r['interpretability'] for r in results])
     
-    # Find balanced solution (closest to 0.7 accuracy weight)
-    balanced_idx = np.argmin([abs(r['accuracy_weight'] - 0.7) for r in results])
+    # Find your config solution
+    your_config_idx = min(range(len(results)), 
+                         key=lambda i: abs(results[i]['accuracy_weight'] - base_acc_weight))
     
     print(f"\n1. MOST ACCURATE:")
     print(f"   Accuracy: {results[best_acc_idx]['test_accuracy']:.4f}")
@@ -211,21 +267,35 @@ def print_pareto_summary(results):
     print(f"   Nodes: {results[smallest_tree_idx]['nodes']}")
     print(f"   Interpretability: {results[smallest_tree_idx]['interpretability']:.4f}")
     
-    print(f"\n4. BALANCED (0.7 accuracy weight):")
-    print(f"   Accuracy: {results[balanced_idx]['test_accuracy']:.4f}")
-    print(f"   Nodes: {results[balanced_idx]['nodes']}")
-    print(f"   Interpretability: {results[balanced_idx]['interpretability']:.4f}")
+    print(f"\n4. YOUR CONFIG (acc_weight={base_acc_weight:.2f}):")
+    print(f"   Accuracy: {results[your_config_idx]['test_accuracy']:.4f}")
+    print(f"   Nodes: {results[your_config_idx]['nodes']}")
+    print(f"   Interpretability: {results[your_config_idx]['interpretability']:.4f}")
 
 
 def main():
     """Run Pareto front approximation."""
+    parser = argparse.ArgumentParser(description='Run Pareto front analysis')
+    parser.add_argument('--config', type=str, default='configs/custom.yaml',
+                       help='Path to configuration file')
+    parser.add_argument('--dataset', type=str, default='breast_cancer',
+                       choices=['iris', 'wine', 'breast_cancer'],
+                       help='Dataset to use')
+    parser.add_argument('--n-configs', type=int, default=10,
+                       help='Number of weight configurations to try')
+    args = parser.parse_args()
+    
+    # Load your config
+    config = load_config(args.config)
+    
     print("\n" + "="*70)
-    print("PARETO FRONT ANALYSIS FOR BREAST CANCER")
+    print(f"PARETO FRONT ANALYSIS FOR {args.dataset.upper()}")
+    print(f"Using config: {args.config}")
     print("="*70)
     
     # Load data
-    print("\nLoading dataset...")
-    X, y = load_breast_cancer(return_X_y=True)
+    print(f"\nLoading {args.dataset} dataset...")
+    X, y = load_dataset(args.dataset)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=42, stratify=y
     )
@@ -240,24 +310,26 @@ def main():
     print(f"Features: {X_train.shape[1]}")
     
     # Run with multiple weight configurations
-    results = run_multiple_configs(X_train, y_train, X_test, y_test, n_configs=10)
+    results = run_multiple_configs(X_train, y_train, X_test, y_test, 
+                                   config, n_configs=args.n_configs)
     
     # Visualize Pareto front
-    plot_pareto_front(results)
+    plot_pareto_front(results, args.dataset, config)
     
     # Print summary
-    print_pareto_summary(results)
+    print_pareto_summary(results, config)
     
     print("\n" + "="*70)
     print("Analysis Complete! 🎉")
     print("="*70)
     print("\nKey Insights:")
     print("• The Pareto front shows optimal trade-offs")
+    print("• Your config (★) represents one point on this front")
     print("• No single solution dominates on both objectives")
     print("• Choose solution based on your priorities:")
     print("  - High accuracy needed? → Pick rightmost point")
     print("  - Interpretability critical? → Pick topmost point")
-    print("  - Balanced approach? → Pick middle points")
+    print(f"  - Your current choice → {config['fitness']['weights']['accuracy']:.0%} accuracy weight")
 
 
 if __name__ == '__main__':

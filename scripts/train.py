@@ -1,14 +1,23 @@
 """
 Training script for GA-optimized decision trees.
 
+NOW SUPPORTS CONFIG FILES!
+
 Usage:
+    # With config file (recommended)
+    python scripts/train.py --config configs/custom.yaml --dataset breast_cancer
+    
+    # With command-line args (old way still works)
     python scripts/train.py --dataset iris --generations 50 --population 100
+    
+    # Mix both (CLI args override config)
+    python scripts/train.py --config configs/custom.yaml --generations 60
 """
 
 import argparse
 import numpy as np
 import pickle
-import os
+import yaml
 import sys
 from pathlib import Path
 
@@ -45,8 +54,60 @@ def get_feature_ranges(X: np.ndarray) -> dict:
     return ranges
 
 
+def load_config(config_path):
+    """Load configuration from YAML file."""
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
+def merge_config_with_args(config, args):
+    """
+    Merge config file with command-line arguments.
+    CLI arguments take precedence (if explicitly set by user).
+    """
+    # Create a dict of "was this arg explicitly set?"
+    # If user didn't specify, use config value
+    
+    if config is None:
+        return args  # No config, use all CLI args
+    
+    # GA parameters
+    if args.population == 100:  # Default value = not set by user
+        args.population = config['ga']['population_size']
+    if args.generations == 50:
+        args.generations = config['ga']['n_generations']
+    if args.crossover_prob == 0.7:
+        args.crossover_prob = config['ga']['crossover_prob']
+    if args.mutation_prob == 0.2:
+        args.mutation_prob = config['ga']['mutation_prob']
+    if args.tournament_size == 3:
+        args.tournament_size = config['ga']['tournament_size']
+    if args.elitism_ratio == 0.1:
+        args.elitism_ratio = config['ga']['elitism_ratio']
+    
+    # Tree parameters
+    if args.max_depth == 5:
+        args.max_depth = config['tree']['max_depth']
+    if args.min_samples_split == 10:
+        args.min_samples_split = config['tree']['min_samples_split']
+    if args.min_samples_leaf == 5:
+        args.min_samples_leaf = config['tree']['min_samples_leaf']
+    
+    # Fitness parameters
+    if args.accuracy_weight == 0.7:
+        args.accuracy_weight = config['fitness']['weights']['accuracy']
+    if args.interpretability_weight == 0.3:
+        args.interpretability_weight = config['fitness']['weights']['interpretability']
+    
+    return args
+
+
 def main():
     parser = argparse.ArgumentParser(description='Train GA-optimized decision tree')
+    
+    # NEW: Config file support
+    parser.add_argument('--config', type=str, default=None,
+                       help='Path to YAML config file (recommended)')
     
     # Dataset args
     parser.add_argument('--dataset', type=str, default='iris',
@@ -95,14 +156,24 @@ def main():
     
     args = parser.parse_args()
     
+    # Load and merge config if provided
+    config = None
+    if args.config:
+        print(f"Loading configuration from: {args.config}")
+        config = load_config(args.config)
+        args = merge_config_with_args(config, args)
+        print("✓ Config loaded and merged with CLI arguments")
+    
     # Set random seeds
     np.random.seed(args.seed)
     import random
     random.seed(args.seed)
     
-    print(f"Training GA-optimized decision tree on {args.dataset}")
+    print(f"\nTraining GA-optimized decision tree on {args.dataset}")
     print(f"Configuration: pop={args.population}, gen={args.generations}, "
           f"depth={args.max_depth}")
+    if args.config:
+        print(f"Using config file: {args.config}")
     
     # Load data
     X, y = load_dataset(args.dataset)
@@ -117,6 +188,7 @@ def main():
     )
     
     # Standardize if requested
+    scaler = None
     if args.standardize:
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
@@ -128,13 +200,21 @@ def main():
     feature_ranges = get_feature_ranges(X_train)
     
     # Create components
+    mutation_types = config['ga']['mutation_types'] if config else {
+        'threshold_perturbation': 0.5,
+        'feature_replacement': 0.3,
+        'prune_subtree': 0.15,
+        'expand_leaf': 0.05
+    }
+    
     ga_config = GAConfig(
         population_size=args.population,
         n_generations=args.generations,
         crossover_prob=args.crossover_prob,
         mutation_prob=args.mutation_prob,
         tournament_size=args.tournament_size,
-        elitism_ratio=args.elitism_ratio
+        elitism_ratio=args.elitism_ratio,
+        mutation_types=mutation_types
     )
     
     initializer = TreeInitializer(
@@ -146,10 +226,16 @@ def main():
         task_type='classification'
     )
     
+    # Get interpretability weights if available
+    interp_weights = None
+    if config and 'interpretability_weights' in config['fitness']:
+        interp_weights = config['fitness']['interpretability_weights']
+    
     fitness_calc = FitnessCalculator(
         mode='weighted_sum',
         accuracy_weight=args.accuracy_weight,
-        interpretability_weight=args.interpretability_weight
+        interpretability_weight=args.interpretability_weight,
+        interpretability_weights=interp_weights
     )
     
     mutation = Mutation(
@@ -215,6 +301,7 @@ def main():
     model_data = {
         'tree': best_tree,
         'config': vars(args),
+        'config_file': args.config,
         'feature_ranges': feature_ranges,
         'n_features': n_features,
         'n_classes': n_classes,
@@ -229,7 +316,7 @@ def main():
     with open(output_path, 'wb') as f:
         pickle.dump(model_data, f)
     
-    print(f"\nModel saved to: {output_path}")
+    print(f"\n✓ Model saved to: {output_path}")
     
     # Plot evolution history
     try:
@@ -248,10 +335,14 @@ def main():
         
         plot_path = output_path.parent / f"{output_path.stem}_evolution.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-        print(f"Evolution plot saved to: {plot_path}")
+        print(f"✓ Evolution plot saved to: {plot_path}")
         
     except ImportError:
         print("Matplotlib not available, skipping evolution plot")
+    
+    print("\n" + "="*60)
+    print("Training Complete! 🎉")
+    print("="*60)
 
 
 if __name__ == '__main__':
