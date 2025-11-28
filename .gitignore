@@ -60,6 +60,11 @@ venv.bak/
 *.swo
 *~
 
+# docs
+docs/.obsidian/
+# Ignore all dotfiles and dot directories in /docs
+docs/.*
+
 # OS
 .DS_Store
 Thumbs.db
