@@ -1,17 +1,18 @@
 """
-Training script for GA-optimized decision trees.
+Updated Training script for GA-optimized decision trees with full dataset support.
 
-NOW SUPPORTS CONFIG FILES!
+NOW SUPPORTS 25+ DATASETS!
 
 Usage:
-    # With config file (recommended)
-    python scripts/train.py --config configs/custom.yaml --dataset breast_cancer
+    # Sklearn datasets
+    python scripts/train.py --config configs/custom.yaml --dataset iris
     
-    # With command-line args (old way still works)
-    python scripts/train.py --dataset iris --generations 50 --population 100
+    # OpenML datasets
+    python scripts/train.py --config configs/custom.yaml --dataset heart
+    python scripts/train.py --config configs/custom.yaml --dataset titanic
     
-    # Mix both (CLI args override config)
-    python scripts/train.py --config configs/custom.yaml --generations 60
+    # Custom CSV
+    python scripts/train.py --config configs/custom.yaml --dataset data/my_data.csv
 """
 
 import argparse
@@ -24,7 +25,6 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -35,15 +35,38 @@ from ga_trees.fitness.calculator import FitnessCalculator
 
 
 def load_dataset(name: str):
-    """Load dataset by name."""
-    if name == 'iris':
-        return load_iris(return_X_y=True)
-    elif name == 'wine':
-        return load_wine(return_X_y=True)
-    elif name == 'breast_cancer':
-        return load_breast_cancer(return_X_y=True)
-    else:
-        raise ValueError(f"Unknown dataset: {name}")
+    """
+    Load dataset by name - supports sklearn, OpenML, and custom files.
+    """
+    # First try sklearn datasets (fast path)
+    if name in ['iris', 'wine', 'breast_cancer', 'digits', 'diabetes']:
+        from sklearn.datasets import (
+            load_iris, load_wine, load_breast_cancer, load_digits, load_diabetes
+        )
+        loaders = {
+            'iris': load_iris,
+            'wine': load_wine,
+            'breast_cancer': load_breast_cancer,
+            'digits': load_digits,
+            'diabetes': load_diabetes
+        }
+        return loaders[name](return_X_y=True)
+    
+    # Otherwise use enhanced dataset loader
+    try:
+        # Import the integration helper
+        sys.path.insert(0, str(Path(__file__).parent))
+        from dataset_integration import load_any_dataset
+        return load_any_dataset(name)
+    except ImportError:
+        # Fallback: use dataset loader directly
+        from ga_trees.data.dataset_loader import DatasetLoader
+        loader = DatasetLoader()
+        data = loader.load_dataset(name, test_size=0.2)
+        # Combine for full dataset
+        X = np.vstack([data['X_train'], data['X_test']])
+        y = np.hstack([data['y_train'], data['y_test']])
+        return X, y
 
 
 def get_feature_ranges(X: np.ndarray) -> dict:
@@ -65,14 +88,11 @@ def merge_config_with_args(config, args):
     Merge config file with command-line arguments.
     CLI arguments take precedence (if explicitly set by user).
     """
-    # Create a dict of "was this arg explicitly set?"
-    # If user didn't specify, use config value
-    
     if config is None:
-        return args  # No config, use all CLI args
+        return args
     
     # GA parameters
-    if args.population == 100:  # Default value = not set by user
+    if args.population == 100:
         args.population = config['ga']['population_size']
     if args.generations == 50:
         args.generations = config['ga']['n_generations']
@@ -103,16 +123,32 @@ def merge_config_with_args(config, args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train GA-optimized decision tree')
+    parser = argparse.ArgumentParser(
+        description='Train GA-optimized decision tree',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Sklearn datasets
+  python scripts/train.py --config configs/custom.yaml --dataset iris
+  python scripts/train.py --config configs/custom.yaml --dataset wine
+  
+  # OpenML datasets (NEW!)
+  python scripts/train.py --config configs/custom.yaml --dataset heart
+  python scripts/train.py --config configs/custom.yaml --dataset titanic
+  python scripts/train.py --config configs/custom.yaml --dataset credit_g
+  
+  # Custom CSV file
+  python scripts/train.py --config configs/custom.yaml --dataset data/my_data.csv
+        """
+    )
     
-    # NEW: Config file support
+    # Config file support
     parser.add_argument('--config', type=str, default=None,
                        help='Path to YAML config file (recommended)')
     
-    # Dataset args
+    # Dataset args - REMOVED CHOICES TO ALLOW ANY DATASET
     parser.add_argument('--dataset', type=str, default='iris',
-                       choices=['iris', 'wine', 'breast_cancer'],
-                       help='Dataset to use')
+                       help='Dataset name or path to CSV/Excel file (supports 25+ datasets)')
     parser.add_argument('--test-size', type=float, default=0.2,
                        help='Test set size (0-1)')
     parser.add_argument('--standardize', action='store_true',
@@ -169,18 +205,29 @@ def main():
     import random
     random.seed(args.seed)
     
-    print(f"\nTraining GA-optimized decision tree on {args.dataset}")
+    print(f"\n{'='*70}")
+    print(f"Training GA-optimized decision tree on {args.dataset}")
+    print(f"{'='*70}")
     print(f"Configuration: pop={args.population}, gen={args.generations}, "
           f"depth={args.max_depth}")
     if args.config:
         print(f"Using config file: {args.config}")
     
     # Load data
-    X, y = load_dataset(args.dataset)
+    print(f"\nLoading dataset: {args.dataset}")
+    try:
+        X, y = load_dataset(args.dataset)
+        print(f"✓ Loaded: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
+    except Exception as e:
+        print(f"✗ Failed to load dataset: {e}")
+        print("\nAvailable datasets:")
+        print("  Sklearn: iris, wine, breast_cancer, digits, diabetes")
+        print("  OpenML: heart, titanic, credit_g, sonar, hepatitis, and more")
+        print("  Custom: path/to/your_data.csv")
+        sys.exit(1)
+    
     n_features = X.shape[1]
     n_classes = len(np.unique(y))
-    
-    print(f"Dataset: {X.shape[0]} samples, {n_features} features, {n_classes} classes")
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -252,7 +299,9 @@ def main():
     )
     
     # Run evolution
-    print("\nStarting evolution...")
+    print("\n" + "="*70)
+    print("Starting evolution...")
+    print("="*70)
     best_tree = ga_engine.evolve(X_train, y_train, verbose=args.verbose)
     
     print("\n" + "="*60)
@@ -289,7 +338,7 @@ def main():
     # Print rules
     print(f"\nDecision Rules:")
     rules = best_tree.to_rules()
-    for i, rule in enumerate(rules[:10], 1):  # Show first 10 rules
+    for i, rule in enumerate(rules[:10], 1):
         print(f"  {i}. {rule}")
     if len(rules) > 10:
         print(f"  ... ({len(rules)-10} more rules)")

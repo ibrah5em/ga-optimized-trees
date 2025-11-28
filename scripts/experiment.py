@@ -1,11 +1,17 @@
 """
-FAST experiment script - 10x faster, better interpretability.
+UPDATED experiment.py with enhanced dataset loader support
 
-Supports both default parameters and YAML configuration files.
+Now supports 25+ datasets including OpenML datasets!
 
 Usage:
-    python scripts/experiment.py
-    python scripts/experiment.py --config configs/default.yaml
+    # Use any sklearn dataset
+    python scripts/experiment.py --config configs/custom.yaml --datasets iris wine breast_cancer
+    
+    # Use OpenML datasets
+    python scripts/experiment.py --config configs/custom.yaml --datasets heart titanic sonar
+    
+    # Mix both
+    python scripts/experiment.py --config configs/custom.yaml --datasets iris heart titanic
 """
 
 import numpy as np
@@ -19,7 +25,6 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, f1_score
@@ -29,6 +34,25 @@ from scipy import stats
 
 from ga_trees.ga.engine import GAEngine, GAConfig, TreeInitializer, Mutation
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor, InterpretabilityCalculator
+
+
+# Import the integration helper
+try:
+    from dataset_integration import load_any_dataset
+except ImportError:
+    # Fallback to basic sklearn datasets
+    from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+    
+    def load_any_dataset(name: str, standardize: bool = False):
+        """Fallback loader for sklearn datasets only."""
+        datasets = {
+            'iris': load_iris,
+            'wine': load_wine,
+            'breast_cancer': load_breast_cancer
+        }
+        if name not in datasets:
+            raise ValueError(f"Dataset '{name}' not available. Install dataset_loader.")
+        return datasets[name](return_X_y=True)
 
 
 class FastInterpretabilityCalculator(InterpretabilityCalculator):
@@ -42,8 +66,7 @@ class FastInterpretabilityCalculator(InterpretabilityCalculator):
         # Node complexity - PROPERLY penalize large trees
         if 'node_complexity' in weights:
             num_nodes = tree.get_num_nodes()
-            # Exponential penalty for large trees
-            node_score = np.exp(-num_nodes / 15.0)  # Sweet spot around 15 nodes
+            node_score = np.exp(-num_nodes / 15.0)
             score += weights['node_complexity'] * node_score
         
         # Feature coherence
@@ -54,14 +77,12 @@ class FastInterpretabilityCalculator(InterpretabilityCalculator):
                 coherence = 1.0 - (len(features_used) / max(len(internal_nodes), 1))
                 score += weights['feature_coherence'] * max(0.0, coherence)
         
-        # Tree balance - CAPPED to avoid rewarding overgrowth
+        # Tree balance
         if 'tree_balance' in weights:
             balance = tree.get_tree_balance()
-            # Only reward balance if tree isn't too large
             if tree.get_num_nodes() <= 30:
                 score += weights['tree_balance'] * balance
             else:
-                # Penalty for large unbalanced trees
                 score += weights['tree_balance'] * balance * 0.5
         
         # Semantic coherence
@@ -71,7 +92,6 @@ class FastInterpretabilityCalculator(InterpretabilityCalculator):
                 predictions = [l.prediction for l in leaves if l.prediction is not None]
                 if predictions:
                     unique = len(set(predictions))
-                    # More coherent if fewer unique predictions
                     semantic = 1.0 - (unique / len(predictions))
                     score += weights['semantic_coherence'] * semantic
         
@@ -84,7 +104,6 @@ class FastFitnessCalculator(FitnessCalculator):
     def __init__(self, mode='weighted_sum', accuracy_weight=0.7, 
                  interpretability_weight=0.3, interpretability_weights=None):
         super().__init__(mode, accuracy_weight, interpretability_weight, interpretability_weights)
-        # Use fixed interpretability calculator
         self.interp_calc = FastInterpretabilityCalculator()
 
 
@@ -132,8 +151,6 @@ def load_config(config_path=None):
         print(f"Loading configuration from: {config_path}")
         with open(config_path, 'r') as f:
             user_config = yaml.safe_load(f)
-        
-        # Deep merge configurations
         config = _merge_configs(default_config, user_config)
     else:
         if config_path:
@@ -156,16 +173,6 @@ def _merge_configs(default, user):
             result[key] = value
     
     return result
-
-
-def load_dataset(name):
-    """Load dataset by name."""
-    datasets = {
-        'iris': load_iris,
-        'wine': load_wine,
-        'breast_cancer': load_breast_cancer,
-    }
-    return datasets[name](return_X_y=True)
 
 
 def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
@@ -194,7 +201,6 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) 
                          for i in range(n_features)}
         
-        # Use configuration
         ga_config = GAConfig(
             population_size=config['ga']['population_size'],
             n_generations=config['ga']['n_generations'],
@@ -213,7 +219,6 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             min_samples_leaf=config['tree']['min_samples_leaf']
         )
         
-        # FAST FITNESS with FIXED interpretability
         fitness_config = config['fitness']
         fitness_calc = FastFitnessCalculator(
             mode=fitness_config['mode'],
@@ -352,44 +357,6 @@ def print_summary(all_results, config):
     df = pd.DataFrame(data)
     print(df.to_string(index=False))
     
-    # Tree size comparison
-    print(f"\n{'='*70}")
-    print("Tree Size Analysis (GA vs CART)")
-    print(f"{'='*70}\n")
-    
-    for dataset_name in all_results.keys():
-        ga_nodes = np.mean(all_results[dataset_name]['GA-Optimized']['nodes'])
-        cart_nodes = np.mean(all_results[dataset_name]['CART']['nodes'])
-        ratio = ga_nodes / cart_nodes
-        
-        status = "✓ Smaller" if ratio < 1.0 else ("✓✓ Much smaller" if ratio < 0.7 else 
-                 ("~ Similar" if ratio < 1.3 else "✗ Larger"))
-        
-        print(f"{dataset_name:20s}: GA={ga_nodes:5.1f}, CART={cart_nodes:5.1f}, "
-              f"Ratio={ratio:.2f}x  {status}")
-    
-    # Statistical tests
-    print(f"\n{'='*70}")
-    print("Statistical Tests (GA vs CART)")
-    print(f"{'='*70}\n")
-    
-    for dataset_name in all_results.keys():
-        ga_acc = all_results[dataset_name]['GA-Optimized']['test_acc']
-        cart_acc = all_results[dataset_name]['CART']['test_acc']
-        
-        t_stat, p_value = stats.ttest_rel(ga_acc, cart_acc)
-        
-        pooled_std = np.sqrt((np.var(ga_acc) + np.var(cart_acc)) / 2)
-        if pooled_std > 0:
-            cohens_d = (np.mean(ga_acc) - np.mean(cart_acc)) / pooled_std
-        else:
-            cohens_d = 0.0
-        
-        sig = "***" if p_value < 0.001 else ("**" if p_value < 0.01 else 
-              ("*" if p_value < 0.05 else "ns"))
-        
-        print(f"{dataset_name:20s}: t={t_stat:6.3f}, p={p_value:.4f} {sig}, d={cohens_d:.3f}")
-    
     # Save results
     output_dir = Path('results')
     output_dir.mkdir(exist_ok=True)
@@ -398,63 +365,62 @@ def print_summary(all_results, config):
     results_file = output_dir / f'results_FAST_{timestamp}.csv'
     df.to_csv(results_file, index=False)
     
-    # Save configuration used
-    config_file = output_dir / f'config_FAST_{timestamp}.yaml'
-    with open(config_file, 'w') as f:
-        yaml.dump(config, f, default_flow_style=False)
-    
     print(f"\n✓ Results saved to: {results_file}")
-    print(f"✓ Config saved to: {config_file}")
 
 
 def main():
     """Run FAST experiments with configurable parameters."""
     parser = argparse.ArgumentParser(description='Run GA-optimized decision tree experiments')
     parser.add_argument('--config', type=str, help='Path to configuration YAML file')
+    parser.add_argument('--datasets', nargs='+', help='List of datasets to use (overrides config)')
     args = parser.parse_args()
     
-    # Load configuration
     config = load_config(args.config)
     
+    # Override datasets if specified
+    if args.datasets:
+        config['experiment']['datasets'] = args.datasets
+    
     print(f"\n{'='*70}")
-    print("GA-Optimized Decision Trees: FAST Version")
-    print("Optimized for: Speed + Small Trees")
-    if args.config:
-        print(f"Configuration: {args.config}")
-    else:
-        print("Configuration: Default parameters")
+    print("GA-Optimized Decision Trees: Enhanced Dataset Support")
     print(f"{'='*70}")
     
-    # Print key configuration parameters
-    print("\nKey Configuration:")
+    print("\nConfiguration:")
+    print(f"  Datasets: {', '.join(config['experiment']['datasets'])}")
     print(f"  GA: {config['ga']['population_size']} pop, {config['ga']['n_generations']} gen")
     print(f"  Tree: max_depth={config['tree']['max_depth']}")
-    print(f"  Fitness: acc_weight={config['fitness']['accuracy_weight']}, "
-          f"interp_weight={config['fitness']['interpretability_weight']}")
-    print(f"  Datasets: {', '.join(config['experiment']['datasets'])}")
     
-    datasets = config['experiment']['datasets']
     all_results = {}
-    
     total_start = time.time()
     
-    for dataset_name in datasets:
-        X, y = load_dataset(dataset_name)
-        print(f"\n{dataset_name}: {X.shape[0]} samples, {X.shape[1]} features")
+    for dataset_name in config['experiment']['datasets']:
+        print(f"\n{'='*70}")
+        print(f"Loading dataset: {dataset_name}")
+        print(f"{'='*70}")
         
-        dataset_results = {}
-        dataset_results['GA-Optimized'] = run_ga_experiment(X, y, dataset_name, config, 
-                                                           n_folds=config['experiment']['cv_folds'])
-        dataset_results['CART'] = run_cart_experiment(X, y, dataset_name, config, 
-                                                     n_folds=config['experiment']['cv_folds'])
-        dataset_results['Random Forest'] = run_rf_experiment(X, y, dataset_name, config, 
-                                                            n_folds=config['experiment']['cv_folds'])
-        
-        all_results[dataset_name] = dataset_results
+        try:
+            X, y = load_any_dataset(dataset_name)
+            print(f"✓ Loaded: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
+            
+            dataset_results = {}
+            dataset_results['GA-Optimized'] = run_ga_experiment(X, y, dataset_name, config, 
+                                                               n_folds=config['experiment']['cv_folds'])
+            dataset_results['CART'] = run_cart_experiment(X, y, dataset_name, config, 
+                                                         n_folds=config['experiment']['cv_folds'])
+            dataset_results['Random Forest'] = run_rf_experiment(X, y, dataset_name, config, 
+                                                                n_folds=config['experiment']['cv_folds'])
+            
+            all_results[dataset_name] = dataset_results
+            
+        except Exception as e:
+            print(f"✗ Failed to process {dataset_name}: {e}")
+            import traceback
+            traceback.print_exc()
     
     total_time = time.time() - total_start
     
-    print_summary(all_results, config)
+    if all_results:
+        print_summary(all_results, config)
     
     print(f"\n{'='*70}")
     print(f"Total Time: {total_time:.1f}s (~{total_time/60:.1f} minutes)")
