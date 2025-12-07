@@ -298,9 +298,9 @@ pip install -r requirements.txt
 
 ## Questions?
 
-1. Check [INSTALLATION.md](INSTALLATION.md) for detailed instructions
-2. See [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-3. Read [Contributing Guide](CONTRIBUTING.md)
+
+1. See [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
+2. Read [Contributing Guide](CONTRIBUTING.md)
 
 ## Summary
 
