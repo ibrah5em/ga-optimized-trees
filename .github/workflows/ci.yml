@@ -40,6 +40,7 @@ jobs:
     
     - name: Quick training test
       run: |
+        python -c "import sys; sys.stdout.reconfigure(encoding='utf-8')" 2>nul || true  # Python 3.7+
         python scripts/train.py --dataset iris --generations 5 --population 10
     
     - name: Upload coverage to Codecov
