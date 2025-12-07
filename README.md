@@ -170,25 +170,79 @@ The framework implements an advanced genetic algorithm for decision tree evoluti
 5. **🧬 Mutation**: Threshold perturbation, feature replacement, pruning
 6. **🎯 Multi-Objective**: Weighted-sum fitness for balancing accuracy and interpretability
 
-## 📦 Installation 
+Based on the migration guide, here's the updated README installation section:
+
+
+## 📦 Installation
+
+### Quick Install (Recommended)
+
+For basic usage:
+```bash
+pip install -e .
+```
+
+With all optional features:
+```bash
+pip install -e .[all]
+```
 
 ### From Source (Development)
 
 ```bash
 git clone https://github.com/ibrah5em/ga-optimized-trees.git
 cd ga-optimized-trees
+
+# Minimal installation (core only)
+pip install -e .
+
+# Or install with specific features:
+pip install -e .[viz]           # For tree visualization
+pip install -e .[explainability] # For SHAP/LIME explainability
+pip install -e .[optimization]  # For Optuna/MLflow hyperparameter tuning
+pip install -e .[baselines]     # For XGBoost/LightGBM comparisons
+pip install -e .[api]           # For FastAPI web interface
+pip install -e .[dev]           # For development (testing, linting, etc.)
+pip install -e .[full]          # All features + dev tools
+```
+
+### Legacy Installation (Still Supported)
+
+If you prefer using requirements files:
+```bash
+# Core dependencies only
+pip install -r requirements.txt
+
+# Optional features
+pip install -r requirements-optional.txt
+
+# Development tools
+pip install -r requirements-dev.txt
+
+# Install package
 pip install -e .
 ```
 
-### Optional Dependencies
+### For Developers
 
 ```bash
-# For explainability features
-pip install shap lime
+# Full development setup
+pip install -e .[dev]
+pre-commit install  # Install Git hooks for code quality
 
-# For tree visualization
-pip install graphviz
+# Run tests
+pytest tests/ -v
+
+# Format code
+black src/ tests/ scripts/
+isort src/ tests/ scripts/
 ```
+
+**Note:** This package follows modern Python packaging standards (PEP 621). The `pyproject.toml` file contains all dependency declarations and build configurations.
+
+For detailed installation instructions and troubleshooting, see [INSTALLATION.md](docs/getting-started/installation.md).
+
+See the [Migration Guide](docs/MIGRATION.md) for details.
 
 ## 🧪 Testing & Quality
 
