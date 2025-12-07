@@ -4,12 +4,12 @@ Pytest configuration and shared fixtures.
 This file provides common test fixtures used across all tests.
 """
 
-import pytest
 import numpy as np
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+import pytest
+from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 
-from ga_trees.genotype.tree_genotype import TreeGenotype, create_leaf_node, create_internal_node
 from ga_trees.ga.engine import TreeInitializer
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 
 @pytest.fixture
@@ -17,6 +17,7 @@ def random_seed():
     """Set random seed for reproducibility."""
     np.random.seed(42)
     import random
+
     random.seed(42)
     return 42
 
@@ -48,22 +49,13 @@ def simple_tree():
     left = create_leaf_node(prediction=0, depth=1)
     right = create_leaf_node(prediction=1, depth=1)
     root = create_internal_node(
-        feature_idx=0,
-        threshold=0.5,
-        left_child=left,
-        right_child=right,
-        depth=0
+        feature_idx=0, threshold=0.5, left_child=left, right_child=right, depth=0
     )
-    
+
     tree = TreeGenotype(
-        root=root,
-        n_features=4,
-        n_classes=2,
-        max_depth=5,
-        min_samples_split=10,
-        min_samples_leaf=5
+        root=root, n_features=4, n_classes=2, max_depth=5, min_samples_split=10, min_samples_leaf=5
     )
-    
+
     return tree
 
 
@@ -71,11 +63,7 @@ def simple_tree():
 def tree_initializer():
     """Create tree initializer for tests."""
     return TreeInitializer(
-        n_features=4,
-        n_classes=2,
-        max_depth=5,
-        min_samples_split=10,
-        min_samples_leaf=5
+        n_features=4, n_classes=2, max_depth=5, min_samples_split=10, min_samples_leaf=5
     )
 
 
@@ -96,6 +84,4 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")

@@ -12,97 +12,153 @@ Usage:
     python scripts/visualize_comprehensive.py
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pandas as pd
-from pathlib import Path
+import seaborn as sns
 
 # Set style for publication-quality plots
 sns.set_style("whitegrid")
 sns.set_context("paper", font_scale=1.3)
-plt.rcParams['figure.dpi'] = 100
-plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams["figure.dpi"] = 100
+plt.rcParams["savefig.dpi"] = 300
+plt.rcParams["font.family"] = "sans-serif"
 
 # our results
 RESULTS = {
-    'iris': {
-        'GA': {'acc': 95.33, 'std': 3.40, 'nodes': 7.4, 'depth': 2.4, 'time': 3.41},
-        'CART': {'acc': 94.67, 'std': 2.67, 'nodes': 13.8, 'depth': 4.4, 'time': 0.00},
-        'RF': {'acc': 95.33, 'std': 3.40, 'time': 0.46}
+    "iris": {
+        "GA": {"acc": 95.33, "std": 3.40, "nodes": 7.4, "depth": 2.4, "time": 3.41},
+        "CART": {"acc": 94.67, "std": 2.67, "nodes": 13.8, "depth": 4.4, "time": 0.00},
+        "RF": {"acc": 95.33, "std": 3.40, "time": 0.46},
     },
-    'wine': {
-        'GA': {'acc': 87.60, 'std': 3.96, 'nodes': 9.0, 'depth': 3.0, 'time': 5.50},
-        'CART': {'acc': 89.32, 'std': 3.80, 'nodes': 17.8, 'depth': 4.4, 'time': 0.00},
-        'RF': {'acc': 97.75, 'std': 2.13, 'time': 0.53}
+    "wine": {
+        "GA": {"acc": 87.60, "std": 3.96, "nodes": 9.0, "depth": 3.0, "time": 5.50},
+        "CART": {"acc": 89.32, "std": 3.80, "nodes": 17.8, "depth": 4.4, "time": 0.00},
+        "RF": {"acc": 97.75, "std": 2.13, "time": 0.53},
     },
-    'breast_cancer': {
-        'GA': {'acc': 90.34, 'std': 3.36, 'nodes': 4.2, 'depth': 1.4, 'time': 7.12},
-        'CART': {'acc': 92.80, 'std': 2.30, 'nodes': 27.4, 'depth': 5.0, 'time': 0.02},
-        'RF': {'acc': 95.08, 'std': 1.18, 'time': 0.50}
-    }
+    "breast_cancer": {
+        "GA": {"acc": 90.34, "std": 3.36, "nodes": 4.2, "depth": 1.4, "time": 7.12},
+        "CART": {"acc": 92.80, "std": 2.30, "nodes": 27.4, "depth": 5.0, "time": 0.02},
+        "RF": {"acc": 95.08, "std": 1.18, "time": 0.50},
+    },
 }
 
 
 def create_accuracy_comparison():
     """Create accuracy comparison bar chart."""
     fig, ax = plt.subplots(figsize=(12, 6))
-    
-    datasets = ['Iris', 'Wine', 'Breast Cancer']
+
+    datasets = ["Iris", "Wine", "Breast Cancer"]
     x = np.arange(len(datasets))
     width = 0.25
-    
+
     # Extract data
-    ga_acc = [RESULTS['iris']['GA']['acc'], RESULTS['wine']['GA']['acc'], 
-              RESULTS['breast_cancer']['GA']['acc']]
-    ga_std = [RESULTS['iris']['GA']['std'], RESULTS['wine']['GA']['std'], 
-              RESULTS['breast_cancer']['GA']['std']]
-    
-    cart_acc = [RESULTS['iris']['CART']['acc'], RESULTS['wine']['CART']['acc'], 
-                RESULTS['breast_cancer']['CART']['acc']]
-    cart_std = [RESULTS['iris']['CART']['std'], RESULTS['wine']['CART']['std'], 
-                RESULTS['breast_cancer']['CART']['std']]
-    
-    rf_acc = [RESULTS['iris']['RF']['acc'], RESULTS['wine']['RF']['acc'], 
-              RESULTS['breast_cancer']['RF']['acc']]
-    rf_std = [RESULTS['iris']['RF']['std'], RESULTS['wine']['RF']['std'], 
-              RESULTS['breast_cancer']['RF']['std']]
-    
+    ga_acc = [
+        RESULTS["iris"]["GA"]["acc"],
+        RESULTS["wine"]["GA"]["acc"],
+        RESULTS["breast_cancer"]["GA"]["acc"],
+    ]
+    ga_std = [
+        RESULTS["iris"]["GA"]["std"],
+        RESULTS["wine"]["GA"]["std"],
+        RESULTS["breast_cancer"]["GA"]["std"],
+    ]
+
+    cart_acc = [
+        RESULTS["iris"]["CART"]["acc"],
+        RESULTS["wine"]["CART"]["acc"],
+        RESULTS["breast_cancer"]["CART"]["acc"],
+    ]
+    cart_std = [
+        RESULTS["iris"]["CART"]["std"],
+        RESULTS["wine"]["CART"]["std"],
+        RESULTS["breast_cancer"]["CART"]["std"],
+    ]
+
+    rf_acc = [
+        RESULTS["iris"]["RF"]["acc"],
+        RESULTS["wine"]["RF"]["acc"],
+        RESULTS["breast_cancer"]["RF"]["acc"],
+    ]
+    rf_std = [
+        RESULTS["iris"]["RF"]["std"],
+        RESULTS["wine"]["RF"]["std"],
+        RESULTS["breast_cancer"]["RF"]["std"],
+    ]
+
     # Plot bars
-    bars1 = ax.bar(x - width, ga_acc, width, yerr=ga_std, label='GA-Optimized', 
-                   color='#FF6B6B', alpha=0.85, capsize=5, edgecolor='black', linewidth=1.2)
-    bars2 = ax.bar(x, cart_acc, width, yerr=cart_std, label='CART', 
-                   color='#4ECDC4', alpha=0.85, capsize=5, edgecolor='black', linewidth=1.2)
-    bars3 = ax.bar(x + width, rf_acc, width, yerr=rf_std, label='Random Forest', 
-                   color='#95E1D3', alpha=0.85, capsize=5, edgecolor='black', linewidth=1.2)
-    
+    bars1 = ax.bar(
+        x - width,
+        ga_acc,
+        width,
+        yerr=ga_std,
+        label="GA-Optimized",
+        color="#FF6B6B",
+        alpha=0.85,
+        capsize=5,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+    bars2 = ax.bar(
+        x,
+        cart_acc,
+        width,
+        yerr=cart_std,
+        label="CART",
+        color="#4ECDC4",
+        alpha=0.85,
+        capsize=5,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+    bars3 = ax.bar(
+        x + width,
+        rf_acc,
+        width,
+        yerr=rf_std,
+        label="Random Forest",
+        color="#95E1D3",
+        alpha=0.85,
+        capsize=5,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+
     # Customize
-    ax.set_ylabel('Test Accuracy (%)', fontsize=12, fontweight='bold')
-    ax.set_xlabel('Dataset', fontsize=14, fontweight='bold')
-    ax.set_title('Model Accuracy Comparison', fontsize=16, fontweight='bold', pad=20)
+    ax.set_ylabel("Test Accuracy (%)", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Dataset", fontsize=14, fontweight="bold")
+    ax.set_title("Model Accuracy Comparison", fontsize=16, fontweight="bold", pad=20)
     ax.set_xticks(x)
     ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc='lower right', fontsize=11, framealpha=0.95)
+    ax.legend(loc="lower right", fontsize=11, framealpha=0.95)
     ax.set_ylim([82, 100])
-    ax.grid(axis='y', alpha=0.3, linestyle='--')
-    
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
+
     # Add value labels
     def autolabel(bars, values):
         for bar, val in zip(bars, values):
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + 1,
-                   f'{val:.1f}%', ha='center', va='bottom', fontsize=9, fontweight='bold')
-    
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                height + 1,
+                f"{val:.1f}%",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+                fontweight="bold",
+            )
+
     autolabel(bars1, ga_acc)
     autolabel(bars2, cart_acc)
     autolabel(bars3, rf_acc)
-    
+
     plt.tight_layout()
-    
-    output_dir = Path('results/figures')
+
+    output_dir = Path("results/figures")
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / 'accuracy_comparison.png', bbox_inches='tight')
+    plt.savefig(output_dir / "accuracy_comparison.png", bbox_inches="tight")
     print(f"✓ Saved: accuracy_comparison.png")
     plt.close()
 
@@ -110,52 +166,94 @@ def create_accuracy_comparison():
 def create_tree_size_comparison():
     """Create tree size comparison - THE WINNING CHART."""
     fig, ax = plt.subplots(figsize=(12, 6))
-    
-    datasets = ['Iris', 'Wine', 'Breast Cancer']
+
+    datasets = ["Iris", "Wine", "Breast Cancer"]
     x = np.arange(len(datasets))
     width = 0.35
-    
-    ga_nodes = [RESULTS['iris']['GA']['nodes'], RESULTS['wine']['GA']['nodes'], 
-                RESULTS['breast_cancer']['GA']['nodes']]
-    cart_nodes = [RESULTS['iris']['CART']['nodes'], RESULTS['wine']['CART']['nodes'], 
-                  RESULTS['breast_cancer']['CART']['nodes']]
-    
+
+    ga_nodes = [
+        RESULTS["iris"]["GA"]["nodes"],
+        RESULTS["wine"]["GA"]["nodes"],
+        RESULTS["breast_cancer"]["GA"]["nodes"],
+    ]
+    cart_nodes = [
+        RESULTS["iris"]["CART"]["nodes"],
+        RESULTS["wine"]["CART"]["nodes"],
+        RESULTS["breast_cancer"]["CART"]["nodes"],
+    ]
+
     # Plot bars
-    bars1 = ax.bar(x - width/2, ga_nodes, width, label='GA-Optimized', 
-                   color='#FF6B6B', alpha=0.85, edgecolor='black', linewidth=1.5)
-    bars2 = ax.bar(x + width/2, cart_nodes, width, label='CART', 
-                   color='#4ECDC4', alpha=0.85, edgecolor='black', linewidth=1.5)
-    
+    bars1 = ax.bar(
+        x - width / 2,
+        ga_nodes,
+        width,
+        label="GA-Optimized",
+        color="#FF6B6B",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.5,
+    )
+    bars2 = ax.bar(
+        x + width / 2,
+        cart_nodes,
+        width,
+        label="CART",
+        color="#4ECDC4",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.5,
+    )
+
     # Customize
-    ax.set_ylabel('Number of Nodes', fontsize=14, fontweight='bold')
-    ax.set_xlabel('Dataset', fontsize=14, fontweight='bold')
-    ax.set_title('Tree Complexity: GA Produces 2-7× Smaller Trees', 
-                fontsize=16, fontweight='bold', pad=20)
+    ax.set_ylabel("Number of Nodes", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Dataset", fontsize=14, fontweight="bold")
+    ax.set_title(
+        "Tree Complexity: GA Produces 2-7× Smaller Trees", fontsize=16, fontweight="bold", pad=20
+    )
     ax.set_xticks(x)
     ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc='upper left', fontsize=11, framealpha=0.95)
-    ax.grid(axis='y', alpha=0.3, linestyle='--')
-    
+    ax.legend(loc="upper left", fontsize=11, framealpha=0.95)
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
+
     # Add value labels with reduction percentage
     for i, (ga, cart) in enumerate(zip(ga_nodes, cart_nodes)):
         # GA bar
-        ax.text(i - width/2, ga + 1, f'{ga:.1f}', 
-               ha='center', va='bottom', fontsize=10, fontweight='bold')
+        ax.text(
+            i - width / 2,
+            ga + 1,
+            f"{ga:.1f}",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            fontweight="bold",
+        )
         # CART bar
-        ax.text(i + width/2, cart + 1, f'{cart:.1f}', 
-               ha='center', va='bottom', fontsize=10, fontweight='bold')
-        
+        ax.text(
+            i + width / 2,
+            cart + 1,
+            f"{cart:.1f}",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            fontweight="bold",
+        )
+
         # Add reduction arrow and percentage
-        reduction = (1 - ga/cart) * 100
+        reduction = (1 - ga / cart) * 100
         mid_x = i
         mid_y = max(ga, cart) + 3
-        ax.annotate(f'{reduction:.0f}% smaller', 
-                   xy=(mid_x, mid_y), fontsize=10, 
-                   ha='center', color='green', fontweight='bold',
-                   bbox=dict(boxstyle='round,pad=0.5', facecolor='yellow', alpha=0.7))
-    
+        ax.annotate(
+            f"{reduction:.0f}% smaller",
+            xy=(mid_x, mid_y),
+            fontsize=10,
+            ha="center",
+            color="green",
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="yellow", alpha=0.7),
+        )
+
     plt.tight_layout()
-    plt.savefig(Path('results/figures') / 'tree_size_comparison.png', bbox_inches='tight')
+    plt.savefig(Path("results/figures") / "tree_size_comparison.png", bbox_inches="tight")
     print(f"✓ Saved: tree_size_comparison.png")
     plt.close()
 
@@ -163,65 +261,99 @@ def create_tree_size_comparison():
 def create_tradeoff_scatter():
     """Create accuracy vs interpretability scatter plot."""
     fig, ax = plt.subplots(figsize=(10, 8))
-    
+
     # Prepare data
     data_points = []
-    colors = {'GA': '#FF6B6B', 'CART': '#4ECDC4'}
-    markers = {'GA': 'o', 'CART': 's'}
-    sizes = {'GA': 300, 'CART': 200}
-    
-    for dataset, display_name in [('iris', 'Iris'), ('wine', 'Wine'), 
-                                   ('breast_cancer', 'Breast Cancer')]:
-        for model in ['GA', 'CART']:
-            acc = RESULTS[dataset][model]['acc']
-            nodes = RESULTS[dataset][model]['nodes']
+    colors = {"GA": "#FF6B6B", "CART": "#4ECDC4"}
+    markers = {"GA": "o", "CART": "s"}
+    sizes = {"GA": 300, "CART": 200}
+
+    for dataset, display_name in [
+        ("iris", "Iris"),
+        ("wine", "Wine"),
+        ("breast_cancer", "Breast Cancer"),
+    ]:
+        for model in ["GA", "CART"]:
+            acc = RESULTS[dataset][model]["acc"]
+            nodes = RESULTS[dataset][model]["nodes"]
             interpretability = 100.0 / nodes  # Inverse of nodes
-            
-            ax.scatter(interpretability, acc, 
-                      s=sizes[model], alpha=0.7, 
-                      color=colors[model], 
-                      marker=markers[model],
-                      edgecolors='black', linewidth=2,
-                      label=f'{model}' if dataset == 'iris' else '')
-            
+
+            ax.scatter(
+                interpretability,
+                acc,
+                s=sizes[model],
+                alpha=0.7,
+                color=colors[model],
+                marker=markers[model],
+                edgecolors="black",
+                linewidth=2,
+                label=f"{model}" if dataset == "iris" else "",
+            )
+
             # Add labels
-            offset = 0.3 if model == 'GA' else -0.3
-            ax.annotate(f'{model}\n({display_name})', 
-                       xy=(interpretability, acc),
-                       xytext=(10*np.sign(offset), offset),
-                       textcoords='offset points',
-                       fontsize=9, ha='left' if offset > 0 else 'right',
-                       bbox=dict(boxstyle='round,pad=0.3', 
-                                facecolor=colors[model], alpha=0.3))
-    
+            offset = 0.3 if model == "GA" else -0.3
+            ax.annotate(
+                f"{model}\n({display_name})",
+                xy=(interpretability, acc),
+                xytext=(10 * np.sign(offset), offset),
+                textcoords="offset points",
+                fontsize=9,
+                ha="left" if offset > 0 else "right",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor=colors[model], alpha=0.3),
+            )
+
     # Add ideal region
-    ax.axhspan(92, 100, alpha=0.1, color='green', label='High Accuracy Zone')
-    ax.axvspan(5, 25, alpha=0.1, color='blue', label='High Interpretability Zone')
-    
-    ax.set_xlabel('Interpretability Score', fontsize=13, fontweight='bold')
-    ax.set_ylabel('Test Accuracy (%)', fontsize=13, fontweight='bold',labelpad=30)
-    ax.set_title('Accuracy-Interpretability Trade-off', fontsize=15, fontweight='bold', pad=20)
-    ax.grid(True, alpha=0.3, linestyle='--')
-    
+    ax.axhspan(92, 100, alpha=0.1, color="green", label="High Accuracy Zone")
+    ax.axvspan(5, 25, alpha=0.1, color="blue", label="High Interpretability Zone")
+
+    ax.set_xlabel("Interpretability Score", fontsize=13, fontweight="bold")
+    ax.set_ylabel("Test Accuracy (%)", fontsize=13, fontweight="bold", labelpad=30)
+    ax.set_title("Accuracy-Interpretability Trade-off", fontsize=15, fontweight="bold", pad=20)
+    ax.grid(True, alpha=0.3, linestyle="--")
+
     # Custom legend
     from matplotlib.lines import Line2D
+
     legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='#FF6B6B', 
-               markersize=12, label='GA-Optimized', markeredgecolor='black', markeredgewidth=1.5),
-        Line2D([0], [0], marker='s', color='w', markerfacecolor='#4ECDC4', 
-               markersize=10, label='CART', markeredgecolor='black', markeredgewidth=1.5)
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor="#FF6B6B",
+            markersize=12,
+            label="GA-Optimized",
+            markeredgecolor="black",
+            markeredgewidth=1.5,
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="s",
+            color="w",
+            markerfacecolor="#4ECDC4",
+            markersize=10,
+            label="CART",
+            markeredgecolor="black",
+            markeredgewidth=1.5,
+        ),
     ]
-    ax.legend(handles=legend_elements, loc='lower left', fontsize=11, framealpha=0.95)
-    
+    ax.legend(handles=legend_elements, loc="lower left", fontsize=11, framealpha=0.95)
+
     # Add annotation for sweet spot
-    ax.annotate('GA Sweet Spot:\nHigh Interpretability\n+ Good Accuracy', 
-               xy=(13.5, 90.34), xytext=(18, 85),
-               arrowprops=dict(arrowstyle='->', lw=2, color='darkgreen'),
-               fontsize=10, fontweight='bold', color='darkgreen',
-               bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.8))
-    
+    ax.annotate(
+        "GA Sweet Spot:\nHigh Interpretability\n+ Good Accuracy",
+        xy=(13.5, 90.34),
+        xytext=(18, 85),
+        arrowprops=dict(arrowstyle="->", lw=2, color="darkgreen"),
+        fontsize=10,
+        fontweight="bold",
+        color="darkgreen",
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8),
+    )
+
     plt.tight_layout()
-    plt.savefig(Path('results/figures') / 'tradeoff_scatter.png', bbox_inches='tight')
+    plt.savefig(Path("results/figures") / "tradeoff_scatter.png", bbox_inches="tight")
     print(f"✓ Saved: tradeoff_scatter.png")
     plt.close()
 
@@ -229,44 +361,83 @@ def create_tradeoff_scatter():
 def create_speed_comparison():
     """Create training speed comparison."""
     fig, ax = plt.subplots(figsize=(12, 6))
-    
-    datasets = ['Iris', 'Wine', 'Breast Cancer']
+
+    datasets = ["Iris", "Wine", "Breast Cancer"]
     x = np.arange(len(datasets))
     width = 0.25
-    
-    ga_time = [RESULTS['iris']['GA']['time'], RESULTS['wine']['GA']['time'], 
-               RESULTS['breast_cancer']['GA']['time']]
-    cart_time = [RESULTS['iris']['CART']['time'] + 0.01, RESULTS['wine']['CART']['time'] + 0.01, 
-                 RESULTS['breast_cancer']['CART']['time'] + 0.01]  # Add 0.01 to show on log scale
-    rf_time = [RESULTS['iris']['RF']['time'], RESULTS['wine']['RF']['time'], 
-               RESULTS['breast_cancer']['RF']['time']]
-    
+
+    ga_time = [
+        RESULTS["iris"]["GA"]["time"],
+        RESULTS["wine"]["GA"]["time"],
+        RESULTS["breast_cancer"]["GA"]["time"],
+    ]
+    cart_time = [
+        RESULTS["iris"]["CART"]["time"] + 0.01,
+        RESULTS["wine"]["CART"]["time"] + 0.01,
+        RESULTS["breast_cancer"]["CART"]["time"] + 0.01,
+    ]  # Add 0.01 to show on log scale
+    rf_time = [
+        RESULTS["iris"]["RF"]["time"],
+        RESULTS["wine"]["RF"]["time"],
+        RESULTS["breast_cancer"]["RF"]["time"],
+    ]
+
     # Plot bars
-    bars1 = ax.bar(x - width, ga_time, width, label='GA-Optimized', 
-                   color='#FF6B6B', alpha=0.85, edgecolor='black', linewidth=1.2)
-    bars2 = ax.bar(x, cart_time, width, label='CART', 
-                   color='#4ECDC4', alpha=0.85, edgecolor='black', linewidth=1.2)
-    bars3 = ax.bar(x + width, rf_time, width, label='Random Forest', 
-                   color='#95E1D3', alpha=0.85, edgecolor='black', linewidth=1.2)
-    
-    ax.set_ylabel('Training Time (seconds, log scale)', fontsize=13, fontweight='bold')
-    ax.set_xlabel('Dataset', fontsize=13, fontweight='bold')
-    ax.set_title('Training Speed Comparison', fontsize=15, fontweight='bold', pad=20)
+    bars1 = ax.bar(
+        x - width,
+        ga_time,
+        width,
+        label="GA-Optimized",
+        color="#FF6B6B",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+    bars2 = ax.bar(
+        x,
+        cart_time,
+        width,
+        label="CART",
+        color="#4ECDC4",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+    bars3 = ax.bar(
+        x + width,
+        rf_time,
+        width,
+        label="Random Forest",
+        color="#95E1D3",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.2,
+    )
+
+    ax.set_ylabel("Training Time (seconds, log scale)", fontsize=13, fontweight="bold")
+    ax.set_xlabel("Dataset", fontsize=13, fontweight="bold")
+    ax.set_title("Training Speed Comparison", fontsize=15, fontweight="bold", pad=20)
     ax.set_xticks(x)
     ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc='upper left', fontsize=11, framealpha=0.95)
-    ax.set_yscale('log')
-    ax.grid(axis='y', alpha=0.3, linestyle='--', which='both')
-    
+    ax.legend(loc="upper left", fontsize=11, framealpha=0.95)
+    ax.set_yscale("log")
+    ax.grid(axis="y", alpha=0.3, linestyle="--", which="both")
+
     # Add value labels
     for bars, times in [(bars1, ga_time), (bars2, cart_time), (bars3, rf_time)]:
         for bar, time in zip(bars, times):
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height * 1.2,
-                   f'{time:.2f}s', ha='center', va='bottom', fontsize=9)
-    
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                height * 1.2,
+                f"{time:.2f}s",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+            )
+
     plt.tight_layout()
-    plt.savefig(Path('results/figures') / 'speed_comparison.png', bbox_inches='tight')
+    plt.savefig(Path("results/figures") / "speed_comparison.png", bbox_inches="tight")
     print(f"✓ Saved: speed_comparison.png")
     plt.close()
 
@@ -274,73 +445,79 @@ def create_speed_comparison():
 def create_summary_table():
     """Create comprehensive summary table as image."""
     fig, ax = plt.subplots(figsize=(14, 8))
-    ax.axis('off')
-    
+    ax.axis("off")
+
     # Prepare data
     table_data = []
-    headers = ['Dataset', 'Model', 'Accuracy', 'Nodes', 'Depth', 'Time (s)', 'Size Ratio']
-    
-    for dataset, display_name in [('iris', 'Iris'), ('wine', 'Wine'), 
-                                   ('breast_cancer', 'Breast\nCancer')]:
-        for model in ['GA', 'CART', 'RF']:
-            if model == 'RF':
+    headers = ["Dataset", "Model", "Accuracy", "Nodes", "Depth", "Time (s)", "Size Ratio"]
+
+    for dataset, display_name in [
+        ("iris", "Iris"),
+        ("wine", "Wine"),
+        ("breast_cancer", "Breast\nCancer"),
+    ]:
+        for model in ["GA", "CART", "RF"]:
+            if model == "RF":
                 row = [
-                    display_name if model == 'GA' else '',
-                    'Random Forest',
+                    display_name if model == "GA" else "",
+                    "Random Forest",
                     f"{RESULTS[dataset][model]['acc']:.2f}%",
-                    'N/A',
-                    'N/A',
+                    "N/A",
+                    "N/A",
                     f"{RESULTS[dataset][model]['time']:.2f}",
-                    'N/A'
+                    "N/A",
                 ]
             else:
-                ga_nodes = RESULTS[dataset]['GA']['nodes']
-                cart_nodes = RESULTS[dataset]['CART']['nodes']
+                ga_nodes = RESULTS[dataset]["GA"]["nodes"]
+                cart_nodes = RESULTS[dataset]["CART"]["nodes"]
                 ratio = ga_nodes / cart_nodes
-                
+
                 row = [
-                    display_name if model == 'GA' else '',
-                    'GA-Optimized' if model == 'GA' else 'CART',
+                    display_name if model == "GA" else "",
+                    "GA-Optimized" if model == "GA" else "CART",
                     f"{RESULTS[dataset][model]['acc']:.2f}%",
                     f"{RESULTS[dataset][model]['nodes']:.1f}",
                     f"{RESULTS[dataset][model]['depth']:.1f}",
                     f"{RESULTS[dataset][model]['time']:.2f}",
-                    f"{ratio:.2f}×" if model == 'GA' else '1.00×'
+                    f"{ratio:.2f}×" if model == "GA" else "1.00×",
                 ]
             table_data.append(row)
-    
+
     # Create table
-    table = ax.table(cellText=table_data, colLabels=headers,
-                    cellLoc='center', loc='center',
-                    colWidths=[0.12, 0.16, 0.12, 0.10, 0.10, 0.12, 0.12])
-    
+    table = ax.table(
+        cellText=table_data,
+        colLabels=headers,
+        cellLoc="center",
+        loc="center",
+        colWidths=[0.12, 0.16, 0.12, 0.10, 0.10, 0.12, 0.12],
+    )
+
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 2.5)
-    
+
     # Style header
     for i in range(len(headers)):
         cell = table[(0, i)]
-        cell.set_facecolor('#4ECDC4')
-        cell.set_text_props(weight='bold', color='white')
-    
+        cell.set_facecolor("#4ECDC4")
+        cell.set_text_props(weight="bold", color="white")
+
     # Style cells - highlight GA rows
     for i, row in enumerate(table_data, start=1):
-        if 'GA-Optimized' in row[1]:
+        if "GA-Optimized" in row[1]:
             for j in range(len(headers)):
-                table[(i, j)].set_facecolor('#FFE5E5')
-        elif 'CART' in row[1]:
+                table[(i, j)].set_facecolor("#FFE5E5")
+        elif "CART" in row[1]:
             for j in range(len(headers)):
-                table[(i, j)].set_facecolor('#E5F5F5')
-        
+                table[(i, j)].set_facecolor("#E5F5F5")
+
         # Highlight best accuracy
         # ... (styling continues)
-    
-    ax.set_title('Comprehensive Results Summary', 
-                fontsize=16, fontweight='bold', pad=20)
-    
+
+    ax.set_title("Comprehensive Results Summary", fontsize=16, fontweight="bold", pad=20)
+
     plt.tight_layout()
-    plt.savefig(Path('results/figures') / 'summary_table.png', bbox_inches='tight')
+    plt.savefig(Path("results/figures") / "summary_table.png", bbox_inches="tight")
     print(f"✓ Saved: summary_table.png")
     plt.close()
 
@@ -348,8 +525,8 @@ def create_summary_table():
 def create_key_findings():
     """Create key findings summary image."""
     fig, ax = plt.subplots(figsize=(12, 10))
-    ax.axis('off')
-    
+    ax.axis("off")
+
     findings_text = """
     🏆 KEY FINDINGS 🏆
     
@@ -390,36 +567,40 @@ def create_key_findings():
     with minimal accuracy loss. Ideal for domains where
     explanation matters more than 1-2% accuracy gain.
     """
-    
-    ax.text(0.05, 0.95, findings_text, 
-           transform=ax.transAxes,
-           fontsize=11,
-           verticalalignment='top',
-           fontfamily='monospace',
-           bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    
+
+    ax.text(
+        0.05,
+        0.95,
+        findings_text,
+        transform=ax.transAxes,
+        fontsize=11,
+        verticalalignment="top",
+        fontfamily="monospace",
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
+    )
+
     plt.tight_layout()
-    plt.savefig(Path('results/figures') / 'key_findings.png', bbox_inches='tight')
+    plt.savefig(Path("results/figures") / "key_findings.png", bbox_inches="tight")
     print(f"✓ Saved: key_findings.png")
     plt.close()
 
 
 def main():
     """Generate all visualizations."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("Creating Comprehensive Visualizations")
-    print("="*70 + "\n")
-    
+    print("=" * 70 + "\n")
+
     create_accuracy_comparison()
     create_tree_size_comparison()
     create_tradeoff_scatter()
     create_speed_comparison()
     create_summary_table()
     create_key_findings()
-    
-    print("\n" + "="*70)
+
+    print("\n" + "=" * 70)
     print("✅ All Visualizations Created!")
-    print("="*70)
+    print("=" * 70)
     print("\nSaved to: results/figures/")
     print("\nFiles created:")
     print("  1. accuracy_comparison.png")
@@ -428,8 +609,8 @@ def main():
     print("  4. speed_comparison.png")
     print("  5. summary_table.png")
     print("  6. key_findings.png")
-    print("\n" + "="*70 + "\n")
+    print("\n" + "=" * 70 + "\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

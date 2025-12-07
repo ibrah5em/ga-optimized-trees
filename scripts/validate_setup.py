@@ -5,8 +5,8 @@ Validate package setup and dependencies.
 Run this script to check if everything is properly configured.
 """
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -45,9 +45,7 @@ def check_file_exists(filepath):
 def run_command(cmd, description):
     """Run a shell command and report success."""
     try:
-        result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, timeout=30
-        )
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
         if result.returncode == 0:
             print(f"✓ {description}")
             return True
@@ -102,6 +100,7 @@ def main():
     print_header("Package Installation")
     try:
         import ga_trees
+
         print(f"✓ ga_trees package found")
         print(f"  Location: {ga_trees.__file__}")
     except ImportError:
@@ -175,8 +174,8 @@ def main():
     try:
         from ga_trees.genotype.tree_genotype import (
             TreeGenotype,
-            create_leaf_node,
             create_internal_node,
+            create_leaf_node,
         )
 
         left = create_leaf_node(0, 1)
@@ -189,8 +188,9 @@ def main():
         all_passed = False
 
     try:
-        from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
         import numpy as np
+
+        from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 
         X = np.random.rand(10, 4)
         y = np.random.randint(0, 2, 10)
@@ -203,12 +203,8 @@ def main():
 
     # 9. Command Line Tools
     print_header("Command Line Tools")
-    run_command(
-        "python scripts/train.py --help", "Training script help"
-    )
-    run_command(
-        "python scripts/experiment.py --help", "Experiment script help"
-    )
+    run_command("python scripts/train.py --help", "Training script help")
+    run_command("python scripts/experiment.py --help", "Experiment script help")
 
     # 10. Summary
     print_header("Summary")
