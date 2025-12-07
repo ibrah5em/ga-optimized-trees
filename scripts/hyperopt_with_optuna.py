@@ -87,15 +87,15 @@ OPTIMIZATION_PRESETS = {
         'cv_folds': 5,
         'search_space': {
             'population_size': {'type': 'int', 'low': 50, 'high': 200, 'step': 10},
-            'n_generations': {'type': 'int', 'low': 20, 'high': 100, 'step': 10},
+            'n_generations': {'type': 'int', 'low': 30, 'high': 60, 'step': 10},
             'crossover_prob': {'type': 'float', 'low': 0.5, 'high': 0.95},
             'mutation_prob': {'type': 'float', 'low': 0.05, 'high': 0.35},
             'tournament_size': {'type': 'int', 'low': 2, 'high': 6},
             'elitism_ratio': {'type': 'float', 'low': 0.05, 'high': 0.2},
-            'max_depth': {'type': 'int', 'low': 3, 'high': 8},
+            'max_depth': {'type': 'int', 'low': 5, 'high': 7},
             'min_samples_split': {'type': 'int', 'low': 5, 'high': 20},
             'min_samples_leaf': {'type': 'int', 'low': 2, 'high': 10},
-            'accuracy_weight': {'type': 'float', 'low': 0.5, 'high': 0.95},
+            'accuracy_weight': {'type': 'float', 'low': 0.60, 'high': 0.75},
             'node_complexity_weight': {'type': 'float', 'low': 0.3, 'high': 0.8},
             'feature_coherence_weight': {'type': 'float', 'low': 0.05, 'high': 0.35}
         }
@@ -357,7 +357,9 @@ def objective(trial: optuna.Trial,
     # Composite score: 80% accuracy + 20% size penalty
     max_tree_size = 50  # Normalize by maximum expected tree size
     size_penalty = 1.0 - min(mean_tree_size / max_tree_size, 1.0)
-    final_score = 0.8 * mean_accuracy + 0.2 * size_penalty
+    final_score = mean_accuracy
+    if mean_tree_size > 50:
+       final_score -= min((mean_tree_size - 50) / 100, 0.05)
     
     # Log trial
     tracker.log_trial(trial, final_score, params)

@@ -1,0 +1,2025 @@
+{
+  "study_name": "ga_opt_breast_cancer_20251128_195036",
+  "start_time": "2025-11-28T19:50:36.489475",
+  "end_time": "2025-11-28T20:38:18.160249",
+  "duration_seconds": 2861.670776,
+  "n_trials": 100,
+  "best_value": 0.9044291259121255,
+  "best_params": {
+    "population_size": 110,
+    "n_generations": 40,
+    "crossover_prob": 0.8729318791183682,
+    "mutation_prob": 0.1570259980080768,
+    "tournament_size": 3,
+    "elitism_ratio": 0.1314044124737373,
+    "max_depth": 3,
+    "min_samples_split": 17,
+    "min_samples_leaf": 2,
+    "accuracy_weight": 0.9440991214702328,
+    "node_complexity_weight": 0.6861223846483286,
+    "feature_coherence_weight": 0.10961470446025172
+  },
+  "best_trial_number": 5,
+  "all_trials": [
+    {
+      "number": 0,
+      "value": 0.8741446359260985,
+      "params": {
+        "population_size": 100,
+        "n_generations": 100,
+        "crossover_prob": 0.8293972738151323,
+        "mutation_prob": 0.22959754525911097,
+        "tournament_size": 2,
+        "elitism_ratio": 0.0733991780504304,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.8186326600082204,
+        "node_complexity_weight": 0.3102922471479012,
+        "feature_coherence_weight": 0.34097295564859825
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 93.50129
+    },
+    {
+      "number": 1,
+      "value": 0.6979344822232574,
+      "params": {
+        "population_size": 180,
+        "n_generations": 30,
+        "crossover_prob": 0.5818212352431953,
+        "mutation_prob": 0.10502135295603016,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1287134647448357,
+        "max_depth": 5,
+        "min_samples_split": 9,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.5627722372934189,
+        "node_complexity_weight": 0.44607232426760907,
+        "feature_coherence_weight": 0.15990855298810752
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 17.969321
+    },
+    {
+      "number": 2,
+      "value": 0.8700026703927963,
+      "params": {
+        "population_size": 120,
+        "n_generations": 90,
+        "crossover_prob": 0.5898532019712619,
+        "mutation_prob": 0.20427033152408347,
+        "tournament_size": 4,
+        "elitism_ratio": 0.05696756190799966,
+        "max_depth": 6,
+        "min_samples_split": 7,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.926998491764,
+        "node_complexity_weight": 0.7828160165372797,
+        "feature_coherence_weight": 0.29251920443493834
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 125.233948
+    },
+    {
+      "number": 3,
+      "value": 0.894801055736687,
+      "params": {
+        "population_size": 90,
+        "n_generations": 20,
+        "crossover_prob": 0.8079048619304705,
+        "mutation_prob": 0.1820457481218804,
+        "tournament_size": 2,
+        "elitism_ratio": 0.12427653651669054,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.7981350279592918,
+        "node_complexity_weight": 0.45585553804470547,
+        "feature_coherence_weight": 0.20602040635334323
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 14.538244
+    },
+    {
+      "number": 4,
+      "value": 0.688839745381152,
+      "params": {
+        "population_size": 130,
+        "n_generations": 30,
+        "crossover_prob": 0.9363130824940513,
+        "mutation_prob": 0.28253984700833434,
+        "tournament_size": 6,
+        "elitism_ratio": 0.18422410256414734,
+        "max_depth": 6,
+        "min_samples_split": 19,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.5881922880886153,
+        "node_complexity_weight": 0.322613644455269,
+        "feature_coherence_weight": 0.1475990992289793
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 19.572177
+    },
+    {
+      "number": 5,
+      "value": 0.9044291259121255,
+      "params": {
+        "population_size": 110,
+        "n_generations": 40,
+        "crossover_prob": 0.8729318791183682,
+        "mutation_prob": 0.1570259980080768,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1314044124737373,
+        "max_depth": 3,
+        "min_samples_split": 17,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9440991214702328,
+        "node_complexity_weight": 0.6861223846483286,
+        "feature_coherence_weight": 0.10961470446025172
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 35.540251
+    },
+    {
+      "number": 6,
+      "value": 0.888888888888889,
+      "params": {
+        "population_size": 50,
+        "n_generations": 90,
+        "crossover_prob": 0.8180858047314277,
+        "mutation_prob": 0.26870215041229617,
+        "tournament_size": 5,
+        "elitism_ratio": 0.06110669776011356,
+        "max_depth": 5,
+        "min_samples_split": 6,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.780484157072401,
+        "node_complexity_weight": 0.4654490124263246,
+        "feature_coherence_weight": 0.06906750508580708
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 36.329543
+    },
+    {
+      "number": 7,
+      "value": 0.8806914454277286,
+      "params": {
+        "population_size": 90,
+        "n_generations": 40,
+        "crossover_prob": 0.8283227802521288,
+        "mutation_prob": 0.24126724140656391,
+        "tournament_size": 6,
+        "elitism_ratio": 0.1208322387742924,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 8,
+        "accuracy_weight": 0.7525747389062734,
+        "node_complexity_weight": 0.6854835899772804,
+        "feature_coherence_weight": 0.19813867890931725
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 30.15269
+    },
+    {
+      "number": 8,
+      "value": 0.7793379909951872,
+      "params": {
+        "population_size": 130,
+        "n_generations": 50,
+        "crossover_prob": 0.5114386070348428,
+        "mutation_prob": 0.08236742809799133,
+        "tournament_size": 2,
+        "elitism_ratio": 0.1454615616895671,
+        "max_depth": 4,
+        "min_samples_split": 13,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.6121815031169937,
+        "node_complexity_weight": 0.5051914615178148,
+        "feature_coherence_weight": 0.2766653415629146
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 52.281663
+    },
+    {
+      "number": 9,
+      "value": 0.8863022512032294,
+      "params": {
+        "population_size": 80,
+        "n_generations": 20,
+        "crossover_prob": 0.6303881538111956,
+        "mutation_prob": 0.09836638617620133,
+        "tournament_size": 6,
+        "elitism_ratio": 0.17121805693466258,
+        "max_depth": 6,
+        "min_samples_split": 18,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.5839565264987161,
+        "node_complexity_weight": 0.7462794992449888,
+        "feature_coherence_weight": 0.2118026725746952
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 11.246911
+    },
+    {
+      "number": 10,
+      "value": 0.9022115820524764,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.9461440165266338,
+        "mutation_prob": 0.11264862624183694,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1359537426213647,
+        "max_depth": 3,
+        "min_samples_split": 12,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.8831186064013544,
+        "node_complexity_weight": 0.796133916788059,
+        "feature_coherence_weight": 0.08665126355355315
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.862133
+    },
+    {
+      "number": 11,
+      "value": 0.8865392330383481,
+      "params": {
+        "population_size": 80,
+        "n_generations": 40,
+        "crossover_prob": 0.8655892123740868,
+        "mutation_prob": 0.14905179329305177,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1204636884861273,
+        "max_depth": 3,
+        "min_samples_split": 14,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.9412177064045095,
+        "node_complexity_weight": 0.7539452460161317,
+        "feature_coherence_weight": 0.07573563963012662
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 30.040181
+    },
+    {
+      "number": 12,
+      "value": 0.8697532681260675,
+      "params": {
+        "population_size": 150,
+        "n_generations": 30,
+        "crossover_prob": 0.7184220242590773,
+        "mutation_prob": 0.22396547238626696,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1334403644023077,
+        "max_depth": 5,
+        "min_samples_split": 20,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.8869441380246853,
+        "node_complexity_weight": 0.7537736785237477,
+        "feature_coherence_weight": 0.14154906452503024
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 48.823941
+    },
+    {
+      "number": 13,
+      "value": 0.8772668840242198,
+      "params": {
+        "population_size": 60,
+        "n_generations": 30,
+        "crossover_prob": 0.8626975849264162,
+        "mutation_prob": 0.14213883697784707,
+        "tournament_size": 2,
+        "elitism_ratio": 0.1909673991709833,
+        "max_depth": 3,
+        "min_samples_split": 8,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.7843965515296895,
+        "node_complexity_weight": 0.7299655553073473,
+        "feature_coherence_weight": 0.05351319884249142
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 13.074892
+    },
+    {
+      "number": 14,
+      "value": 0.8231940381928271,
+      "params": {
+        "population_size": 160,
+        "n_generations": 60,
+        "crossover_prob": 0.9336549463368365,
+        "mutation_prob": 0.10391854602955206,
+        "tournament_size": 2,
+        "elitism_ratio": 0.11547295386453371,
+        "max_depth": 4,
+        "min_samples_split": 16,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9480390371568176,
+        "node_complexity_weight": 0.49268116514620863,
+        "feature_coherence_weight": 0.05781091336752509
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 113.729526
+    },
+    {
+      "number": 15,
+      "value": 0.8887287067225587,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.9142595075585299,
+        "mutation_prob": 0.18400060277948516,
+        "tournament_size": 4,
+        "elitism_ratio": 0.08653770871628014,
+        "max_depth": 3,
+        "min_samples_split": 12,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.6972532965842951,
+        "node_complexity_weight": 0.7359559395834601,
+        "feature_coherence_weight": 0.07376420608186568
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 7.81091
+    },
+    {
+      "number": 16,
+      "value": 0.8029586710138177,
+      "params": {
+        "population_size": 80,
+        "n_generations": 50,
+        "crossover_prob": 0.9033369965717875,
+        "mutation_prob": 0.21637651963711452,
+        "tournament_size": 4,
+        "elitism_ratio": 0.15818076947795265,
+        "max_depth": 5,
+        "min_samples_split": 17,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9318550273421212,
+        "node_complexity_weight": 0.5492318151617791,
+        "feature_coherence_weight": 0.12725016264240716
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 42.426651
+    },
+    {
+      "number": 17,
+      "value": 0.8976608187134504,
+      "params": {
+        "population_size": 50,
+        "n_generations": 30,
+        "crossover_prob": 0.9359202337021397,
+        "mutation_prob": 0.10247335553268924,
+        "tournament_size": 5,
+        "elitism_ratio": 0.13595862508928253,
+        "max_depth": 6,
+        "min_samples_split": 13,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.7930869436680288,
+        "node_complexity_weight": 0.6656196958041078,
+        "feature_coherence_weight": 0.08427496181671958
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 3.5407
+    },
+    {
+      "number": 18,
+      "value": 0.8830409356725145,
+      "params": {
+        "population_size": 110,
+        "n_generations": 70,
+        "crossover_prob": 0.9040524569642263,
+        "mutation_prob": 0.19611626194355872,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1917859801013732,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.6515574033494047,
+        "node_complexity_weight": 0.6892708745960173,
+        "feature_coherence_weight": 0.15071718134794668
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 34.027736
+    },
+    {
+      "number": 19,
+      "value": 0.8623022512032295,
+      "params": {
+        "population_size": 90,
+        "n_generations": 30,
+        "crossover_prob": 0.7991304140473869,
+        "mutation_prob": 0.10641660096447104,
+        "tournament_size": 2,
+        "elitism_ratio": 0.12690848456099582,
+        "max_depth": 4,
+        "min_samples_split": 16,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.8447202768955046,
+        "node_complexity_weight": 0.7350521565613095,
+        "feature_coherence_weight": 0.25940427009072897
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 23.298346
+    },
+    {
+      "number": 20,
+      "value": 0.8777624592454588,
+      "params": {
+        "population_size": 160,
+        "n_generations": 30,
+        "crossover_prob": 0.7515116411156417,
+        "mutation_prob": 0.21656488436591267,
+        "tournament_size": 3,
+        "elitism_ratio": 0.12079257877911331,
+        "max_depth": 3,
+        "min_samples_split": 11,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.8170693970992731,
+        "node_complexity_weight": 0.5901989029261739,
+        "feature_coherence_weight": 0.053800668672103695
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 37.035069
+    },
+    {
+      "number": 21,
+      "value": 0.8888888888888888,
+      "params": {
+        "population_size": 100,
+        "n_generations": 40,
+        "crossover_prob": 0.8192075245967174,
+        "mutation_prob": 0.23115128156628528,
+        "tournament_size": 2,
+        "elitism_ratio": 0.15454340720137993,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.7410707100159617,
+        "node_complexity_weight": 0.37953311787158217,
+        "feature_coherence_weight": 0.17908015211467934
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 19.695051
+    },
+    {
+      "number": 22,
+      "value": 0.8743287067225586,
+      "params": {
+        "population_size": 150,
+        "n_generations": 50,
+        "crossover_prob": 0.8088742862854674,
+        "mutation_prob": 0.09047596780975546,
+        "tournament_size": 4,
+        "elitism_ratio": 0.1071460732982567,
+        "max_depth": 3,
+        "min_samples_split": 20,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9286719298592044,
+        "node_complexity_weight": 0.7264477381842047,
+        "feature_coherence_weight": 0.15207623614378943
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 63.601079
+    },
+    {
+      "number": 23,
+      "value": 0.8837197950628785,
+      "params": {
+        "population_size": 110,
+        "n_generations": 40,
+        "crossover_prob": 0.9044712043159373,
+        "mutation_prob": 0.21197766287457787,
+        "tournament_size": 2,
+        "elitism_ratio": 0.14904510848498279,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9050506497461959,
+        "node_complexity_weight": 0.7193320280391102,
+        "feature_coherence_weight": 0.11460648745967388
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 32.533156
+    },
+    {
+      "number": 24,
+      "value": 0.8356668840242198,
+      "params": {
+        "population_size": 80,
+        "n_generations": 40,
+        "crossover_prob": 0.6889208695218159,
+        "mutation_prob": 0.13989096670959672,
+        "tournament_size": 2,
+        "elitism_ratio": 0.11754429411497044,
+        "max_depth": 4,
+        "min_samples_split": 15,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.7465759091256933,
+        "node_complexity_weight": 0.46002571615176774,
+        "feature_coherence_weight": 0.3001832562452646
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 32.600874
+    },
+    {
+      "number": 25,
+      "value": 0.881109268747089,
+      "params": {
+        "population_size": 90,
+        "n_generations": 20,
+        "crossover_prob": 0.7865200838877484,
+        "mutation_prob": 0.16220123744866066,
+        "tournament_size": 2,
+        "elitism_ratio": 0.1213878406647735,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.7753487962214116,
+        "node_complexity_weight": 0.45504321187920277,
+        "feature_coherence_weight": 0.21402430570005246
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 12.539294
+    },
+    {
+      "number": 26,
+      "value": 0.8919411271541687,
+      "params": {
+        "population_size": 80,
+        "n_generations": 30,
+        "crossover_prob": 0.7631106086715325,
+        "mutation_prob": 0.17317994325472605,
+        "tournament_size": 3,
+        "elitism_ratio": 0.07950998053798086,
+        "max_depth": 3,
+        "min_samples_split": 20,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9040717642317165,
+        "node_complexity_weight": 0.4587019468573498,
+        "feature_coherence_weight": 0.2704638076142488
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 19.336594
+    },
+    {
+      "number": 27,
+      "value": 0.9005847953216374,
+      "params": {
+        "population_size": 120,
+        "n_generations": 20,
+        "crossover_prob": 0.8252706179290835,
+        "mutation_prob": 0.11855050240686221,
+        "tournament_size": 3,
+        "elitism_ratio": 0.09244854060315823,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.6761044353539553,
+        "node_complexity_weight": 0.40857828949913744,
+        "feature_coherence_weight": 0.10920990292455557
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 12.809092
+    },
+    {
+      "number": 28,
+      "value": 0.8759162862909486,
+      "params": {
+        "population_size": 170,
+        "n_generations": 30,
+        "crossover_prob": 0.8794847192660762,
+        "mutation_prob": 0.3104758013637082,
+        "tournament_size": 3,
+        "elitism_ratio": 0.0946216570857413,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.7595135241553757,
+        "node_complexity_weight": 0.48406127413254646,
+        "feature_coherence_weight": 0.17496368787187677
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 39.138752
+    },
+    {
+      "number": 29,
+      "value": 0.8793251979506289,
+      "params": {
+        "population_size": 60,
+        "n_generations": 20,
+        "crossover_prob": 0.8883009061424024,
+        "mutation_prob": 0.11949831906916514,
+        "tournament_size": 3,
+        "elitism_ratio": 0.12930848436186343,
+        "max_depth": 3,
+        "min_samples_split": 13,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.9108456092838532,
+        "node_complexity_weight": 0.6484839622802363,
+        "feature_coherence_weight": 0.13327604973725043
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.663695
+    },
+    {
+      "number": 30,
+      "value": 0.8235746002173576,
+      "params": {
+        "population_size": 70,
+        "n_generations": 50,
+        "crossover_prob": 0.7723814999369275,
+        "mutation_prob": 0.33400511442222225,
+        "tournament_size": 2,
+        "elitism_ratio": 0.14130938539764185,
+        "max_depth": 5,
+        "min_samples_split": 19,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.8405004099397577,
+        "node_complexity_weight": 0.5376545082969836,
+        "feature_coherence_weight": 0.3114961144904605
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 34.37004
+    },
+    {
+      "number": 31,
+      "value": 0.830788635305077,
+      "params": {
+        "population_size": 140,
+        "n_generations": 30,
+        "crossover_prob": 0.6694315049225278,
+        "mutation_prob": 0.14372130970884095,
+        "tournament_size": 3,
+        "elitism_ratio": 0.07918826325715247,
+        "max_depth": 4,
+        "min_samples_split": 17,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9094290387643694,
+        "node_complexity_weight": 0.3578446626120002,
+        "feature_coherence_weight": 0.22828249183855673
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 40.581039
+    },
+    {
+      "number": 32,
+      "value": 0.8787108834031984,
+      "params": {
+        "population_size": 110,
+        "n_generations": 30,
+        "crossover_prob": 0.8810235758158087,
+        "mutation_prob": 0.11419926444905897,
+        "tournament_size": 4,
+        "elitism_ratio": 0.08847722091811927,
+        "max_depth": 3,
+        "min_samples_split": 20,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9193897509717374,
+        "node_complexity_weight": 0.4431625940150501,
+        "feature_coherence_weight": 0.2860483807854033
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 28.690014
+    },
+    {
+      "number": 33,
+      "value": 0.8835233038348083,
+      "params": {
+        "population_size": 100,
+        "n_generations": 30,
+        "crossover_prob": 0.9370631658827786,
+        "mutation_prob": 0.09313480190598732,
+        "tournament_size": 3,
+        "elitism_ratio": 0.11410610511963641,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9427776110559687,
+        "node_complexity_weight": 0.6004978999740552,
+        "feature_coherence_weight": 0.09549825033819864
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 25.709743
+    },
+    {
+      "number": 34,
+      "value": 0.9035087719298245,
+      "params": {
+        "population_size": 80,
+        "n_generations": 30,
+        "crossover_prob": 0.9162785987379487,
+        "mutation_prob": 0.2655509275325572,
+        "tournament_size": 2,
+        "elitism_ratio": 0.06197683852381236,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.8118921151381352,
+        "node_complexity_weight": 0.5170346917361726,
+        "feature_coherence_weight": 0.34122801984885387
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 9.962208
+    },
+    {
+      "number": 35,
+      "value": 0.8976608187134502,
+      "params": {
+        "population_size": 50,
+        "n_generations": 30,
+        "crossover_prob": 0.6245512658767023,
+        "mutation_prob": 0.15632844833123427,
+        "tournament_size": 3,
+        "elitism_ratio": 0.15799086047377708,
+        "max_depth": 4,
+        "min_samples_split": 20,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8764226331157924,
+        "node_complexity_weight": 0.40800199627597905,
+        "feature_coherence_weight": 0.20456427947456302
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 8.285687
+    },
+    {
+      "number": 36,
+      "value": 0.8497516534699583,
+      "params": {
+        "population_size": 70,
+        "n_generations": 30,
+        "crossover_prob": 0.6684880318317036,
+        "mutation_prob": 0.1290120867426969,
+        "tournament_size": 4,
+        "elitism_ratio": 0.06263637293970394,
+        "max_depth": 4,
+        "min_samples_split": 20,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.9439073563273437,
+        "node_complexity_weight": 0.47422315050688046,
+        "feature_coherence_weight": 0.21248576414705087
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 18.989733
+    },
+    {
+      "number": 37,
+      "value": 0.829958950473529,
+      "params": {
+        "population_size": 120,
+        "n_generations": 30,
+        "crossover_prob": 0.8592805333573315,
+        "mutation_prob": 0.20910084985491262,
+        "tournament_size": 3,
+        "elitism_ratio": 0.10901681752120619,
+        "max_depth": 4,
+        "min_samples_split": 17,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.8918271568890601,
+        "node_complexity_weight": 0.5100692739429167,
+        "feature_coherence_weight": 0.24931800494872472
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 32.236897
+    },
+    {
+      "number": 38,
+      "value": 0.797347865238317,
+      "params": {
+        "population_size": 70,
+        "n_generations": 40,
+        "crossover_prob": 0.6684444381999473,
+        "mutation_prob": 0.23380183663371662,
+        "tournament_size": 4,
+        "elitism_ratio": 0.06102935824681728,
+        "max_depth": 5,
+        "min_samples_split": 18,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9412689591307261,
+        "node_complexity_weight": 0.40617412334342373,
+        "feature_coherence_weight": 0.33088348459342654
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 30.93071
+    },
+    {
+      "number": 39,
+      "value": 0.9093567251461988,
+      "params": {
+        "population_size": 80,
+        "n_generations": 20,
+        "crossover_prob": 0.8896154941199056,
+        "mutation_prob": 0.0738942677917809,
+        "tournament_size": 4,
+        "elitism_ratio": 0.1437490621705989,
+        "max_depth": 3,
+        "min_samples_split": 11,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.7520960360843447,
+        "node_complexity_weight": 0.7676855562654287,
+        "feature_coherence_weight": 0.0905300847434576
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 6.872768
+    },
+    {
+      "number": 40,
+      "value": 0.8853197950628785,
+      "params": {
+        "population_size": 70,
+        "n_generations": 30,
+        "crossover_prob": 0.9258911915294262,
+        "mutation_prob": 0.16898210490363294,
+        "tournament_size": 4,
+        "elitism_ratio": 0.1227889727778895,
+        "max_depth": 3,
+        "min_samples_split": 8,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.8228455541304084,
+        "node_complexity_weight": 0.792721901019819,
+        "feature_coherence_weight": 0.07375622205337225
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 17.737045
+    },
+    {
+      "number": 41,
+      "value": 0.8918128654970761,
+      "params": {
+        "population_size": 60,
+        "n_generations": 40,
+        "crossover_prob": 0.820508451722158,
+        "mutation_prob": 0.1504302910097759,
+        "tournament_size": 5,
+        "elitism_ratio": 0.08906324251419369,
+        "max_depth": 4,
+        "min_samples_split": 13,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.6660693120922334,
+        "node_complexity_weight": 0.663443908332788,
+        "feature_coherence_weight": 0.1007395100561474
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 10.816853
+    },
+    {
+      "number": 42,
+      "value": 0.8649127775190186,
+      "params": {
+        "population_size": 60,
+        "n_generations": 20,
+        "crossover_prob": 0.8734900442065808,
+        "mutation_prob": 0.2635641278131614,
+        "tournament_size": 2,
+        "elitism_ratio": 0.07525528636237307,
+        "max_depth": 4,
+        "min_samples_split": 9,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.7982877991569836,
+        "node_complexity_weight": 0.6726659438067238,
+        "feature_coherence_weight": 0.0660177823036371
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.795563
+    },
+    {
+      "number": 43,
+      "value": 0.8895708119857164,
+      "params": {
+        "population_size": 100,
+        "n_generations": 40,
+        "crossover_prob": 0.7595662869931058,
+        "mutation_prob": 0.11639520968494288,
+        "tournament_size": 2,
+        "elitism_ratio": 0.08215466790189498,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.8273566900135798,
+        "node_complexity_weight": 0.48818480041950657,
+        "feature_coherence_weight": 0.2844221358467341
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 32.273129
+    },
+    {
+      "number": 44,
+      "value": 0.8799303213786679,
+      "params": {
+        "population_size": 50,
+        "n_generations": 40,
+        "crossover_prob": 0.866996901969688,
+        "mutation_prob": 0.20299009500215004,
+        "tournament_size": 2,
+        "elitism_ratio": 0.11411730521494676,
+        "max_depth": 3,
+        "min_samples_split": 20,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.9324331673928011,
+        "node_complexity_weight": 0.36241197543495457,
+        "feature_coherence_weight": 0.14500677335383289
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 15.272569
+    },
+    {
+      "number": 45,
+      "value": 0.8843373389225276,
+      "params": {
+        "population_size": 160,
+        "n_generations": 50,
+        "crossover_prob": 0.8292102791462962,
+        "mutation_prob": 0.14518902602037553,
+        "tournament_size": 4,
+        "elitism_ratio": 0.16222830175713931,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.9341037854266353,
+        "node_complexity_weight": 0.6854123670448014,
+        "feature_coherence_weight": 0.05052469694423887
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 62.192566
+    },
+    {
+      "number": 46,
+      "value": 0.825788914764788,
+      "params": {
+        "population_size": 80,
+        "n_generations": 50,
+        "crossover_prob": 0.7064395476301131,
+        "mutation_prob": 0.15549066135505185,
+        "tournament_size": 2,
+        "elitism_ratio": 0.05492483249388877,
+        "max_depth": 4,
+        "min_samples_split": 18,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.853940132656781,
+        "node_complexity_weight": 0.44859619833061704,
+        "feature_coherence_weight": 0.16474756549688724
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 39.964314
+    },
+    {
+      "number": 47,
+      "value": 0.8195076540909797,
+      "params": {
+        "population_size": 110,
+        "n_generations": 30,
+        "crossover_prob": 0.8227515527071897,
+        "mutation_prob": 0.07305162641297783,
+        "tournament_size": 2,
+        "elitism_ratio": 0.08126879513699403,
+        "max_depth": 4,
+        "min_samples_split": 17,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.7683508425737542,
+        "node_complexity_weight": 0.48511359056835235,
+        "feature_coherence_weight": 0.22937395150901488
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 28.427169
+    },
+    {
+      "number": 48,
+      "value": 0.8761251979506288,
+      "params": {
+        "population_size": 90,
+        "n_generations": 40,
+        "crossover_prob": 0.7026854771945106,
+        "mutation_prob": 0.16426321029252713,
+        "tournament_size": 3,
+        "elitism_ratio": 0.10766142353589553,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.9330940418042127,
+        "node_complexity_weight": 0.5439656169071638,
+        "feature_coherence_weight": 0.29863190200898976
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 36.791306
+    },
+    {
+      "number": 49,
+      "value": 0.8947368421052632,
+      "params": {
+        "population_size": 70,
+        "n_generations": 20,
+        "crossover_prob": 0.9156903150754869,
+        "mutation_prob": 0.10163561608165814,
+        "tournament_size": 3,
+        "elitism_ratio": 0.09215538730914022,
+        "max_depth": 3,
+        "min_samples_split": 12,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.8765293070322748,
+        "node_complexity_weight": 0.797565542189718,
+        "feature_coherence_weight": 0.09051181135544135
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 7.178747
+    },
+    {
+      "number": 50,
+      "value": 0.8699092687470888,
+      "params": {
+        "population_size": 70,
+        "n_generations": 70,
+        "crossover_prob": 0.7916321841296853,
+        "mutation_prob": 0.13655203861222298,
+        "tournament_size": 4,
+        "elitism_ratio": 0.13899137598291822,
+        "max_depth": 3,
+        "min_samples_split": 16,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9131630546703009,
+        "node_complexity_weight": 0.7654409047197362,
+        "feature_coherence_weight": 0.10567559461017413
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 38.625769
+    },
+    {
+      "number": 51,
+      "value": 0.8761251979506288,
+      "params": {
+        "population_size": 140,
+        "n_generations": 40,
+        "crossover_prob": 0.849843351131059,
+        "mutation_prob": 0.14862898453850013,
+        "tournament_size": 2,
+        "elitism_ratio": 0.09370934426538903,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.7966949374190817,
+        "node_complexity_weight": 0.4737865925958788,
+        "feature_coherence_weight": 0.3273336450353083
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 45.967052
+    },
+    {
+      "number": 52,
+      "value": 0.8713450292397661,
+      "params": {
+        "population_size": 60,
+        "n_generations": 30,
+        "crossover_prob": 0.9128592648532001,
+        "mutation_prob": 0.19326263715083103,
+        "tournament_size": 4,
+        "elitism_ratio": 0.06898068267385157,
+        "max_depth": 3,
+        "min_samples_split": 10,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.5664243001313404,
+        "node_complexity_weight": 0.7693398386180412,
+        "feature_coherence_weight": 0.15333721721882948
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 8.665402
+    },
+    {
+      "number": 53,
+      "value": 0.8917197950628785,
+      "params": {
+        "population_size": 50,
+        "n_generations": 30,
+        "crossover_prob": 0.9085424507585411,
+        "mutation_prob": 0.12051495526728419,
+        "tournament_size": 2,
+        "elitism_ratio": 0.13914663359503945,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.9478805119970811,
+        "node_complexity_weight": 0.7967832020592667,
+        "feature_coherence_weight": 0.16838584088141717
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.639113
+    },
+    {
+      "number": 54,
+      "value": 0.868964073901568,
+      "params": {
+        "population_size": 50,
+        "n_generations": 50,
+        "crossover_prob": 0.8268724168577595,
+        "mutation_prob": 0.13831469424074733,
+        "tournament_size": 2,
+        "elitism_ratio": 0.10792592332381443,
+        "max_depth": 5,
+        "min_samples_split": 11,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.8925653925884036,
+        "node_complexity_weight": 0.7117764500674594,
+        "feature_coherence_weight": 0.2992533161600833
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 25.645972
+    },
+    {
+      "number": 55,
+      "value": 0.8812809191119391,
+      "params": {
+        "population_size": 120,
+        "n_generations": 20,
+        "crossover_prob": 0.9225859974046068,
+        "mutation_prob": 0.12442263059364465,
+        "tournament_size": 2,
+        "elitism_ratio": 0.13433047450568353,
+        "max_depth": 3,
+        "min_samples_split": 5,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.8426240874486955,
+        "node_complexity_weight": 0.6711200071667137,
+        "feature_coherence_weight": 0.23192885630485505
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 18.347776
+    },
+    {
+      "number": 56,
+      "value": 0.8761127775190188,
+      "params": {
+        "population_size": 60,
+        "n_generations": 40,
+        "crossover_prob": 0.942329941582382,
+        "mutation_prob": 0.12091590194699858,
+        "tournament_size": 3,
+        "elitism_ratio": 0.12844343523138912,
+        "max_depth": 3,
+        "min_samples_split": 11,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.9424494459770304,
+        "node_complexity_weight": 0.7619258245343096,
+        "feature_coherence_weight": 0.18066940584064564
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 18.212484
+    },
+    {
+      "number": 57,
+      "value": 0.8918128654970761,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.7290894013929351,
+        "mutation_prob": 0.058885975233462944,
+        "tournament_size": 2,
+        "elitism_ratio": 0.08665338603613196,
+        "max_depth": 5,
+        "min_samples_split": 15,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.7926409828317269,
+        "node_complexity_weight": 0.7323438200042319,
+        "feature_coherence_weight": 0.17998222026074898
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 5.12759
+    },
+    {
+      "number": 58,
+      "value": 0.8849392330383481,
+      "params": {
+        "population_size": 60,
+        "n_generations": 30,
+        "crossover_prob": 0.9445039271250707,
+        "mutation_prob": 0.1486627591615606,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1530222682010714,
+        "max_depth": 4,
+        "min_samples_split": 15,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.8731421719788867,
+        "node_complexity_weight": 0.7952685566002644,
+        "feature_coherence_weight": 0.09244791368492171
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 14.571646
+    },
+    {
+      "number": 59,
+      "value": 0.8239146716348394,
+      "params": {
+        "population_size": 70,
+        "n_generations": 30,
+        "crossover_prob": 0.7868717805878561,
+        "mutation_prob": 0.1614772740547439,
+        "tournament_size": 2,
+        "elitism_ratio": 0.0833570875845415,
+        "max_depth": 4,
+        "min_samples_split": 20,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8828913310824841,
+        "node_complexity_weight": 0.41851305858590704,
+        "feature_coherence_weight": 0.30610877938816855
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 19.535975
+    },
+    {
+      "number": 60,
+      "value": 0.8834952336593697,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.8189063503194182,
+        "mutation_prob": 0.07119018586660338,
+        "tournament_size": 2,
+        "elitism_ratio": 0.15688652479614948,
+        "max_depth": 3,
+        "min_samples_split": 13,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.7681772612746743,
+        "node_complexity_weight": 0.7888816586892338,
+        "feature_coherence_weight": 0.1089258592319858
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 7.027065
+    },
+    {
+      "number": 61,
+      "value": 0.9023956528489366,
+      "params": {
+        "population_size": 70,
+        "n_generations": 50,
+        "crossover_prob": 0.9345913925571262,
+        "mutation_prob": 0.24876700353557699,
+        "tournament_size": 4,
+        "elitism_ratio": 0.08768466364822343,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.7053457782748058,
+        "node_complexity_weight": 0.7994102683384555,
+        "feature_coherence_weight": 0.09233239879265114
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 27.173291
+    },
+    {
+      "number": 62,
+      "value": 0.8976608187134504,
+      "params": {
+        "population_size": 70,
+        "n_generations": 70,
+        "crossover_prob": 0.8943510736779955,
+        "mutation_prob": 0.2130244727037487,
+        "tournament_size": 5,
+        "elitism_ratio": 0.09862635486414068,
+        "max_depth": 3,
+        "min_samples_split": 17,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.648919242299666,
+        "node_complexity_weight": 0.6951071235782449,
+        "feature_coherence_weight": 0.07851632245511289
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 26.21202
+    },
+    {
+      "number": 63,
+      "value": 0.8279162862909486,
+      "params": {
+        "population_size": 70,
+        "n_generations": 50,
+        "crossover_prob": 0.8728038610693112,
+        "mutation_prob": 0.3004835280746849,
+        "tournament_size": 4,
+        "elitism_ratio": 0.09482130472387428,
+        "max_depth": 5,
+        "min_samples_split": 14,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.7104883023571329,
+        "node_complexity_weight": 0.6411819546125737,
+        "feature_coherence_weight": 0.09061784460624756
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 35.720918
+    },
+    {
+      "number": 64,
+      "value": 0.8974115820524764,
+      "params": {
+        "population_size": 120,
+        "n_generations": 40,
+        "crossover_prob": 0.7343133246634318,
+        "mutation_prob": 0.17688473143029235,
+        "tournament_size": 3,
+        "elitism_ratio": 0.06358754121880816,
+        "max_depth": 3,
+        "min_samples_split": 15,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9268119605998026,
+        "node_complexity_weight": 0.6156799860761311,
+        "feature_coherence_weight": 0.20589722556616552
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 40.37925
+    },
+    {
+      "number": 65,
+      "value": 0.8403762148734668,
+      "params": {
+        "population_size": 160,
+        "n_generations": 40,
+        "crossover_prob": 0.7477773037320942,
+        "mutation_prob": 0.13412222922709116,
+        "tournament_size": 3,
+        "elitism_ratio": 0.05891174727020321,
+        "max_depth": 4,
+        "min_samples_split": 14,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8748421322159445,
+        "node_complexity_weight": 0.6212578506798746,
+        "feature_coherence_weight": 0.169754936799789
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 61.357128
+    },
+    {
+      "number": 66,
+      "value": 0.8849889147647882,
+      "params": {
+        "population_size": 90,
+        "n_generations": 50,
+        "crossover_prob": 0.7278054384171403,
+        "mutation_prob": 0.20244198043261372,
+        "tournament_size": 3,
+        "elitism_ratio": 0.0670309788127008,
+        "max_depth": 3,
+        "min_samples_split": 15,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8274131794481863,
+        "node_complexity_weight": 0.6693999111063743,
+        "feature_coherence_weight": 0.20594065675735762
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 37.437848
+    },
+    {
+      "number": 67,
+      "value": 0.8947368421052632,
+      "params": {
+        "population_size": 120,
+        "n_generations": 80,
+        "crossover_prob": 0.9495966171756063,
+        "mutation_prob": 0.29315126789056656,
+        "tournament_size": 4,
+        "elitism_ratio": 0.0853200529232559,
+        "max_depth": 3,
+        "min_samples_split": 10,
+        "min_samples_leaf": 7,
+        "accuracy_weight": 0.6346566064093714,
+        "node_complexity_weight": 0.6684944668239864,
+        "feature_coherence_weight": 0.05295666756183843
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 51.847003
+    },
+    {
+      "number": 68,
+      "value": 0.8824064586244372,
+      "params": {
+        "population_size": 90,
+        "n_generations": 40,
+        "crossover_prob": 0.8133967147291716,
+        "mutation_prob": 0.21447066918460694,
+        "tournament_size": 2,
+        "elitism_ratio": 0.13056899786225903,
+        "max_depth": 4,
+        "min_samples_split": 14,
+        "min_samples_leaf": 8,
+        "accuracy_weight": 0.9213319396045823,
+        "node_complexity_weight": 0.7833241804480126,
+        "feature_coherence_weight": 0.18563223642835272
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 30.84293
+    },
+    {
+      "number": 69,
+      "value": 0.8801548827821766,
+      "params": {
+        "population_size": 90,
+        "n_generations": 40,
+        "crossover_prob": 0.900936065316509,
+        "mutation_prob": 0.13241152034322548,
+        "tournament_size": 2,
+        "elitism_ratio": 0.19360148702169178,
+        "max_depth": 5,
+        "min_samples_split": 12,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.9258134213171793,
+        "node_complexity_weight": 0.7640546946278018,
+        "feature_coherence_weight": 0.20809500673589099
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 32.290944
+    },
+    {
+      "number": 70,
+      "value": 0.8910083527402577,
+      "params": {
+        "population_size": 80,
+        "n_generations": 30,
+        "crossover_prob": 0.9482686117109926,
+        "mutation_prob": 0.1266152680977728,
+        "tournament_size": 2,
+        "elitism_ratio": 0.12120932358918894,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.9381610636909764,
+        "node_complexity_weight": 0.7845873824663414,
+        "feature_coherence_weight": 0.08229240458344214
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 16.369005
+    },
+    {
+      "number": 71,
+      "value": 0.8787605651296384,
+      "params": {
+        "population_size": 90,
+        "n_generations": 50,
+        "crossover_prob": 0.9077061348402137,
+        "mutation_prob": 0.2784163440785044,
+        "tournament_size": 5,
+        "elitism_ratio": 0.09807890204629663,
+        "max_depth": 3,
+        "min_samples_split": 14,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.784949335448724,
+        "node_complexity_weight": 0.7486208866331033,
+        "feature_coherence_weight": 0.1207449012994099
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 39.085973
+    },
+    {
+      "number": 72,
+      "value": 0.8758914454277287,
+      "params": {
+        "population_size": 110,
+        "n_generations": 30,
+        "crossover_prob": 0.9045965824242612,
+        "mutation_prob": 0.14534475474944514,
+        "tournament_size": 2,
+        "elitism_ratio": 0.06133126768408106,
+        "max_depth": 4,
+        "min_samples_split": 11,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.859692513421821,
+        "node_complexity_weight": 0.7049545259296658,
+        "feature_coherence_weight": 0.08895478488584992
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 27.012299
+    },
+    {
+      "number": 73,
+      "value": 0.8947368421052632,
+      "params": {
+        "population_size": 60,
+        "n_generations": 30,
+        "crossover_prob": 0.9465140918087162,
+        "mutation_prob": 0.05280536142732696,
+        "tournament_size": 2,
+        "elitism_ratio": 0.15773130043437034,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.9342321958594196,
+        "node_complexity_weight": 0.7016093109960506,
+        "feature_coherence_weight": 0.08825148451553705
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 9.552801
+    },
+    {
+      "number": 74,
+      "value": 0.8510115820524764,
+      "params": {
+        "population_size": 130,
+        "n_generations": 50,
+        "crossover_prob": 0.6016070238663479,
+        "mutation_prob": 0.27761842850788043,
+        "tournament_size": 2,
+        "elitism_ratio": 0.08998139582658851,
+        "max_depth": 4,
+        "min_samples_split": 13,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9374620704222789,
+        "node_complexity_weight": 0.5750008085105517,
+        "feature_coherence_weight": 0.12746662853975427
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 62.227354
+    },
+    {
+      "number": 75,
+      "value": 0.8743535475857787,
+      "params": {
+        "population_size": 90,
+        "n_generations": 40,
+        "crossover_prob": 0.78101491278214,
+        "mutation_prob": 0.07299265591926424,
+        "tournament_size": 3,
+        "elitism_ratio": 0.10783640034088854,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.9443236172057968,
+        "node_complexity_weight": 0.7340762293956299,
+        "feature_coherence_weight": 0.07413368966755156
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 30.049001
+    },
+    {
+      "number": 76,
+      "value": 0.8881392330383482,
+      "params": {
+        "population_size": 70,
+        "n_generations": 90,
+        "crossover_prob": 0.8955466618651954,
+        "mutation_prob": 0.19921521812347298,
+        "tournament_size": 3,
+        "elitism_ratio": 0.09162316403138895,
+        "max_depth": 4,
+        "min_samples_split": 8,
+        "min_samples_leaf": 9,
+        "accuracy_weight": 0.67570954272179,
+        "node_complexity_weight": 0.796620223253222,
+        "feature_coherence_weight": 0.1668946531583948
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 54.138605
+    },
+    {
+      "number": 77,
+      "value": 0.8759535475857787,
+      "params": {
+        "population_size": 80,
+        "n_generations": 60,
+        "crossover_prob": 0.9465889792692168,
+        "mutation_prob": 0.2649259222247902,
+        "tournament_size": 3,
+        "elitism_ratio": 0.07502753777084553,
+        "max_depth": 4,
+        "min_samples_split": 6,
+        "min_samples_leaf": 6,
+        "accuracy_weight": 0.7224292780467834,
+        "node_complexity_weight": 0.7746587952818285,
+        "feature_coherence_weight": 0.059863389289928105
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 40.142392
+    },
+    {
+      "number": 78,
+      "value": 0.871345029239766,
+      "params": {
+        "population_size": 110,
+        "n_generations": 30,
+        "crossover_prob": 0.8136432102344129,
+        "mutation_prob": 0.22476623777972496,
+        "tournament_size": 2,
+        "elitism_ratio": 0.1245352399660747,
+        "max_depth": 4,
+        "min_samples_split": 19,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.7067483214953817,
+        "node_complexity_weight": 0.512114052036422,
+        "feature_coherence_weight": 0.23308015433034335
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 18.162894
+    },
+    {
+      "number": 79,
+      "value": 0.8852793044558299,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.90840480690139,
+        "mutation_prob": 0.13729924907051005,
+        "tournament_size": 2,
+        "elitism_ratio": 0.14269394662730142,
+        "max_depth": 3,
+        "min_samples_split": 14,
+        "min_samples_leaf": 8,
+        "accuracy_weight": 0.9055440847493288,
+        "node_complexity_weight": 0.7995614009997466,
+        "feature_coherence_weight": 0.15383671652456393
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 7.341836
+    },
+    {
+      "number": 80,
+      "value": 0.8930045645086166,
+      "params": {
+        "population_size": 60,
+        "n_generations": 20,
+        "crossover_prob": 0.7650488034085012,
+        "mutation_prob": 0.10404126334414035,
+        "tournament_size": 3,
+        "elitism_ratio": 0.06351049572166527,
+        "max_depth": 3,
+        "min_samples_split": 11,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.8962012943327812,
+        "node_complexity_weight": 0.6379149829100966,
+        "feature_coherence_weight": 0.27497072306429027
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.297536
+    },
+    {
+      "number": 81,
+      "value": 0.9005847953216374,
+      "params": {
+        "population_size": 70,
+        "n_generations": 50,
+        "crossover_prob": 0.8756400467558714,
+        "mutation_prob": 0.15791535874501456,
+        "tournament_size": 2,
+        "elitism_ratio": 0.11169176725171885,
+        "max_depth": 5,
+        "min_samples_split": 15,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.8840863280103657,
+        "node_complexity_weight": 0.7451918783151205,
+        "feature_coherence_weight": 0.10630656278683508
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 17.084048
+    },
+    {
+      "number": 82,
+      "value": 0.9064327485380117,
+      "params": {
+        "population_size": 50,
+        "n_generations": 40,
+        "crossover_prob": 0.7172128530520032,
+        "mutation_prob": 0.1463875713498043,
+        "tournament_size": 4,
+        "elitism_ratio": 0.10882958868109303,
+        "max_depth": 3,
+        "min_samples_split": 9,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9413819821743707,
+        "node_complexity_weight": 0.4970849457733822,
+        "feature_coherence_weight": 0.23416450966208724
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 10.511667
+    },
+    {
+      "number": 83,
+      "value": 0.8859649122807017,
+      "params": {
+        "population_size": 140,
+        "n_generations": 30,
+        "crossover_prob": 0.6312202768964496,
+        "mutation_prob": 0.20605144211004636,
+        "tournament_size": 3,
+        "elitism_ratio": 0.05720447463500625,
+        "max_depth": 3,
+        "min_samples_split": 13,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8803160624573717,
+        "node_complexity_weight": 0.6617549133928798,
+        "feature_coherence_weight": 0.2077331542189138
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 21.619249
+    },
+    {
+      "number": 84,
+      "value": 0.8729127775190189,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.8054154463773809,
+        "mutation_prob": 0.08610082361086824,
+        "tournament_size": 4,
+        "elitism_ratio": 0.08725250256908608,
+        "max_depth": 3,
+        "min_samples_split": 8,
+        "min_samples_leaf": 5,
+        "accuracy_weight": 0.9227971258814018,
+        "node_complexity_weight": 0.6036669309821886,
+        "feature_coherence_weight": 0.3323773273964267
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.618876
+    },
+    {
+      "number": 85,
+      "value": 0.8829835118770378,
+      "params": {
+        "population_size": 100,
+        "n_generations": 30,
+        "crossover_prob": 0.8024420277267905,
+        "mutation_prob": 0.17910568721841671,
+        "tournament_size": 4,
+        "elitism_ratio": 0.05310959118119747,
+        "max_depth": 3,
+        "min_samples_split": 17,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9132988664002024,
+        "node_complexity_weight": 0.4567721485842442,
+        "feature_coherence_weight": 0.19038746643040183
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 25.647606
+    },
+    {
+      "number": 86,
+      "value": 0.8859649122807017,
+      "params": {
+        "population_size": 50,
+        "n_generations": 30,
+        "crossover_prob": 0.755561634475646,
+        "mutation_prob": 0.10231564792052572,
+        "tournament_size": 3,
+        "elitism_ratio": 0.06455479025982154,
+        "max_depth": 4,
+        "min_samples_split": 12,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.7676241279158799,
+        "node_complexity_weight": 0.7889549598208014,
+        "feature_coherence_weight": 0.30481152326596817
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 8.65566
+    },
+    {
+      "number": 87,
+      "value": 0.8918128654970761,
+      "params": {
+        "population_size": 80,
+        "n_generations": 50,
+        "crossover_prob": 0.9228134718788111,
+        "mutation_prob": 0.2659279521525983,
+        "tournament_size": 4,
+        "elitism_ratio": 0.09691528507713337,
+        "max_depth": 5,
+        "min_samples_split": 13,
+        "min_samples_leaf": 8,
+        "accuracy_weight": 0.6015349252143993,
+        "node_complexity_weight": 0.748701944939779,
+        "feature_coherence_weight": 0.07735475798660818
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 20.554907
+    },
+    {
+      "number": 88,
+      "value": 0.8835108834031984,
+      "params": {
+        "population_size": 120,
+        "n_generations": 20,
+        "crossover_prob": 0.94822871410637,
+        "mutation_prob": 0.12704476040457852,
+        "tournament_size": 3,
+        "elitism_ratio": 0.14378221799978505,
+        "max_depth": 5,
+        "min_samples_split": 15,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.9097260859578292,
+        "node_complexity_weight": 0.7356843047001513,
+        "feature_coherence_weight": 0.0969101729890603
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 19.534795
+    },
+    {
+      "number": 89,
+      "value": 0.8817392330383481,
+      "params": {
+        "population_size": 60,
+        "n_generations": 20,
+        "crossover_prob": 0.8314772205989961,
+        "mutation_prob": 0.11621406706815833,
+        "tournament_size": 5,
+        "elitism_ratio": 0.06158234119605536,
+        "max_depth": 3,
+        "min_samples_split": 13,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.787097576655142,
+        "node_complexity_weight": 0.5732393972022594,
+        "feature_coherence_weight": 0.3198704488817117
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.592489
+    },
+    {
+      "number": 90,
+      "value": 0.8839411271541686,
+      "params": {
+        "population_size": 80,
+        "n_generations": 20,
+        "crossover_prob": 0.652387545445486,
+        "mutation_prob": 0.14120722551046155,
+        "tournament_size": 3,
+        "elitism_ratio": 0.0536440264447571,
+        "max_depth": 3,
+        "min_samples_split": 8,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9056271986236825,
+        "node_complexity_weight": 0.5775672620402879,
+        "feature_coherence_weight": 0.31733808076484654
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 14.115112
+    },
+    {
+      "number": 91,
+      "value": 0.8892026703927962,
+      "params": {
+        "population_size": 100,
+        "n_generations": 30,
+        "crossover_prob": 0.9201356912487738,
+        "mutation_prob": 0.17056455845233548,
+        "tournament_size": 2,
+        "elitism_ratio": 0.10810776902000571,
+        "max_depth": 4,
+        "min_samples_split": 10,
+        "min_samples_leaf": 10,
+        "accuracy_weight": 0.8876013322961266,
+        "node_complexity_weight": 0.7480362184818724,
+        "feature_coherence_weight": 0.10952179424991158
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 24.936104
+    },
+    {
+      "number": 92,
+      "value": 0.8944080732805465,
+      "params": {
+        "population_size": 110,
+        "n_generations": 30,
+        "crossover_prob": 0.8571997275418396,
+        "mutation_prob": 0.20576826268315024,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1291492150869893,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9327348491173384,
+        "node_complexity_weight": 0.7283409486505313,
+        "feature_coherence_weight": 0.20673669133971612
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 26.244174
+    },
+    {
+      "number": 93,
+      "value": 0.8890029498525075,
+      "params": {
+        "population_size": 150,
+        "n_generations": 20,
+        "crossover_prob": 0.8892604945115185,
+        "mutation_prob": 0.2032202714546687,
+        "tournament_size": 3,
+        "elitism_ratio": 0.135333958028798,
+        "max_depth": 3,
+        "min_samples_split": 19,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.8723639953495479,
+        "node_complexity_weight": 0.7512404812947012,
+        "feature_coherence_weight": 0.24228245309066496
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 24.162008
+    },
+    {
+      "number": 94,
+      "value": 0.8799022512032293,
+      "params": {
+        "population_size": 120,
+        "n_generations": 20,
+        "crossover_prob": 0.7726224134055981,
+        "mutation_prob": 0.2002953106788161,
+        "tournament_size": 3,
+        "elitism_ratio": 0.09530295014652163,
+        "max_depth": 3,
+        "min_samples_split": 18,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.8822388830309066,
+        "node_complexity_weight": 0.6136981421993504,
+        "feature_coherence_weight": 0.11238844722243947
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 17.75927
+    },
+    {
+      "number": 95,
+      "value": 0.8561019717435182,
+      "params": {
+        "population_size": 50,
+        "n_generations": 20,
+        "crossover_prob": 0.6858250653529774,
+        "mutation_prob": 0.11588090976642172,
+        "tournament_size": 3,
+        "elitism_ratio": 0.055216656778776865,
+        "max_depth": 4,
+        "min_samples_split": 8,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.9068562500467401,
+        "node_complexity_weight": 0.6671262718925346,
+        "feature_coherence_weight": 0.15167563695804726
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 9.569196
+    },
+    {
+      "number": 96,
+      "value": 0.8773851265331469,
+      "params": {
+        "population_size": 110,
+        "n_generations": 40,
+        "crossover_prob": 0.8123870720911401,
+        "mutation_prob": 0.1807603552532919,
+        "tournament_size": 3,
+        "elitism_ratio": 0.1409855642441522,
+        "max_depth": 4,
+        "min_samples_split": 18,
+        "min_samples_leaf": 4,
+        "accuracy_weight": 0.9315699633475821,
+        "node_complexity_weight": 0.7572736144987997,
+        "feature_coherence_weight": 0.16072090054457722
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 35.641281
+    },
+    {
+      "number": 97,
+      "value": 0.8928080732805466,
+      "params": {
+        "population_size": 140,
+        "n_generations": 40,
+        "crossover_prob": 0.721899465065476,
+        "mutation_prob": 0.17565771743723488,
+        "tournament_size": 3,
+        "elitism_ratio": 0.08008693807132729,
+        "max_depth": 3,
+        "min_samples_split": 14,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.92006816232903,
+        "node_complexity_weight": 0.5989938959522629,
+        "feature_coherence_weight": 0.3467232697497147
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 49.442391
+    },
+    {
+      "number": 98,
+      "value": 0.8947368421052632,
+      "params": {
+        "population_size": 160,
+        "n_generations": 50,
+        "crossover_prob": 0.6210712231031507,
+        "mutation_prob": 0.15973807841306142,
+        "tournament_size": 4,
+        "elitism_ratio": 0.08294554565220288,
+        "max_depth": 6,
+        "min_samples_split": 17,
+        "min_samples_leaf": 2,
+        "accuracy_weight": 0.8121708801078529,
+        "node_complexity_weight": 0.6300653753385417,
+        "feature_coherence_weight": 0.31526078910739247
+      },
+      "state": "TrialState.PRUNED",
+      "duration": 47.336251
+    },
+    {
+      "number": 99,
+      "value": 0.8927832324173265,
+      "params": {
+        "population_size": 150,
+        "n_generations": 50,
+        "crossover_prob": 0.7448693155517047,
+        "mutation_prob": 0.12995186848967286,
+        "tournament_size": 2,
+        "elitism_ratio": 0.09592632439123458,
+        "max_depth": 3,
+        "min_samples_split": 15,
+        "min_samples_leaf": 3,
+        "accuracy_weight": 0.9036882019275183,
+        "node_complexity_weight": 0.7176605757638813,
+        "feature_coherence_weight": 0.34516381619652314
+      },
+      "state": "TrialState.COMPLETE",
+      "duration": 62.494315
+    }
+  ]
+}

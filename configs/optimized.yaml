@@ -1,35 +1,27 @@
-
-# Before on ibrah5em laptop:
-# fitness:
-#   accuracy_weight: 0.6727598960405373
-#   interpretability_weight: 0.3272401039594627
-# ga:
-#   crossover_prob: 0.5646016151595842
-#   mutation_prob: 0.25576213407723136
-#   n_generations: 60
-#   population_size: 130
-#   tournament_size: 5
-# tree:
-#   max_depth: 6
-#   min_samples_leaf: 8
-#   min_samples_split: 16
-
-# After Hyperparameters Tuning on Luf8y Laptop:
-
-fitness:
-  accuracy_weight: 0.8619364624278322
-  interpretability_weight: 0.13806353757216783
 ga:
-  crossover_prob: 0.6733843409158413
-  mutation_prob: 0.15297790351647228
-  n_generations: 50
-  population_size: 140
-  tournament_size: 2
+  population_size: 110
+  n_generations: 40
+  crossover_prob: 0.8729318791183682
+  mutation_prob: 0.1570259980080768
+  tournament_size: 3
+  elitism_ratio: 0.1314044124737373
 tree:
-  max_depth: 6
-  min_samples_leaf: 5
-  min_samples_split: 18
-
-
-
-
+  max_depth: 3
+  min_samples_split: 17
+  min_samples_leaf: 2
+fitness:
+  mode: weighted_sum
+  weights:
+    accuracy: 0.9440991214702328
+    interpretability: 0.05590087852976722
+  interpretability_weights:
+    node_complexity: 0.6861223846483286
+    feature_coherence: 0.10961470446025172
+    tree_balance: 0.1
+    semantic_coherence: 0.3
+optimization:
+  study_name: ga_opt_breast_cancer_20251128_195036
+  n_trials: 100
+  best_value: 0.9044291259121255
+  best_trial_number: 5
+  optimization_date: '2025-11-28T20:38:18.192572'
