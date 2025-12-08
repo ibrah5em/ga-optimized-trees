@@ -211,7 +211,7 @@ class DatasetLoader:
                 try:
                     X, y, feature_names, target_names = self._load_openml_by_name(name)
                 except:
-                    raise ValueError(f"Unknown dataset: {name}")
+                    raise ValueError(f"unknown dataset: {name}")
         
         # Validate
         valid, warnings = self.validator.validate_dataset(X, y)

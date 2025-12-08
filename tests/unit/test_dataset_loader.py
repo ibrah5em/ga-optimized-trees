@@ -497,7 +497,7 @@ class TestErrorHandling:
     
     def test_error_nonexistent_dataset(self, loader):
         """Test error for nonexistent dataset."""
-        with pytest.raises(ValueError, match='unknown dataset'):
+        with pytest.raises(ValueError, match='(?i)unknown dataset'):  # (?i) = case-insensitive
             loader.load_dataset('definitely_not_a_real_dataset_12345')
     
     def test_error_invalid_test_size(self, loader):
