@@ -9,6 +9,8 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Installation Guide](getting-started/installation.md) - Detailed installation instructions
 - [Basic Tutorial](getting-started/tutorial.md) - Step-by-step beginner tutorial
 - [Configuration Guide](getting-started/configuration.md) - Understanding YAML configs
+- [Dataset loading](data/dataset-loader.md) - preprocessing
+
 
 ### Core Concepts
 - [Architecture Overview](core-concepts/architecture.md) - System design and components

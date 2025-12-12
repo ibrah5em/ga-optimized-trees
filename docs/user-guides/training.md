@@ -1,3 +1,6 @@
+
+
+
 # Training Models
 
 Complete guide to training GA-optimized decision trees.
@@ -12,6 +15,13 @@ Training involves evolving a population of decision trees using genetic algorith
 - **Flexible fitness functions**
 - **Automated model saving and evaluation**
 
+## Preparing Your Data
+
+Before training, ensure your data is properly formatted and preprocessed. The built-in [Dataset Loader](../data/dataset-loader.md) supports:
+- 15+ benchmark datasets
+- CSV/Excel file loading
+- Automatic validation and preprocessing
+- Train/test splitting
 ## Quick Training Example
 
 ```bash
@@ -254,6 +264,9 @@ FitnessCalculator(
 
 - `weighted_sum`: Single objective = accuracy_weight × acc + interpretability_weight × interp
 - `pareto`: Multi-objective optimization (experimental)
+
+
+
 
 ## Advanced Training Options
 
