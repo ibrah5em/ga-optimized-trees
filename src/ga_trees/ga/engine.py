@@ -18,6 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 
 # Assuming tree_genotype.py is available
+from ga_trees.ga.improved_crossover import safe_subtree_crossover
 from ga_trees.genotype.tree_genotype import (
     Node,
     TreeGenotype,
@@ -168,34 +169,9 @@ class Crossover:
         parent1: TreeGenotype, parent2: TreeGenotype
     ) -> Tuple[TreeGenotype, TreeGenotype]:
         """
-        Perform subtree-aware crossover.
-        Randomly selects compatible nodes and swaps subtrees.
+        Perform subtree-aware crossover using improved method.
         """
-        child1 = parent1.copy()
-        child2 = parent2.copy()
-
-        # Get all nodes from both parents
-        nodes1 = child1.get_all_nodes()
-        nodes2 = child2.get_all_nodes()
-
-        if len(nodes1) < 2 or len(nodes2) < 2:
-            return child1, child2
-
-        # Select random crossover points
-        node1 = random.choice(nodes1[1:])  # Skip root for simplicity
-        node2 = random.choice(nodes2[1:])
-
-        # Swap subtrees by swapping node contents
-        # This is a simplified version - production code needs parent tracking
-        node1_copy = node1.copy()
-        Crossover._copy_node_contents(node2, node1)
-        Crossover._copy_node_contents(node1_copy, node2)
-
-        # Validate and repair if needed
-        child1 = Crossover._repair_tree(child1)
-        child2 = Crossover._repair_tree(child2)
-
-        return child1, child2
+        return safe_subtree_crossover(parent1, parent2)
 
     @staticmethod
     def _copy_node_contents(src: Node, dst: Node):
