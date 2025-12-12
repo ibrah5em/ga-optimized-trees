@@ -8,7 +8,7 @@ Thank you for your interest in contributing to GA-Optimized Decision Trees! This
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/your-username/ga-optimized-trees.git
+   git clone https://github.com/ibrah5em/ga-optimized-trees.git
    cd ga-optimized-trees
    ```
 
