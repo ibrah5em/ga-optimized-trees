@@ -270,7 +270,7 @@ class Mutation:
         if node.feature_idx in self.feature_ranges:
             min_val, max_val = self.feature_ranges[node.feature_idx]
             # Gaussian perturbation
-            std = (max_val - min_val) * 0.1
+            std = max((max_val - min_val) * 0.1, 1e-6)  # Minimum variance
             new_threshold = node.threshold + random.gauss(0, std)
             node.threshold = np.clip(new_threshold, min_val, max_val)
 
