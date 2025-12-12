@@ -207,7 +207,7 @@ Examples:
         print(f"Loading configuration from: {args.config}")
         config = load_config(args.config)
         args = merge_config_with_args(config, args)
-        print("✓ Config loaded and merged with CLI arguments")
+        print("Config loaded and merged with CLI arguments")
 
     # Set random seeds
     np.random.seed(args.seed)
@@ -228,9 +228,9 @@ Examples:
     print(f"\nLoading dataset: {args.dataset}")
     try:
         X, y = load_dataset(args.dataset)
-        print(f"✓ Loaded: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
+        print(f" Loaded: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
     except Exception as e:
-        print(f"✗ Failed to load dataset: {e}")
+        print(f" Failed to load dataset: {e}")
         print("\nAvailable datasets:")
         print("  Sklearn: iris, wine, breast_cancer, digits, diabetes")
         print("  OpenML: heart, titanic, credit_g, sonar, hepatitis, and more")
@@ -378,7 +378,7 @@ Examples:
     with open(output_path, "wb") as f:
         pickle.dump(model_data, f)
 
-    print(f"\n✓ Model saved to: {output_path}")
+    print(f"\n Model saved to: {output_path}")
 
     # Plot evolution history
     try:
@@ -397,13 +397,13 @@ Examples:
 
         plot_path = output_path.parent / f"{output_path.stem}_evolution.png"
         plt.savefig(plot_path, dpi=300, bbox_inches="tight")
-        print(f"✓ Evolution plot saved to: {plot_path}")
+        print(f"Evolution plot saved to: {plot_path}")
 
     except ImportError:
         print("Matplotlib not available, skipping evolution plot")
 
     print("\n" + "=" * 60)
-    print("Training Complete! 🎉")
+    print("Training Complete!")
     print("=" * 60)
 
 
