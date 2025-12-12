@@ -71,12 +71,11 @@ EXTRAS_REQUIRE = {
 
 # Convenience groups
 EXTRAS_REQUIRE["all"] = [
-    dep for group in ["viz", "optimization", "baselines", "explainability", "api"] 
+    dep
+    for group in ["viz", "optimization", "baselines", "explainability", "api"]
     for dep in EXTRAS_REQUIRE[group]
 ]
-EXTRAS_REQUIRE["full"] = [
-    dep for deps in EXTRAS_REQUIRE.values() for dep in deps
-]
+EXTRAS_REQUIRE["full"] = [dep for deps in EXTRAS_REQUIRE.values() for dep in deps]
 
 setup(
     name="ga-optimized-trees",
