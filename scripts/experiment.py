@@ -30,9 +30,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from ga_trees.baselines import XGBoostBaseline
+from ga_trees.data.dataset_loader import DatasetLoader
 from ga_trees.fitness.calculator import FitnessCalculator, InterpretabilityCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
-from ga_trees.data.dataset_loader import DatasetLoader
 
 
 class FastInterpretabilityCalculator(InterpretabilityCalculator):
@@ -180,14 +180,18 @@ def load_dataset(name, label_column=None):
             raise ValueError(f"Unsupported file extension for dataset: {ext}")
 
         if df.shape[1] < 2:
-            raise ValueError("Dataset file must contain at least one feature column and one target column")
+            raise ValueError(
+                "Dataset file must contain at least one feature column and one target column"
+            )
 
         # Determine label column
         if label_column is None:
             X = df.iloc[:, :-1].values
             y = df.iloc[:, -1].values
         else:
-            if isinstance(label_column, int) or (isinstance(label_column, str) and label_column.isdigit()):
+            if isinstance(label_column, int) or (
+                isinstance(label_column, str) and label_column.isdigit()
+            ):
                 idx = int(label_column)
                 if idx < 0 or idx >= df.shape[1]:
                     raise IndexError(f"label column index out of range: {idx}")

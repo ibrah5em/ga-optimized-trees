@@ -21,8 +21,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import yaml
 import pandas as pd
+import yaml
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -54,7 +54,9 @@ def load_dataset(name: str, label_column=None):
             raise ValueError(f"Unsupported file extension for dataset: {ext}")
 
         if df.shape[1] < 2:
-            raise ValueError("Dataset file must contain at least one feature column and one target column")
+            raise ValueError(
+                "Dataset file must contain at least one feature column and one target column"
+            )
 
         # Determine label column
         if label_column is None:
@@ -62,7 +64,9 @@ def load_dataset(name: str, label_column=None):
             y = df.iloc[:, -1].values
         else:
             # label_column may be an int (index) or a column name
-            if isinstance(label_column, int) or (isinstance(label_column, str) and label_column.isdigit()):
+            if isinstance(label_column, int) or (
+                isinstance(label_column, str) and label_column.isdigit()
+            ):
                 idx = int(label_column)
                 if idx < 0 or idx >= df.shape[1]:
                     raise IndexError(f"label column index out of range: {idx}")
