@@ -22,6 +22,7 @@ from pathlib import Path
 
 import numpy as np
 import yaml
+import pandas as pd
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -36,11 +37,47 @@ from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
 from ga_trees.genotype.tree_genotype import TreeGenotype
 
 
-def load_dataset(name: str):
+def load_dataset(name: str, label_column=None):
     """
     Load dataset by name - supports sklearn, OpenML, and custom files.
     """
-    # First try sklearn datasets (fast path)
+    # If a path to a local file was provided, load it directly
+    p = Path(name)
+    if p.exists():
+        # Support CSV/TSV/text and Excel files
+        ext = p.suffix.lower()
+        if ext in (".csv", ".txt", ".tsv"):
+            df = pd.read_csv(p)
+        elif ext in (".xls", ".xlsx"):
+            df = pd.read_excel(p)
+        else:
+            raise ValueError(f"Unsupported file extension for dataset: {ext}")
+
+        if df.shape[1] < 2:
+            raise ValueError("Dataset file must contain at least one feature column and one target column")
+
+        # Determine label column
+        if label_column is None:
+            X = df.iloc[:, :-1].values
+            y = df.iloc[:, -1].values
+        else:
+            # label_column may be an int (index) or a column name
+            if isinstance(label_column, int) or (isinstance(label_column, str) and label_column.isdigit()):
+                idx = int(label_column)
+                if idx < 0 or idx >= df.shape[1]:
+                    raise IndexError(f"label column index out of range: {idx}")
+                y = df.iloc[:, idx].values
+                X = df.drop(df.columns[idx], axis=1).values
+            else:
+                col = label_column
+                if col not in df.columns:
+                    raise ValueError(f"label column '{col}' not found in file")
+                y = df[col].values
+                X = df.drop(columns=[col]).values
+
+        return X, y
+
+    # Fast path for common sklearn datasets
     if name in ["iris", "wine", "breast_cancer", "digits", "diabetes"]:
         from sklearn.datasets import (
             load_breast_cancer,
@@ -59,23 +96,21 @@ def load_dataset(name: str):
         }
         return loaders[name](return_X_y=True)
 
-    # Otherwise use enhanced dataset loader
+    # Otherwise use the project's DatasetLoader (supports OpenML and other sources)
     try:
-        # Import the integration helper
-        sys.path.insert(0, str(Path(__file__).parent))
-        from dataset_integration import load_any_dataset
-
-        return load_any_dataset(name)
-    except ImportError:
-        # Fallback: use dataset loader directly
         from ga_trees.data.dataset_loader import DatasetLoader
 
         loader = DatasetLoader()
         data = loader.load_dataset(name, test_size=0.2)
-        # Combine for full dataset
-        X = np.vstack([data["X_train"], data["X_test"]])
-        y = np.hstack([data["y_train"], data["y_test"]])
-        return X, y
+
+        if isinstance(data, dict):
+            X = np.vstack([data["X_train"], data["X_test"]])
+            y = np.hstack([data["y_train"], data["y_test"]])
+            return X, y
+
+        raise ValueError(f"DatasetLoader returned unexpected result for '{name}'")
+    except Exception as e:
+        raise ValueError(f"Failed to load dataset '{name}': {e}")
 
 
 def get_feature_ranges(X: np.ndarray) -> dict:
@@ -163,6 +198,12 @@ Examples:
         default="iris",
         help="Dataset name or path to CSV/Excel file (supports 25+ datasets)",
     )
+    parser.add_argument(
+        "--label-column",
+        type=str,
+        default=None,
+        help="(optional) Label column name or index for local files (default: last column)",
+    )
     parser.add_argument("--test-size", type=float, default=0.2, help="Test set size (0-1)")
     parser.add_argument("--standardize", action="store_true", help="Standardize features")
 
@@ -226,8 +267,13 @@ Examples:
 
     # Load data
     print(f"\nLoading dataset: {args.dataset}")
+    # parse label column (allow numeric index or column name)
+    label_col = args.label_column
+    if label_col is not None and isinstance(label_col, str) and label_col.isdigit():
+        label_col = int(label_col)
+
     try:
-        X, y = load_dataset(args.dataset)
+        X, y = load_dataset(args.dataset, label_column=label_col)
         print(f" Loaded: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
     except Exception as e:
         print(f" Failed to load dataset: {e}")

@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import csv
 import sys
 import time
 from datetime import datetime
@@ -28,8 +29,10 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
+from ga_trees.baselines import XGBoostBaseline
 from ga_trees.fitness.calculator import FitnessCalculator, InterpretabilityCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.data.dataset_loader import DatasetLoader
 
 
 class FastInterpretabilityCalculator(InterpretabilityCalculator):
@@ -160,14 +163,67 @@ def _merge_configs(default, user):
     return result
 
 
-def load_dataset(name):
-    """Load dataset by name."""
-    datasets = {
-        "iris": load_iris,
-        "wine": load_wine,
-        "breast_cancer": load_breast_cancer,
-    }
-    return datasets[name](return_X_y=True)
+def load_dataset(name, label_column=None):
+    """Load dataset by name. Prefer `DatasetLoader`, fall back to sklearn loaders.
+
+    Returns full (X, y) without train/test split.
+    """
+    # If `name` is a path to a local file, load it directly
+    p = Path(name)
+    if p.exists():
+        ext = p.suffix.lower()
+        if ext in (".csv", ".txt", ".tsv"):
+            df = pd.read_csv(p)
+        elif ext in (".xls", ".xlsx"):
+            df = pd.read_excel(p)
+        else:
+            raise ValueError(f"Unsupported file extension for dataset: {ext}")
+
+        if df.shape[1] < 2:
+            raise ValueError("Dataset file must contain at least one feature column and one target column")
+
+        # Determine label column
+        if label_column is None:
+            X = df.iloc[:, :-1].values
+            y = df.iloc[:, -1].values
+        else:
+            if isinstance(label_column, int) or (isinstance(label_column, str) and label_column.isdigit()):
+                idx = int(label_column)
+                if idx < 0 or idx >= df.shape[1]:
+                    raise IndexError(f"label column index out of range: {idx}")
+                y = df.iloc[:, idx].values
+                X = df.drop(df.columns[idx], axis=1).values
+            else:
+                col = label_column
+                if col not in df.columns:
+                    raise ValueError(f"label column '{col}' not found in file")
+                y = df[col].values
+                X = df.drop(columns=[col]).values
+
+        return X, y
+
+    # Fast path for common sklearn datasets
+    if name in {"iris", "wine", "breast_cancer"}:
+        if name == "iris":
+            return load_iris(return_X_y=True)
+        if name == "wine":
+            return load_wine(return_X_y=True)
+        if name == "breast_cancer":
+            return load_breast_cancer(return_X_y=True)
+
+    # Otherwise use DatasetLoader which supports OpenML and other sources
+    try:
+        loader = DatasetLoader()
+        data = loader.load_dataset(name, test_size=0.2, standardize=False, stratify=True)
+
+        if isinstance(data, dict):
+            X = np.vstack([data["X_train"], data["X_test"]])
+            y = np.hstack([data["y_train"], data["y_test"]])
+            return X, y
+
+        raise ValueError(f"DatasetLoader returned unexpected result for '{name}'")
+    except Exception as e:
+        raise ValueError(f"Failed to load dataset '{name}': {e}")
 
 
 def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
@@ -327,7 +383,53 @@ def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
     return results
 
 
-def print_summary(all_results, config):
+def run_xgboost_experiment(X, y, dataset_name, config, n_folds=5):
+    """Run XGBoost baseline (if available)."""
+    print(f"\n{'='*70}")
+    print(f"Running XGBoost on {dataset_name}")
+    print(f"{'='*70}")
+
+    skf = StratifiedKFold(
+        n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
+    )
+    results = {"test_acc": [], "test_f1": [], "time": []}
+
+    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
+        print(f"  Fold {fold}/{n_folds}...", end=" ")
+
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+
+        start = time.time()
+        # Instantiate baseline wrapper which will handle missing xgboost
+        model = XGBoostBaseline(
+            max_depth=config["tree"]["max_depth"],
+            n_estimators=100,
+            random_state=config["experiment"]["random_state"],
+        )
+        model.fit(X_train, y_train)
+        elapsed = time.time() - start
+
+        # If xgboost isn't installed the baseline sets model.model to None
+        if model.model is None:
+            print("skipping (XGBoost not installed)")
+            results["test_acc"].append(np.nan)
+            results["test_f1"].append(np.nan)
+            results["time"].append(elapsed)
+            continue
+
+        y_pred = model.predict(X_test)
+
+        results["test_acc"].append(accuracy_score(y_test, y_pred))
+        results["test_f1"].append(f1_score(y_test, y_pred, average="weighted"))
+        results["time"].append(elapsed)
+
+        print(f"Acc={results['test_acc'][-1]:.3f}, Time={elapsed:.1f}s")
+
+    return results
+
+
+def print_summary(all_results, config, config_name="default"):
     """Print summary with tree size analysis."""
     print(f"\n{'='*70}")
     print("FINAL RESULTS")
@@ -363,6 +465,8 @@ def print_summary(all_results, config):
     print(f"\n{'='*70}")
     print("Tree Size Analysis (GA vs CART)")
     print(f"{'='*70}\n")
+
+    test_stats = []
 
     for dataset_name in all_results.keys():
         ga_nodes = np.mean(all_results[dataset_name]["GA-Optimized"]["nodes"])
@@ -407,16 +511,58 @@ def print_summary(all_results, config):
 
         print(f"{dataset_name:20s}: t={t_stat:6.3f}, p={p_value:.4f} {sig}, d={cohens_d:.3f}")
 
+        # collect stats for CSV export
+        test_stats.append(
+            {
+                "test_name": "GA vs CART",
+                "dataset": dataset_name,
+                "t": float(t_stat),
+                "p": float(p_value),
+                "d": float(cohens_d),
+            }
+        )
+
+    # Adjust p-values (Bonferroni) and write statistics CSV for auditability
+    if test_stats:
+        m = len(test_stats)
+        for entry in test_stats:
+            entry["p_adjusted"] = min(entry["p"] * m, 1.0)
+
+        # ensure results directory exists
+        output_dir = Path("results")
+        output_dir.mkdir(exist_ok=True)
+
+        stats_date = datetime.now().strftime("%Y-%m-%d")
+        stats_file = output_dir / f"stats-{config_name}-{stats_date}.csv"
+
+        with open(stats_file, "w", newline="") as csvfile:
+            fieldnames = ["test_name", "dataset", "t", "p", "p_adjusted", "d"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for entry in test_stats:
+                writer.writerow(
+                    {
+                        "test_name": entry["test_name"],
+                        "dataset": entry["dataset"],
+                        "t": entry["t"],
+                        "p": entry["p"],
+                        "p_adjusted": entry["p_adjusted"],
+                        "d": entry["d"],
+                    }
+                )
+
+        print(f"\n✓ Statistical test details saved to: {stats_file}")
+
     # Save results
     output_dir = Path("results")
     output_dir.mkdir(exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_file = output_dir / f"results_FAST_{timestamp}.csv"
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    results_file = output_dir / f"result-{config_name}-{date_str}.csv"
     df.to_csv(results_file, index=False)
 
     # Save configuration used
-    config_file = output_dir / f"config_FAST_{timestamp}.yaml"
+    config_file = output_dir / f"config-{config_name}-{date_str}.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f, default_flow_style=False)
 
@@ -428,10 +574,24 @@ def main():
     """Run FAST experiments with configurable parameters."""
     parser = argparse.ArgumentParser(description="Run GA-optimized decision tree experiments")
     parser.add_argument("--config", type=str, help="Path to configuration YAML file")
+    parser.add_argument(
+        "--label-column",
+        type=str,
+        default=None,
+        help="(optional) Label column name or index for local files (default: last column)",
+    )
+    parser.add_argument(
+        "--datasets",
+        type=str,
+        help="Comma-separated list of datasets to run (overrides config experiment.datasets)",
+    )
     args = parser.parse_args()
 
     # Load configuration
     config = load_config(args.config)
+
+    # derive a compact config name for file naming
+    config_name = Path(args.config).stem if args.config else "default"
 
     print(f"\n{'='*70}")
     print("GA-Optimized Decision Trees: FAST Version")
@@ -442,6 +602,12 @@ def main():
         print("Configuration: Default parameters")
     print(f"{'='*70}")
 
+    # Determine datasets (config or CLI override)
+    if args.datasets:
+        chosen_datasets = [d.strip() for d in args.datasets.split(",") if d.strip()]
+    else:
+        chosen_datasets = config["experiment"]["datasets"]
+
     # Print key configuration parameters
     print("\nKey Configuration:")
     print(f"  GA: {config['ga']['population_size']} pop, {config['ga']['n_generations']} gen")
@@ -450,15 +616,20 @@ def main():
         f"  Fitness: acc_weight={config['fitness']['accuracy_weight']}, "
         f"interp_weight={config['fitness']['interpretability_weight']}"
     )
-    print(f"  Datasets: {', '.join(config['experiment']['datasets'])}")
+    print(f"  Datasets: {', '.join(chosen_datasets)}")
 
-    datasets = config["experiment"]["datasets"]
+    datasets = chosen_datasets
     all_results = {}
 
     total_start = time.time()
 
+    # parse label column argument
+    label_col = args.label_column
+    if label_col is not None and isinstance(label_col, str) and label_col.isdigit():
+        label_col = int(label_col)
+
     for dataset_name in datasets:
-        X, y = load_dataset(dataset_name)
+        X, y = load_dataset(dataset_name, label_column=label_col)
         print(f"\n{dataset_name}: {X.shape[0]} samples, {X.shape[1]} features")
 
         dataset_results = {}
@@ -472,11 +643,16 @@ def main():
             X, y, dataset_name, config, n_folds=config["experiment"]["cv_folds"]
         )
 
+        # XGBoost baseline (may be skipped if xgboost not installed)
+        dataset_results["XGBoost"] = run_xgboost_experiment(
+            X, y, dataset_name, config, n_folds=config["experiment"]["cv_folds"]
+        )
+
         all_results[dataset_name] = dataset_results
 
     total_time = time.time() - total_start
 
-    print_summary(all_results, config)
+    print_summary(all_results, config, config_name)
 
     print(f"\n{'='*70}")
     print(f"Total Time: {total_time:.1f}s (~{total_time/60:.1f} minutes)")
