@@ -1,3 +1,7 @@
+# =============================================================================
+# AUTO-GENERATED: Optimal hyperparameters found by Optuna
+# Manual modification is not recommended.
+# =============================================================================
 ga:
   population_size: 110
   n_generations: 40

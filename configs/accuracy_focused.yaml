@@ -1,0 +1,43 @@
+# =============================================================================
+# Accuracy-Focused Configuration - Maximize predictive performance
+# Reduced interpretability constraints for higher accuracy
+# =============================================================================
+
+ga:
+  population_size: 120
+  n_generations: 50
+  crossover_prob: 0.8
+  mutation_prob: 0.15
+  tournament_size: 4
+  elitism_ratio: 0.15
+  
+  mutation_types:
+    threshold_perturbation: 0.5
+    feature_replacement: 0.3
+    prune_subtree: 0.15
+    expand_leaf: 0.05
+
+tree:
+  max_depth: 8
+  min_samples_split: 8
+  min_samples_leaf: 3
+
+fitness:
+  mode: weighted_sum
+  weights:
+    accuracy: 0.85
+    interpretability: 0.15
+  
+  interpretability_weights:
+    node_complexity: 0.4
+    feature_coherence: 0.2
+    tree_balance: 0.2
+    semantic_coherence: 0.2
+
+experiment:
+  datasets:
+    - iris
+    - wine
+    - breast_cancer
+  cv_folds: 10
+  random_state: 42

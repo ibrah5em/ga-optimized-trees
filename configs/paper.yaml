@@ -1,0 +1,48 @@
+# =============================================================================
+# Paper Configuration - Exact parameters from research paper
+# "Evolving Interpretable Decision Trees via Multi-Objective Genetic Algorithms"
+# Target: 24-77% smaller trees with statistically equivalent accuracy
+# =============================================================================
+
+# Genetic Algorithm Parameters
+ga:
+  population_size: 80
+  n_generations: 40
+  crossover_prob: 0.72
+  mutation_prob: 0.18
+  tournament_size: 4
+  elitism_ratio: 0.12
+  
+  mutation_types:
+    threshold_perturbation: 0.45
+    feature_replacement: 0.25
+    prune_subtree: 0.25
+    expand_leaf: 0.05
+
+# Tree Constraints
+tree:
+  max_depth: 6
+  min_samples_split: 8
+  min_samples_leaf: 3
+
+# Fitness Function
+fitness:
+  mode: weighted_sum
+  weights:
+    accuracy: 0.68
+    interpretability: 0.32
+  
+  interpretability_weights:
+    node_complexity: 0.50
+    feature_coherence: 0.10
+    tree_balance: 0.10
+    semantic_coherence: 0.30
+
+# Experiment Settings
+experiment:
+  datasets:
+    - iris
+    - wine
+    - breast_cancer
+  cv_folds: 20
+  random_state: 42
