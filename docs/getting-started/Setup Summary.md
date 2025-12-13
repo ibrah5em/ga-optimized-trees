@@ -1,4 +1,4 @@
-# Setup Enhancement Summary
+# Setup Summary
 
 ## 📦 What Was Done
 
