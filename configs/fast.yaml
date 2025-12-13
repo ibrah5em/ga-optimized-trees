@@ -1,37 +1,37 @@
 # =============================================================================
-# Balanced Configuration - Equal emphasis on accuracy and interpretability
-# Good starting point for most applications
+# Fast Configuration - Quick experiments and testing
+# Reduced population and generations for faster iteration
 # =============================================================================
 
 ga:
-  population_size: 100
-  n_generations: 40
-  crossover_prob: 0.75
+  population_size: 50
+  n_generations: 30
+  crossover_prob: 0.7
   mutation_prob: 0.2
   tournament_size: 3
-  elitism_ratio: 0.12
+  elitism_ratio: 0.15
   
   mutation_types:
-    threshold_perturbation: 0.45
+    threshold_perturbation: 0.5
     feature_replacement: 0.3
-    prune_subtree: 0.2
+    prune_subtree: 0.15
     expand_leaf: 0.05
 
 tree:
-  max_depth: 6
+  max_depth: 5
   min_samples_split: 10
-  min_samples_leaf: 4
+  min_samples_leaf: 5
 
 fitness:
   mode: weighted_sum
   weights:
-    accuracy: 0.5
-    interpretability: 0.5
+    accuracy: 0.65
+    interpretability: 0.35
   
   interpretability_weights:
-    node_complexity: 0.5
-    feature_coherence: 0.25
-    tree_balance: 0.15
+    node_complexity: 0.6
+    feature_coherence: 0.2
+    tree_balance: 0.1
     semantic_coherence: 0.1
 
 experiment:
@@ -39,5 +39,5 @@ experiment:
     - iris
     - wine
     - breast_cancer
-  cv_folds: 10
+  cv_folds: 5
   random_state: 42
