@@ -17,17 +17,14 @@ def _make_toy_data():
 
     from ga_trees.baselines import XGBoostBaseline
 
-
     def _make_toy_data():
         # simple binary classification dataset
         X = np.array([[0.0], [1.0], [0.0], [1.0]])
         y = np.array([0, 1, 0, 1])
         return X, y
 
-
     def test_xgboostbaseline_importable():
         assert XGBoostBaseline is not None
-
 
     def test_xgboostbaseline_fit_predict_basic():
         X, y = _make_toy_data()
