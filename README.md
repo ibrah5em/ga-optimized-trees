@@ -23,6 +23,13 @@ Unlike greedy algorithms like CART that only optimize for accuracy, our multi-ob
 - **🎯 Custom Fitness Functions**: Easy extension for domain-specific optimization
 - **📚 Extensive Documentation**: 40+ markdown files covering every aspect
 
+## 🔔 Recent Changes
+
+- Updated dataset loading in `scripts/train.py` and `scripts/experiment.py` to support local CSV/TSV/Excel files (last column treated as target by default) and improved OpenML handling via `DatasetLoader`.
+- Added a `--label-column` CLI option to both `train.py` and `experiment.py` to specify the target column by name or index for local files.
+- Minor baseline and test updates: modified `src/ga_trees/baselines/__init__.py` and added `tests/unit/test_xgboost_baseline.py`.
+
+These changes make it easier to run experiments on arbitrary local datasets without the optional `dataset_integration.py` helper.
 ---
 
 ## 🚀 Quick Start

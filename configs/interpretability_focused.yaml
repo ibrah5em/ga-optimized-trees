@@ -1,43 +1,43 @@
 # =============================================================================
-# Default Configuration - Standard settings for general use
-# Simple, reasonable defaults for most datasets
+# Interpretability-Focused Configuration - Maximize model transparency
+# Strong emphasis on small, simple trees for explainability
 # =============================================================================
 
 ga:
   population_size: 80
   n_generations: 40
   crossover_prob: 0.7
-  mutation_prob: 0.2
+  mutation_prob: 0.25
   tournament_size: 3
   elitism_ratio: 0.1
   
   mutation_types:
-    threshold_perturbation: 0.4
-    feature_replacement: 0.3
-    prune_subtree: 0.2
-    expand_leaf: 0.1
+    threshold_perturbation: 0.35
+    feature_replacement: 0.2
+    prune_subtree: 0.4
+    expand_leaf: 0.05
 
 tree:
-  max_depth: 6
-  min_samples_split: 10
+  max_depth: 5
+  min_samples_split: 12
   min_samples_leaf: 5
 
 fitness:
   mode: weighted_sum
   weights:
-    accuracy: 0.7
-    interpretability: 0.3
+    accuracy: 0.4
+    interpretability: 0.6
   
   interpretability_weights:
-    node_complexity: 0.5
-    feature_coherence: 0.2
-    tree_balance: 0.2
-    semantic_coherence: 0.1
+    node_complexity: 0.7
+    feature_coherence: 0.15
+    tree_balance: 0.1
+    semantic_coherence: 0.05
 
 experiment:
   datasets:
     - iris
     - wine
     - breast_cancer
-  cv_folds: 5
+  cv_folds: 10
   random_state: 42

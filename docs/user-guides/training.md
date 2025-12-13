@@ -31,6 +31,10 @@ python scripts/train.py --dataset iris
 # Train with custom config
 python scripts/train.py --config configs/custom.yaml --dataset breast_cancer
 
+# Specify label column for local files (name or zero-based index)
+python scripts/train.py --dataset data/my_data.csv --label-column target
+python scripts/train.py --dataset data/my_data.csv --label-column 4
+
 # Override specific parameters
 python scripts/train.py --config configs/custom.yaml --generations 60 --population 120
 ```
