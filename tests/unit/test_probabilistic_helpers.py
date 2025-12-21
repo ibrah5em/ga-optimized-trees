@@ -2,12 +2,12 @@ import numpy as np
 from numpy.random import default_rng
 
 from ga_trees.genotype.tree_genotype import (
-    sample_threshold,
-    sample_leaf_distribution,
-    get_soft_decision_prob,
     create_bayesian_internal_node,
     create_bayesian_leaf_node,
     create_leaf_node,
+    get_soft_decision_prob,
+    sample_leaf_distribution,
+    sample_threshold,
 )
 
 

@@ -1,12 +1,12 @@
 import numpy as np
 
+from ga_trees.configs.bayesian_config import BayesianConfig
 from ga_trees.genotype.tree_genotype import (
+    TreeGenotype,
     create_bayesian_internal_node,
     create_bayesian_leaf_node,
-    TreeGenotype,
     create_leaf_node,
 )
-from ga_trees.configs.bayesian_config import BayesianConfig
 
 
 def test_tree_validate_and_copy():
