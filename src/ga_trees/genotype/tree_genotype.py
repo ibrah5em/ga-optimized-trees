@@ -7,9 +7,11 @@ Trees are represented as binary decision trees with constrained structure.
 
 import copy
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional, Tuple, Union
+from ga_trees.configs.bayesian_config import BayesianConfig
+from typing import List, Literal, Optional, Tuple, Union, Dict, Any
 
 import numpy as np
+import math
 
 
 @dataclass
@@ -30,6 +32,10 @@ class Node:
 
     # For leaf nodes
     prediction: Optional[Union[int, float, np.ndarray]] = None
+    # Bayesian leaf parameters: Dirichlet concentration for class probabilities
+    leaf_alpha: Optional[np.ndarray] = None
+    # Number of training samples seen at this leaf (for Bayesian updating)
+    leaf_samples_count: int = 0
 
     # Metadata
     depth: int = 0
@@ -84,7 +90,47 @@ class Node:
 
     def copy(self) -> "Node":
         """Create a deep copy of this node and its subtree."""
-        return copy.deepcopy(self)
+        new = copy.deepcopy(self)
+        # Ensure leaf_alpha is a numpy array copy if present
+        if getattr(new, "leaf_alpha", None) is not None:
+            try:
+                new.leaf_alpha = np.array(new.leaf_alpha, dtype=float, copy=True)
+            except Exception:
+                new.leaf_alpha = np.array(new.leaf_alpha, dtype=float)
+        return new
+
+
+@dataclass
+class BayesianNode(Node):
+    """An internal node with Bayesian/probabilistic threshold parameters.
+
+    Backward compatible: `threshold` is set to `threshold_mean` when available
+    so existing deterministic code continues to work.
+    """
+
+    # Distribution parameters for the split threshold
+    threshold_mean: Optional[float] = None
+    threshold_std: Optional[float] = None
+    threshold_dist_type: Literal["normal", "laplace", "uniform"] = "normal"
+
+    def __post_init__(self):
+        # Ensure base dataclass post init semantics: propagate threshold_mean
+        if self.threshold is None and self.threshold_mean is not None:
+            self.threshold = self.threshold_mean
+
+    def copy(self) -> "BayesianNode":
+        """Deep-copy a BayesianNode, preserving numpy arrays and scalar types."""
+        new = copy.deepcopy(self)
+        if getattr(new, "leaf_alpha", None) is not None:
+            try:
+                new.leaf_alpha = np.array(new.leaf_alpha, dtype=float, copy=True)
+            except Exception:
+                new.leaf_alpha = np.array(new.leaf_alpha, dtype=float)
+        if getattr(new, "threshold_mean", None) is not None:
+            new.threshold_mean = float(new.threshold_mean)
+        if getattr(new, "threshold_std", None) is not None:
+            new.threshold_std = float(new.threshold_std)
+        return new
 
 
 @dataclass
@@ -101,6 +147,12 @@ class TreeGenotype:
     n_classes: int
     task_type: Literal["classification", "regression"] = "classification"
 
+    # Operation mode: 'deterministic' (legacy) or 'bayesian' (probabilistic)
+    mode: Literal["deterministic", "bayesian"] = "deterministic"
+
+    # Bayesian-specific configuration/hyperparameters
+    bayesian_config: Dict[str, Any] = field(default_factory=dict)
+
     # Constraints
     max_depth: int = 5
     min_samples_split: int = 10
@@ -111,12 +163,29 @@ class TreeGenotype:
     fitness_: Optional[float] = None
     accuracy_: Optional[float] = None
     interpretability_: Optional[float] = None
+    # Bayesian evaluation metrics
+    mean_calibration_error: Optional[float] = None
+    prediction_uncertainty: Optional[float] = None
 
     def __post_init__(self):
         """Initialize derived attributes."""
         if self.max_features is None:
             self.max_features = self.n_features
+        # Normalize bayesian_config to a BayesianConfig instance when provided
+        if isinstance(self.bayesian_config, dict):
+            try:
+                self.bayesian_config = BayesianConfig.from_dict(self.bayesian_config)
+            except Exception:
+                # leave as dict on failure
+                pass
+        elif self.bayesian_config is None:
+            self.bayesian_config = BayesianConfig()
+
         self._assign_node_ids(self.root, 0)
+
+    def is_bayesian(self) -> bool:
+        """Return True if tree is operating in bayesian mode."""
+        return self.mode == "bayesian"
 
     def _assign_node_ids(self, node: Node, next_id: int) -> int:
         """Assign unique IDs to all nodes."""
@@ -208,17 +277,38 @@ class TreeGenotype:
                     errors.append(
                         f"Invalid feature index {node.feature_idx} at node {node.node_id}"
                     )
-            if node.threshold is None:
+            # Accept either deterministic threshold or Bayesian threshold_mean
+            has_threshold = getattr(node, "threshold", None) is not None
+            has_bayes_mean = getattr(node, "threshold_mean", None) is not None
+            if not (has_threshold or has_bayes_mean):
                 errors.append(f"Internal node {node.node_id} missing threshold")
 
-        # Check leaf nodes have predictions
+        # Check leaf nodes have predictions or Bayesian alpha vectors
         for node in self.get_all_leaves():
-            if node.prediction is None:
-                errors.append(f"Leaf node {node.node_id} missing prediction")
+            has_pred = getattr(node, "prediction", None) is not None
+            has_alpha = getattr(node, "leaf_alpha", None) is not None
+            if not (has_pred or has_alpha):
+                errors.append(f"Leaf node {node.node_id} missing prediction or leaf_alpha")
+            if has_alpha:
+                try:
+                    if len(node.leaf_alpha) != self.n_classes:
+                        errors.append(
+                            f"Leaf node {node.node_id} leaf_alpha length mismatch: expected {self.n_classes}, got {len(node.leaf_alpha)}"
+                        )
+                except Exception:
+                    errors.append(f"Leaf node {node.node_id} has invalid leaf_alpha")
+                if getattr(node, "leaf_samples_count", 0) < 0:
+                    errors.append(f"Leaf node {node.node_id} has negative leaf_samples_count")
 
         # Check tree structure
         if not self._check_structure(self.root):
             errors.append("Tree structure is inconsistent")
+
+        # If running in bayesian mode, run additional bayesian checks
+        if self.mode == "bayesian":
+            ok_b, errs_b = self.validate_bayesian()
+            if not ok_b:
+                errors.extend(errs_b)
 
         return (len(errors) == 0, errors)
 
@@ -250,7 +340,54 @@ class TreeGenotype:
 
     def copy(self) -> "TreeGenotype":
         """Create a deep copy of this tree."""
-        return copy.deepcopy(self)
+        new = copy.deepcopy(self)
+        # Ensure bayesian_config is copied as a plain dict
+        try:
+            new.bayesian_config = dict(self.bayesian_config) if self.bayesian_config is not None else {}
+        except Exception:
+            new.bayesian_config = copy.deepcopy(self.bayesian_config)
+        return new
+
+    def validate_bayesian(self) -> Tuple[bool, List[str]]:
+        """Validate Bayesian-specific structural and parameter constraints.
+
+        Returns (is_valid, errors).
+        """
+        errors: List[str] = []
+
+        # Internal nodes: ensure Bayesian params present for BayesianNode
+        for node in self.get_internal_nodes():
+            if isinstance(node, BayesianNode):
+                if getattr(node, "threshold_mean", None) is None:
+                    errors.append(f"Bayesian internal node {node.node_id} missing threshold_mean")
+                if getattr(node, "threshold_std", None) is None:
+                    errors.append(f"Bayesian internal node {node.node_id} missing threshold_std")
+                else:
+                    try:
+                        if float(node.threshold_std) < 0:
+                            errors.append(f"Bayesian internal node {node.node_id} has negative threshold_std")
+                    except Exception:
+                        errors.append(f"Bayesian internal node {node.node_id} invalid threshold_std")
+                if getattr(node, "threshold_dist_type", None) not in ("normal", "laplace", "uniform"):
+                    errors.append(f"Bayesian internal node {node.node_id} invalid threshold_dist_type")
+
+        # Leaf nodes: ensure leaf_alpha matches n_classes
+        for node in self.get_all_leaves():
+            if getattr(node, "leaf_alpha", None) is not None:
+                try:
+                    alpha = np.array(node.leaf_alpha, dtype=float)
+                    if alpha.size != self.n_classes:
+                        errors.append(
+                            f"Bayesian leaf node {node.node_id} leaf_alpha length mismatch: expected {self.n_classes}, got {alpha.size}"
+                        )
+                    if np.any(alpha < 0):
+                        errors.append(f"Bayesian leaf node {node.node_id} has negative entries in leaf_alpha")
+                except Exception:
+                    errors.append(f"Bayesian leaf node {node.node_id} has invalid leaf_alpha")
+                if getattr(node, "leaf_samples_count", 0) < 0:
+                    errors.append(f"Bayesian leaf node {node.node_id} has negative leaf_samples_count")
+
+        return (len(errors) == 0, errors)
 
     def to_dict(self) -> dict:
         """Convert tree to dictionary representation."""
@@ -271,6 +408,10 @@ class TreeGenotype:
                 "fitness": self.fitness_,
                 "accuracy": self.accuracy_,
                 "interpretability": self.interpretability_,
+                "mode": self.mode,
+                "bayesian_config": self.bayesian_config,
+                "mean_calibration_error": self.mean_calibration_error,
+                "prediction_uncertainty": self.prediction_uncertainty,
             },
         }
 
@@ -295,11 +436,30 @@ class TreeGenotype:
                     "right_child": self._node_to_dict(node.right_child),
                 }
             )
+            # If BayesianNode, include distribution parameters
+            if isinstance(node, BayesianNode):
+                result.update(
+                    {
+                        "threshold_mean": float(node.threshold_mean) if node.threshold_mean is not None else None,
+                        "threshold_std": float(node.threshold_std) if node.threshold_std is not None else None,
+                        "threshold_dist_type": node.threshold_dist_type,
+                    }
+                )
         else:
-            if isinstance(node.prediction, np.ndarray):
-                result["prediction"] = node.prediction.tolist()
+            if getattr(node, "leaf_alpha", None) is not None:
+                # Prefer representing Bayesian leaf posterior params
+                result["leaf_alpha"] = (
+                    node.leaf_alpha.tolist() if isinstance(node.leaf_alpha, np.ndarray) else list(node.leaf_alpha)
+                )
+                result["leaf_samples_count"] = int(node.leaf_samples_count)
+                # Also include prediction if present (e.g., MAP)
+                if node.prediction is not None:
+                    result["prediction"] = node.prediction.tolist() if isinstance(node.prediction, np.ndarray) else node.prediction
             else:
-                result["prediction"] = node.prediction
+                if isinstance(node.prediction, np.ndarray):
+                    result["prediction"] = node.prediction.tolist()
+                else:
+                    result["prediction"] = node.prediction
 
         return result
 
@@ -343,17 +503,202 @@ class TreeGenotype:
 
 def create_leaf_node(prediction: Union[int, float, np.ndarray], depth: int = 0) -> Node:
     """Factory function to create a leaf node."""
-    return Node(node_type="leaf", prediction=prediction, depth=depth)
+    return Node(node_type="leaf", prediction=prediction, leaf_alpha=None, leaf_samples_count=0, depth=depth)
+
+
+def create_bayesian_leaf_node(
+    leaf_alpha: Union[List[float], np.ndarray], leaf_samples_count: int = 0, depth: int = 0
+) -> Node:
+    """Factory to create a Bayesian leaf node storing Dirichlet concentration params.
+
+    The `prediction` can be left None; downstream prediction logic will use the
+    posterior mean alpha / sum(alpha) if needed.
+    """
+    arr = np.array(leaf_alpha, dtype=float)
+    return Node(node_type="leaf", prediction=None, leaf_alpha=arr, leaf_samples_count=int(leaf_samples_count), depth=depth)
+
+
+def sample_threshold(node: Node, rng: Optional[np.random.Generator] = None) -> Optional[float]:
+    """Sample a threshold value for a (possibly Bayesian) internal node.
+
+    - If `node` is a `BayesianNode` with distribution params, sample according
+      to the specified family (normal, laplace, uniform).
+    - If no distribution is available, returns the deterministic `threshold`.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    mean = getattr(node, "threshold_mean", None)
+    std = getattr(node, "threshold_std", None)
+    dist = getattr(node, "threshold_dist_type", None)
+
+    # Deterministic fallback
+    if mean is None or std is None or std == 0 or dist is None:
+        return getattr(node, "threshold", None)
+
+    if dist == "normal":
+        return float(rng.normal(loc=mean, scale=std))
+    if dist == "laplace":
+        # Laplace scale parameter b where std = sqrt(2)*b
+        b = float(std) / math.sqrt(2.0)
+        return float(rng.laplace(loc=mean, scale=b))
+    if dist == "uniform":
+        # Derive half-width from std: std = (high-low)/sqrt(12) => halfwidth = sqrt(3)*std
+        half = float(std) * math.sqrt(3.0)
+        return float(rng.uniform(low=mean - half, high=mean + half))
+
+    # Unknown distribution, fallback to deterministic threshold
+    return getattr(node, "threshold", None)
+
+
+def sample_leaf_distribution(node: Node, n_classes: int, rng: Optional[np.random.Generator] = None) -> np.ndarray:
+    """Return a sampled class probability vector for a leaf.
+
+    - If the leaf has `leaf_alpha`, sample from Dirichlet(leaf_alpha).
+    - If the leaf has a deterministic `prediction`, return one-hot (or normalized
+      probability vector if `prediction` is a vector).
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    if getattr(node, "leaf_alpha", None) is not None:
+        alpha = np.array(node.leaf_alpha, dtype=float)
+        if alpha.size != n_classes:
+            raise ValueError("leaf_alpha length does not match n_classes")
+        return rng.dirichlet(alpha)
+
+    # Deterministic prediction fallback
+    pred = getattr(node, "prediction", None)
+    if pred is None:
+        # Unknown: return uniform
+        return np.ones(n_classes, dtype=float) / float(n_classes)
+
+    if isinstance(pred, np.ndarray):
+        vec = np.array(pred, dtype=float)
+        s = vec.sum()
+        if s == 0:
+            return np.ones(n_classes, dtype=float) / float(n_classes)
+        return vec / float(s)
+
+    # Scalar predicted class -> one-hot
+    vec = np.zeros(n_classes, dtype=float)
+    idx = int(pred)
+    if idx < 0 or idx >= n_classes:
+        return np.ones(n_classes, dtype=float) / float(n_classes)
+    vec[idx] = 1.0
+    return vec
+
+
+def get_soft_decision_prob(node: Node, x_row: np.ndarray, mc_samples: int = 200, rng: Optional[np.random.Generator] = None) -> float:
+    """Compute probability of routing left (X[feature_idx] <= threshold).
+
+    Uses analytic expressions for common families (normal, laplace, uniform)
+    when the node exposes `threshold_mean` and `threshold_std`. Falls back to
+    Monte Carlo by sampling thresholds when analytic is not available.
+    Returns a float in [0, 1].
+    """
+    if node is None or node.is_leaf():
+        return 0.0
+    if rng is None:
+        rng = np.random.default_rng()
+
+    x_val = float(x_row[node.feature_idx])
+
+    mean = getattr(node, "threshold_mean", None)
+    std = getattr(node, "threshold_std", None)
+    dist = getattr(node, "threshold_dist_type", None)
+
+    # Deterministic threshold
+    if mean is None or std is None or std == 0 or dist is None:
+        thr = getattr(node, "threshold", None)
+        if thr is None:
+            return 0.0
+        return 1.0 if x_val <= thr else 0.0
+
+    if dist == "normal":
+        # P(threshold >= x_val) = 1 - Phi((x - mu)/sigma)
+        z = (x_val - mean) / float(std)
+        phi = 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+        return float(max(0.0, min(1.0, 1.0 - phi)))
+
+    if dist == "laplace":
+        b = float(std) / math.sqrt(2.0)
+        # CDF of Laplace at x
+        if x_val < mean:
+            cdf = 0.5 * math.exp((x_val - mean) / b)
+        else:
+            cdf = 1.0 - 0.5 * math.exp(-(x_val - mean) / b)
+        return float(max(0.0, min(1.0, 1.0 - cdf)))
+
+    if dist == "uniform":
+        half = float(std) * math.sqrt(3.0)
+        low = mean - half
+        high = mean + half
+        if x_val < low:
+            cdf = 0.0
+        elif x_val > high:
+            cdf = 1.0
+        else:
+            cdf = (x_val - low) / (high - low)
+        return float(max(0.0, min(1.0, 1.0 - cdf)))
+
+    # Unknown distribution: Monte Carlo estimate
+    samples = 0
+    for _ in range(mc_samples):
+        thr = sample_threshold(node, rng=rng)
+        if thr is None:
+            continue
+        if x_val <= thr:
+            samples += 1
+    return float(samples) / float(mc_samples)
 
 
 def create_internal_node(
     feature_idx: int, threshold: float, left_child: Node, right_child: Node, depth: int = 0
 ) -> Node:
     """Factory function to create an internal node."""
+    # set child depths for structural consistency
+    if left_child is not None:
+        left_child.depth = depth + 1
+    if right_child is not None:
+        right_child.depth = depth + 1
     return Node(
         node_type="internal",
         feature_idx=feature_idx,
         threshold=threshold,
+        operator="<=",
+        left_child=left_child,
+        right_child=right_child,
+        depth=depth,
+    )
+
+
+def create_bayesian_internal_node(
+    feature_idx: int,
+    threshold_mean: float,
+    threshold_std: float,
+    threshold_dist_type: Literal["normal", "laplace", "uniform"],
+    left_child: Node = None,
+    right_child: Node = None,
+    depth: int = 0,
+) -> BayesianNode:
+    """Factory function to create a Bayesian internal node.
+
+    This sets the deterministic `threshold` to `threshold_mean` for
+    backward compatibility while storing distribution params.
+    """
+    # set child depths for structural consistency (same behavior as create_internal_node)
+    if left_child is not None:
+        left_child.depth = depth + 1
+    if right_child is not None:
+        right_child.depth = depth + 1
+    return BayesianNode(
+        node_type="internal",
+        feature_idx=feature_idx,
+        threshold=threshold_mean,
+        threshold_mean=threshold_mean,
+        threshold_std=threshold_std,
+        threshold_dist_type=threshold_dist_type,
         operator="<=",
         left_child=left_child,
         right_child=right_child,
