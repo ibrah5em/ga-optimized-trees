@@ -179,7 +179,7 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
     skf = StratifiedKFold(
         n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
     )
-    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "time": []}
+    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "features": [], "time": []}
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         print(f"  Fold {fold}/{n_folds}...", end=" ", flush=True)
@@ -241,6 +241,11 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         results["test_f1"].append(f1_score(y_test, y_pred, average="weighted"))
         results["nodes"].append(best_tree.get_num_nodes())
         results["depth"].append(best_tree.get_depth())
+        # Record number of distinct features used by the GA tree
+        try:
+            results["features"].append(best_tree.get_num_features_used())
+        except Exception:
+            results["features"].append(np.nan)
         results["time"].append(elapsed)
 
         print(
@@ -261,7 +266,7 @@ def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
     skf = StratifiedKFold(
         n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
     )
-    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "time": []}
+    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "features": [], "time": []}
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         print(f"  Fold {fold}/{n_folds}...", end=" ")
@@ -282,6 +287,12 @@ def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
         results["test_f1"].append(f1_score(y_test, y_pred, average="weighted"))
         results["nodes"].append(model.tree_.node_count)
         results["depth"].append(model.tree_.max_depth)
+        # Number of unique features used by CART (ignore -2/-1 placeholders)
+        try:
+            used = np.unique(model.tree_.feature[model.tree_.feature >= 0])
+            results["features"].append(len(used))
+        except Exception:
+            results["features"].append(np.nan)
         results["time"].append(elapsed)
 
         print(f"Acc={results['test_acc'][-1]:.3f}, Time={elapsed:.1f}s")
