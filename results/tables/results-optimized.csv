@@ -1,0 +1,10 @@
+Dataset,Model,Test Acc,Test F1,Time (s),Nodes,Depth
+iris,GA-Optimized,0.9533 ± 0.0340,0.9531 ± 0.0341,7.19,8.2,2.4
+iris,CART,0.9600 ± 0.0249,0.9598 ± 0.0251,0.00,8.6,3.0
+iris,Random Forest,0.9600 ± 0.0389,0.9598 ± 0.0390,0.35,,
+wine,GA-Optimized,0.8759 ± 0.0399,0.8739 ± 0.0415,12.04,11.0,3.0
+wine,CART,0.8763 ± 0.0465,0.8762 ± 0.0452,0.00,13.8,3.0
+wine,Random Forest,0.9832 ± 0.0137,0.9832 ± 0.0137,0.41,,
+breast_cancer,GA-Optimized,0.9157 ± 0.0488,0.9131 ± 0.0525,22.23,7.0,2.0
+breast_cancer,CART,0.9245 ± 0.0211,0.9242 ± 0.0212,0.02,13.8,3.0
+breast_cancer,Random Forest,0.9490 ± 0.0102,0.9488 ± 0.0103,0.64,,
