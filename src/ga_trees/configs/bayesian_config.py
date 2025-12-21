@@ -3,9 +3,11 @@
 Provides a centralized container for Bayesian hyperparameters and sampling
 options used by E-BDT (Evolved Bayesian Decision Trees).
 """
+
+import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
-import json
+
 import yaml
 
 
@@ -67,9 +69,15 @@ class BayesianConfig:
                 errors.append("dirichlet_prior_alpha is invalid")
 
         # Beta priors only meaningful for binary problems; warn if n_classes > 2
-        if n_classes is not None and n_classes > 2 and (self.beta_prior_a is not None or self.beta_prior_b is not None):
+        if (
+            n_classes is not None
+            and n_classes > 2
+            and (self.beta_prior_a is not None or self.beta_prior_b is not None)
+        ):
             # not an error, but a mismatch
-            errors.append("beta_prior parameters provided but n_classes > 2 (use dirichlet_prior_alpha)")
+            errors.append(
+                "beta_prior parameters provided but n_classes > 2 (use dirichlet_prior_alpha)"
+            )
 
         return (len(errors) == 0, errors)
 
@@ -79,11 +87,19 @@ class BayesianConfig:
         # Map keys forgivingly
         kwargs: Dict[str, Any] = {}
         if "dirichlet_prior_alpha" in cfg:
-            kwargs["dirichlet_prior_alpha"] = list(cfg["dirichlet_prior_alpha"]) if cfg["dirichlet_prior_alpha"] is not None else None
+            kwargs["dirichlet_prior_alpha"] = (
+                list(cfg["dirichlet_prior_alpha"])
+                if cfg["dirichlet_prior_alpha"] is not None
+                else None
+            )
         if "beta_prior_a" in cfg:
-            kwargs["beta_prior_a"] = float(cfg["beta_prior_a"]) if cfg["beta_prior_a"] is not None else None
+            kwargs["beta_prior_a"] = (
+                float(cfg["beta_prior_a"]) if cfg["beta_prior_a"] is not None else None
+            )
         if "beta_prior_b" in cfg:
-            kwargs["beta_prior_b"] = float(cfg["beta_prior_b"]) if cfg["beta_prior_b"] is not None else None
+            kwargs["beta_prior_b"] = (
+                float(cfg["beta_prior_b"]) if cfg["beta_prior_b"] is not None else None
+            )
 
         if "n_samples" in cfg:
             kwargs["n_samples"] = int(cfg["n_samples"])
@@ -96,9 +112,20 @@ class BayesianConfig:
             kwargs["confidence_weight"] = float(cfg["confidence_weight"])
 
         # Capture any extra keys
-        extras = {k: v for k, v in cfg.items() if k not in {
-            "dirichlet_prior_alpha", "beta_prior_a", "beta_prior_b", "n_samples", "confidence_level", "calibration_weight", "confidence_weight"
-        }}
+        extras = {
+            k: v
+            for k, v in cfg.items()
+            if k
+            not in {
+                "dirichlet_prior_alpha",
+                "beta_prior_a",
+                "beta_prior_b",
+                "n_samples",
+                "confidence_level",
+                "calibration_weight",
+                "confidence_weight",
+            }
+        }
         kwargs["extras"] = extras
 
         return cls(**kwargs)
@@ -117,7 +144,9 @@ class BayesianConfig:
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to plain dict for storage/inspection."""
         return {
-            "dirichlet_prior_alpha": list(self.dirichlet_prior_alpha) if self.dirichlet_prior_alpha is not None else None,
+            "dirichlet_prior_alpha": (
+                list(self.dirichlet_prior_alpha) if self.dirichlet_prior_alpha is not None else None
+            ),
             "beta_prior_a": self.beta_prior_a,
             "beta_prior_b": self.beta_prior_b,
             "n_samples": self.n_samples,

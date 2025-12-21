@@ -6,12 +6,13 @@ Trees are represented as binary decision trees with constrained structure.
 """
 
 import copy
+import math
 from dataclasses import dataclass, field
-from ga_trees.configs.bayesian_config import BayesianConfig
-from typing import List, Literal, Optional, Tuple, Union, Dict, Any
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
-import math
+
+from ga_trees.configs.bayesian_config import BayesianConfig
 
 
 @dataclass
@@ -343,7 +344,9 @@ class TreeGenotype:
         new = copy.deepcopy(self)
         # Ensure bayesian_config is copied as a plain dict
         try:
-            new.bayesian_config = dict(self.bayesian_config) if self.bayesian_config is not None else {}
+            new.bayesian_config = (
+                dict(self.bayesian_config) if self.bayesian_config is not None else {}
+            )
         except Exception:
             new.bayesian_config = copy.deepcopy(self.bayesian_config)
         return new
@@ -365,11 +368,21 @@ class TreeGenotype:
                 else:
                     try:
                         if float(node.threshold_std) < 0:
-                            errors.append(f"Bayesian internal node {node.node_id} has negative threshold_std")
+                            errors.append(
+                                f"Bayesian internal node {node.node_id} has negative threshold_std"
+                            )
                     except Exception:
-                        errors.append(f"Bayesian internal node {node.node_id} invalid threshold_std")
-                if getattr(node, "threshold_dist_type", None) not in ("normal", "laplace", "uniform"):
-                    errors.append(f"Bayesian internal node {node.node_id} invalid threshold_dist_type")
+                        errors.append(
+                            f"Bayesian internal node {node.node_id} invalid threshold_std"
+                        )
+                if getattr(node, "threshold_dist_type", None) not in (
+                    "normal",
+                    "laplace",
+                    "uniform",
+                ):
+                    errors.append(
+                        f"Bayesian internal node {node.node_id} invalid threshold_dist_type"
+                    )
 
         # Leaf nodes: ensure leaf_alpha matches n_classes
         for node in self.get_all_leaves():
@@ -381,11 +394,15 @@ class TreeGenotype:
                             f"Bayesian leaf node {node.node_id} leaf_alpha length mismatch: expected {self.n_classes}, got {alpha.size}"
                         )
                     if np.any(alpha < 0):
-                        errors.append(f"Bayesian leaf node {node.node_id} has negative entries in leaf_alpha")
+                        errors.append(
+                            f"Bayesian leaf node {node.node_id} has negative entries in leaf_alpha"
+                        )
                 except Exception:
                     errors.append(f"Bayesian leaf node {node.node_id} has invalid leaf_alpha")
                 if getattr(node, "leaf_samples_count", 0) < 0:
-                    errors.append(f"Bayesian leaf node {node.node_id} has negative leaf_samples_count")
+                    errors.append(
+                        f"Bayesian leaf node {node.node_id} has negative leaf_samples_count"
+                    )
 
         return (len(errors) == 0, errors)
 
@@ -440,8 +457,12 @@ class TreeGenotype:
             if isinstance(node, BayesianNode):
                 result.update(
                     {
-                        "threshold_mean": float(node.threshold_mean) if node.threshold_mean is not None else None,
-                        "threshold_std": float(node.threshold_std) if node.threshold_std is not None else None,
+                        "threshold_mean": (
+                            float(node.threshold_mean) if node.threshold_mean is not None else None
+                        ),
+                        "threshold_std": (
+                            float(node.threshold_std) if node.threshold_std is not None else None
+                        ),
                         "threshold_dist_type": node.threshold_dist_type,
                     }
                 )
@@ -449,12 +470,18 @@ class TreeGenotype:
             if getattr(node, "leaf_alpha", None) is not None:
                 # Prefer representing Bayesian leaf posterior params
                 result["leaf_alpha"] = (
-                    node.leaf_alpha.tolist() if isinstance(node.leaf_alpha, np.ndarray) else list(node.leaf_alpha)
+                    node.leaf_alpha.tolist()
+                    if isinstance(node.leaf_alpha, np.ndarray)
+                    else list(node.leaf_alpha)
                 )
                 result["leaf_samples_count"] = int(node.leaf_samples_count)
                 # Also include prediction if present (e.g., MAP)
                 if node.prediction is not None:
-                    result["prediction"] = node.prediction.tolist() if isinstance(node.prediction, np.ndarray) else node.prediction
+                    result["prediction"] = (
+                        node.prediction.tolist()
+                        if isinstance(node.prediction, np.ndarray)
+                        else node.prediction
+                    )
             else:
                 if isinstance(node.prediction, np.ndarray):
                     result["prediction"] = node.prediction.tolist()
@@ -503,7 +530,9 @@ class TreeGenotype:
 
 def create_leaf_node(prediction: Union[int, float, np.ndarray], depth: int = 0) -> Node:
     """Factory function to create a leaf node."""
-    return Node(node_type="leaf", prediction=prediction, leaf_alpha=None, leaf_samples_count=0, depth=depth)
+    return Node(
+        node_type="leaf", prediction=prediction, leaf_alpha=None, leaf_samples_count=0, depth=depth
+    )
 
 
 def create_bayesian_leaf_node(
@@ -515,7 +544,13 @@ def create_bayesian_leaf_node(
     posterior mean alpha / sum(alpha) if needed.
     """
     arr = np.array(leaf_alpha, dtype=float)
-    return Node(node_type="leaf", prediction=None, leaf_alpha=arr, leaf_samples_count=int(leaf_samples_count), depth=depth)
+    return Node(
+        node_type="leaf",
+        prediction=None,
+        leaf_alpha=arr,
+        leaf_samples_count=int(leaf_samples_count),
+        depth=depth,
+    )
 
 
 def sample_threshold(node: Node, rng: Optional[np.random.Generator] = None) -> Optional[float]:
@@ -551,7 +586,9 @@ def sample_threshold(node: Node, rng: Optional[np.random.Generator] = None) -> O
     return getattr(node, "threshold", None)
 
 
-def sample_leaf_distribution(node: Node, n_classes: int, rng: Optional[np.random.Generator] = None) -> np.ndarray:
+def sample_leaf_distribution(
+    node: Node, n_classes: int, rng: Optional[np.random.Generator] = None
+) -> np.ndarray:
     """Return a sampled class probability vector for a leaf.
 
     - If the leaf has `leaf_alpha`, sample from Dirichlet(leaf_alpha).
@@ -589,7 +626,9 @@ def sample_leaf_distribution(node: Node, n_classes: int, rng: Optional[np.random
     return vec
 
 
-def get_soft_decision_prob(node: Node, x_row: np.ndarray, mc_samples: int = 200, rng: Optional[np.random.Generator] = None) -> float:
+def get_soft_decision_prob(
+    node: Node, x_row: np.ndarray, mc_samples: int = 200, rng: Optional[np.random.Generator] = None
+) -> float:
     """Compute probability of routing left (X[feature_idx] <= threshold).
 
     Uses analytic expressions for common families (normal, laplace, uniform)
