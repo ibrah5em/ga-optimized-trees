@@ -1,0 +1,13 @@
+# Example Bayesian configuration tuned for medical diagnosis use-case
+# Use a weakly informative Dirichlet prior (slightly favoring negative class)
+
+dirichlet_prior_alpha: [2.0, 1.0]
+
+n_samples: 1000
+confidence_level: 0.95
+calibration_weight: 0.5
+confidence_weight: 0.5
+
+# Extras may include thresholds for human-review recommendation
+# extras:
+#   human_review_threshold: 0.7
