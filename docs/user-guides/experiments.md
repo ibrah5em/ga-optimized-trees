@@ -21,6 +21,10 @@ python scripts/experiment.py
 # Run with custom config
 python scripts/experiment.py --config configs/custom.yaml
 
+# If using local dataset files, you can specify the label column by name or index
+python scripts/experiment.py --datasets data/my_data.csv --label-column target
+python scripts/experiment.py --datasets data/my_data.csv --label-column 4
+
 # Run experiments using optimized config
 python scripts/experiment.py --config configs/optimized.yaml
 ```
