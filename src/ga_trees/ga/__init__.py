@@ -4,12 +4,12 @@ Expose genetic algorithm engine and operators for easy import.
 """
 
 from .engine import (
+    Crossover,
     GAConfig,
     GAEngine,
-    TreeInitializer,
-    Selection,
-    Crossover,
     Mutation,
+    Selection,
+    TreeInitializer,
 )
 from .improved_crossover import safe_subtree_crossover
 

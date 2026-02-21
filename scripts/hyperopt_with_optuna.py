@@ -16,12 +16,11 @@ Usage:
     python scripts/hyperopt_with_optuna.py --study-name my_study --resume
 """
 
-from pathlib import Path
-
 import argparse
 import json
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np

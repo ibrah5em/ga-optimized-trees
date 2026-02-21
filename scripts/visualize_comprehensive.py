@@ -91,8 +91,12 @@ def create_statistical_equivalence():
 
     ax.barh(datasets, p_values, color=colors, edgecolor="black", linewidth=1.2, alpha=0.9)
 
-    ax.axvline(0.05, color="red", linestyle="--", linewidth=1.8, label="α = 0.05 (significance threshold)")
-    ax.axvline(0.55, color="orange", linestyle=":", linewidth=1.8, alpha=0.8, label="Target p-value (0.55)")
+    ax.axvline(
+        0.05, color="red", linestyle="--", linewidth=1.8, label="α = 0.05 (significance threshold)"
+    )
+    ax.axvline(
+        0.55, color="orange", linestyle=":", linewidth=1.8, alpha=0.8, label="Target p-value (0.55)"
+    )
 
     for i, (dataset, p) in enumerate(zip(datasets, p_values)):
         ax.text(p + 0.03, i, f"p = {p:.3f}", va="center", fontsize=11, fontweight="bold")
@@ -152,16 +156,43 @@ def create_publication_figures():
 
         x = np.arange(len(datasets_labels))
         width = 0.35
-        ax.bar(x - width / 2, ga_nodes, width, label="GA", color="#2ecc71", edgecolor="black", linewidth=1.2)
-        ax.bar(x + width / 2, cart_nodes, width, label="CART", color="#e74c3c", alpha=0.85, edgecolor="black", linewidth=1.2)
+        ax.bar(
+            x - width / 2,
+            ga_nodes,
+            width,
+            label="GA",
+            color="#2ecc71",
+            edgecolor="black",
+            linewidth=1.2,
+        )
+        ax.bar(
+            x + width / 2,
+            cart_nodes,
+            width,
+            label="CART",
+            color="#e74c3c",
+            alpha=0.85,
+            edgecolor="black",
+            linewidth=1.2,
+        )
 
         for i, (ga, cart, red) in enumerate(zip(ga_nodes, cart_nodes, reductions)):
             color = "#27ae60" if 46 <= red <= 49 else "#2c3e50"
-            ax.text(i, max(ga, cart) + 2, f"{red}%", ha="center", fontsize=11, fontweight="bold", color=color)
+            ax.text(
+                i,
+                max(ga, cart) + 2,
+                f"{red}%",
+                ha="center",
+                fontsize=11,
+                fontweight="bold",
+                color=color,
+            )
 
         ax.set_ylabel("Number of Nodes", fontsize=12, fontweight="bold")
         ax.set_xlabel("Dataset", fontsize=12, fontweight="bold")
-        ax.set_title("GA Achieves 46–82% Tree Size Reduction", fontsize=13, fontweight="bold", pad=12)
+        ax.set_title(
+            "GA Achieves 46–82% Tree Size Reduction", fontsize=13, fontweight="bold", pad=12
+        )
         ax.set_xticks(x)
         ax.set_xticklabels(datasets_labels, fontsize=11)
         ax.legend(loc="upper left", fontsize=10, framealpha=0.95)
@@ -178,30 +209,76 @@ def create_publication_figures():
 
         # --- Figure 3: Pareto Trade-off Scatter ---
         fig, ax = plt.subplots(figsize=(8, 6))
-        for key, display in [("iris", "Iris"), ("wine", "Wine"), ("breast_cancer", "Breast Cancer")]:
+        for key, display in [
+            ("iris", "Iris"),
+            ("wine", "Wine"),
+            ("breast_cancer", "Breast Cancer"),
+        ]:
             d = PAPER_RESULTS[key]
-            ax.scatter(d["ga_nodes"], d["ga_acc"], s=200, alpha=0.85, color="#2ecc71",
-                       marker="o", edgecolors="black", linewidth=1.2)
-            ax.scatter(d["cart_nodes"], d["cart_acc"], s=140, alpha=0.8, color="#e74c3c",
-                       marker="s", edgecolors="black", linewidth=1.2)
-            ax.annotate("", xy=(d["ga_nodes"], d["ga_acc"]), xytext=(d["cart_nodes"], d["cart_acc"]),
-                        arrowprops=dict(arrowstyle="->", lw=1.2, color="gray", alpha=0.6))
+            ax.scatter(
+                d["ga_nodes"],
+                d["ga_acc"],
+                s=200,
+                alpha=0.85,
+                color="#2ecc71",
+                marker="o",
+                edgecolors="black",
+                linewidth=1.2,
+            )
+            ax.scatter(
+                d["cart_nodes"],
+                d["cart_acc"],
+                s=140,
+                alpha=0.8,
+                color="#e74c3c",
+                marker="s",
+                edgecolors="black",
+                linewidth=1.2,
+            )
+            ax.annotate(
+                "",
+                xy=(d["ga_nodes"], d["ga_acc"]),
+                xytext=(d["cart_nodes"], d["cart_acc"]),
+                arrowprops=dict(arrowstyle="->", lw=1.2, color="gray", alpha=0.6),
+            )
 
         ax.axhspan(90, 95, alpha=0.03, color="green", zorder=0)
         ax.axvspan(0, 15, alpha=0.03, color="blue", zorder=0)
         ax.text(8.0, 94.5, "Ideal region", fontsize=10, color="darkgreen", fontweight="bold")
 
         legend_elements = [
-            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="#2ecc71",
-                       markersize=10, label="GA (Smaller)", markeredgecolor="black", markeredgewidth=1.2),
-            plt.Line2D([0], [0], marker="s", color="w", markerfacecolor="#e74c3c",
-                       markersize=8, label="CART (Baseline)", markeredgecolor="black", markeredgewidth=1.2),
+            plt.Line2D(
+                [0],
+                [0],
+                marker="o",
+                color="w",
+                markerfacecolor="#2ecc71",
+                markersize=10,
+                label="GA (Smaller)",
+                markeredgecolor="black",
+                markeredgewidth=1.2,
+            ),
+            plt.Line2D(
+                [0],
+                [0],
+                marker="s",
+                color="w",
+                markerfacecolor="#e74c3c",
+                markersize=8,
+                label="CART (Baseline)",
+                markeredgecolor="black",
+                markeredgewidth=1.2,
+            ),
         ]
         ax.legend(handles=legend_elements, loc="lower right", fontsize=11, framealpha=0.95)
         ax.set_xlabel("Tree Size (Number of Nodes)", fontsize=12, fontweight="bold")
         ax.set_ylabel("Accuracy (%)", fontsize=12, fontweight="bold")
-        ax.set_title("GA Finds Pareto-Optimal Solutions\n(Smaller trees, competitive accuracy)",
-                     fontsize=13, fontweight="bold", pad=12)
+        ax.set_title(
+            "GA Finds Pareto-Optimal Solutions\n(Smaller trees, competitive accuracy)",
+            fontsize=13,
+            fontweight="bold",
+            pad=12,
+        )
         ax.grid(True, alpha=0.25, linestyle="--")
         ax.set_xlim(0, 40)
         ax.set_ylim(85, 96)
@@ -215,13 +292,26 @@ def create_publication_figures():
         fig, ax = plt.subplots(figsize=(12, 4))
         ax.axis("off")
         table_data = [
-            ["Iris",          "94.55 ± 8.07%",  "92.41 ± 10.43%", "0.186", "7.4",  "16.4", "55%"],
-            ["Wine",          "88.19 ± 10.39%", "87.22 ± 10.70%", "0.683", "10.7", "20.7", "48%"],
-            ["Breast Cancer", "91.05 ± 5.60%",  "91.57 ± 3.92%",  "0.640", "6.5",  "35.5", "82%"],
+            ["Iris", "94.55 ± 8.07%", "92.41 ± 10.43%", "0.186", "7.4", "16.4", "55%"],
+            ["Wine", "88.19 ± 10.39%", "87.22 ± 10.70%", "0.683", "10.7", "20.7", "48%"],
+            ["Breast Cancer", "91.05 ± 5.60%", "91.57 ± 3.92%", "0.640", "6.5", "35.5", "82%"],
         ]
-        headers = ["Dataset", "GA Accuracy", "CART Accuracy", "p-value", "GA Nodes", "CART Nodes", "Reduction"]
-        table = ax.table(cellText=table_data, colLabels=headers, cellLoc="center", loc="center",
-                         colWidths=[0.15, 0.15, 0.15, 0.12, 0.12, 0.12, 0.12])
+        headers = [
+            "Dataset",
+            "GA Accuracy",
+            "CART Accuracy",
+            "p-value",
+            "GA Nodes",
+            "CART Nodes",
+            "Reduction",
+        ]
+        table = ax.table(
+            cellText=table_data,
+            colLabels=headers,
+            cellLoc="center",
+            loc="center",
+            colWidths=[0.15, 0.15, 0.15, 0.12, 0.12, 0.12, 0.12],
+        )
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(1, 2.5)
@@ -235,7 +325,9 @@ def create_publication_figures():
                 table[(row_idx, 3)].set_facecolor("#d5f4e6")
             reduction = int(table_data[row_idx - 1][6].replace("%", ""))
             table[(row_idx, 6)].set_facecolor("#f9e79f" if 46 <= reduction <= 49 else "#d5f4e6")
-        ax.set_title("Complete Results Summary (20-fold CV)", fontsize=14, fontweight="bold", pad=12)
+        ax.set_title(
+            "Complete Results Summary (20-fold CV)", fontsize=14, fontweight="bold", pad=12
+        )
         plt.tight_layout()
         plt.savefig(output_dir / "paper_table_summary.png", dpi=300, bbox_inches="tight")
         print("✓ Saved: paper_table_summary.png")

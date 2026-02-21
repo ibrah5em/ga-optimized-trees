@@ -16,7 +16,6 @@ from ga_trees.genotype.tree_genotype import (
     create_leaf_node,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -75,9 +74,7 @@ class TestCalculateClassificationMetrics:
             "f1_weighted",
             "confusion_matrix",
         }
-        assert required.issubset(result.keys()), (
-            f"Missing keys: {required - result.keys()}"
-        )
+        assert required.issubset(result.keys()), f"Missing keys: {required - result.keys()}"
 
     def test_perfect_accuracy(self):
         y_true, y_pred = _perfect_predictions()

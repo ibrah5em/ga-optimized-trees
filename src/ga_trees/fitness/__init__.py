@@ -5,8 +5,8 @@ Expose fitness calculation classes for easy import.
 
 from .calculator import (
     FitnessCalculator,
-    TreePredictor,
     InterpretabilityCalculator,
+    TreePredictor,
 )
 
 __all__ = [

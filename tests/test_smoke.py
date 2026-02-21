@@ -52,7 +52,7 @@ def test_subpackage_imports():
 
 def test_basic_workflow():
     """Minimal end-to-end: load data → evolve → predict."""
-    from ga_trees import GAConfig, GAEngine, FitnessCalculator, Mutation, TreeInitializer
+    from ga_trees import FitnessCalculator, GAConfig, GAEngine, Mutation, TreeInitializer
     from ga_trees.data import DatasetLoader
     from ga_trees.fitness import TreePredictor
 
@@ -72,8 +72,7 @@ def test_basic_workflow():
         n_features, n_classes, max_depth=4, min_samples_split=5, min_samples_leaf=2
     )
     feature_ranges = {
-        i: (float(X_train[:, i].min()), float(X_train[:, i].max()))
-        for i in range(n_features)
+        i: (float(X_train[:, i].min()), float(X_train[:, i].max())) for i in range(n_features)
     }
     mutation = Mutation(n_features, feature_ranges)
     engine = GAEngine(config, initializer, fitness_calc.calculate_fitness, mutation)
@@ -89,9 +88,9 @@ def test_basic_workflow():
     # Prediction works and returns an array of the right shape
     predictor = TreePredictor()
     y_pred = predictor.predict(best, X_test)
-    assert y_pred.shape == y_test.shape, (
-        f"Prediction shape {y_pred.shape} doesn't match target shape {y_test.shape}"
-    )
+    assert (
+        y_pred.shape == y_test.shape
+    ), f"Prediction shape {y_pred.shape} doesn't match target shape {y_test.shape}"
 
 
 def test_fitness_calculator_standalone():
@@ -123,9 +122,7 @@ def test_dataset_loader_returns_expected_keys():
     data = loader.load_dataset("iris", test_size=0.2, random_state=0)
 
     required_keys = {"X_train", "X_test", "y_train", "y_test", "metadata"}
-    assert required_keys.issubset(data.keys()), (
-        f"Missing keys: {required_keys - data.keys()}"
-    )
+    assert required_keys.issubset(data.keys()), f"Missing keys: {required_keys - data.keys()}"
     assert data["X_train"].shape[1] == 4
     assert len(np.unique(data["y_train"])) == 3
 
@@ -133,7 +130,7 @@ def test_dataset_loader_returns_expected_keys():
 @pytest.mark.slow
 def test_full_ga_run_with_history():
     """Full GA run (larger population) records history that improves over time."""
-    from ga_trees import GAConfig, GAEngine, FitnessCalculator, Mutation, TreeInitializer
+    from ga_trees import FitnessCalculator, GAConfig, GAEngine, Mutation, TreeInitializer
     from ga_trees.data import DatasetLoader
 
     loader = DatasetLoader()
@@ -143,13 +140,14 @@ def test_full_ga_run_with_history():
     n_features = X_train.shape[1]
     n_classes = len(np.unique(y_train))
     feature_ranges = {
-        i: (float(X_train[:, i].min()), float(X_train[:, i].max()))
-        for i in range(n_features)
+        i: (float(X_train[:, i].min()), float(X_train[:, i].max())) for i in range(n_features)
     }
 
     config = GAConfig(population_size=30, n_generations=20)
     fitness_calc = FitnessCalculator()
-    initializer = TreeInitializer(n_features, n_classes, max_depth=5, min_samples_split=5, min_samples_leaf=2)
+    initializer = TreeInitializer(
+        n_features, n_classes, max_depth=5, min_samples_split=5, min_samples_leaf=2
+    )
     mutation = Mutation(n_features, feature_ranges)
     engine = GAEngine(config, initializer, fitness_calc.calculate_fitness, mutation)
 

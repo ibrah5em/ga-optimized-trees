@@ -31,4 +31,3 @@ def test_xgboostbaseline_fit_predict_basic():
     preds = clf.predict(X)
     assert isinstance(preds, np.ndarray)
     assert preds.shape[0] == y.shape[0]
-

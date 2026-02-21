@@ -3,10 +3,10 @@
 A genetic algorithm framework for evolving interpretable decision trees.
 """
 
-from .ga.engine import GAEngine, GAConfig, TreeInitializer, Selection, Crossover, Mutation
-from .genotype.tree_genotype import TreeGenotype
-from .fitness.calculator import FitnessCalculator
 from .data.dataset_loader import DatasetLoader
+from .fitness.calculator import FitnessCalculator
+from .ga.engine import Crossover, GAConfig, GAEngine, Mutation, Selection, TreeInitializer
+from .genotype.tree_genotype import TreeGenotype
 
 __all__ = [
     "GAEngine",

@@ -17,7 +17,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-
 from scipy import stats
 from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 from sklearn.ensemble import RandomForestClassifier
@@ -635,9 +634,13 @@ def main():
     print(f"  Tree: max_depth={config['tree']['max_depth']}")
     fc = config["fitness"]
     if "weights" in fc:
-        print(f"  Fitness: acc_weight={fc['weights']['accuracy']}, interp_weight={fc['weights']['interpretability']}")
+        print(
+            f"  Fitness: acc_weight={fc['weights']['accuracy']}, interp_weight={fc['weights']['interpretability']}"
+        )
     else:
-        print(f"  Fitness: acc_weight={fc.get('accuracy_weight', 'N/A')}, interp_weight={fc.get('interpretability_weight', 'N/A')}")
+        print(
+            f"  Fitness: acc_weight={fc.get('accuracy_weight', 'N/A')}, interp_weight={fc.get('interpretability_weight', 'N/A')}"
+        )
     print(f"  Datasets: {', '.join(chosen_datasets)}")
 
     datasets = chosen_datasets

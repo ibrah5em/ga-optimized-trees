@@ -20,7 +20,6 @@ from ga_trees.genotype.tree_genotype import (
     create_leaf_node,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -188,16 +187,12 @@ class TestInterpretabilityCalculator:
 
     def test_composite_score_range(self, simple_tree, default_weights):
         """Composite score must be in [0, 1]."""
-        score = InterpretabilityCalculator.calculate_composite_score(
-            simple_tree, default_weights
-        )
+        score = InterpretabilityCalculator.calculate_composite_score(simple_tree, default_weights)
         assert 0.0 <= score <= 1.0, f"Score out of range: {score}"
 
     def test_composite_score_is_float(self, simple_tree, default_weights):
         """Composite score must be a Python or numpy scalar float."""
-        score = InterpretabilityCalculator.calculate_composite_score(
-            simple_tree, default_weights
-        )
+        score = InterpretabilityCalculator.calculate_composite_score(simple_tree, default_weights)
         assert isinstance(float(score), float)
 
     def test_small_tree_higher_complexity_score(self, simple_tree, deep_tree, default_weights):
@@ -205,9 +200,9 @@ class TestInterpretabilityCalculator:
         weights = {"node_complexity": 1.0}
         small_score = InterpretabilityCalculator.calculate_composite_score(simple_tree, weights)
         deep_score = InterpretabilityCalculator.calculate_composite_score(deep_tree, weights)
-        assert small_score > deep_score, (
-            f"Smaller tree ({small_score:.3f}) should beat deeper tree ({deep_score:.3f})"
-        )
+        assert (
+            small_score > deep_score
+        ), f"Smaller tree ({small_score:.3f}) should beat deeper tree ({deep_score:.3f})"
 
     def test_partial_weights_subset(self, simple_tree):
         """Passing only a subset of weight keys should not raise."""
@@ -224,9 +219,7 @@ class TestInterpretabilityCalculator:
     def test_balanced_tree_gets_full_balance_score(self):
         """A perfectly balanced depth-1 tree should score 1.0 on tree_balance alone."""
         tree = _two_node_tree()
-        score = InterpretabilityCalculator.calculate_composite_score(
-            tree, {"tree_balance": 1.0}
-        )
+        score = InterpretabilityCalculator.calculate_composite_score(tree, {"tree_balance": 1.0})
         assert score == pytest.approx(1.0, abs=1e-6)
 
     def test_semantic_coherence_uniform_predictions(self):

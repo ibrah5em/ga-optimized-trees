@@ -15,7 +15,6 @@ from ga_trees.genotype.tree_genotype import (
     create_leaf_node,
 )
 
-
 # ---------------------------------------------------------------------------
 # Tree factories
 # ---------------------------------------------------------------------------
@@ -167,9 +166,9 @@ class TestCalculateFeatureDepthImportance:
         tree = _two_feature_tree()
         result = FeatureImportanceAnalyzer.calculate_feature_depth_importance(tree)
         # feat 0 weight = 1.0, feat 1 weight = 0.5 → after normalization feat 0 > feat 1
-        assert result[0] > result[1], (
-            f"Expected feat-0 importance ({result[0]:.3f}) > feat-1 ({result[1]:.3f})"
-        )
+        assert (
+            result[0] > result[1]
+        ), f"Expected feat-0 importance ({result[0]:.3f}) > feat-1 ({result[1]:.3f})"
 
     def test_all_importances_in_range(self):
         """All importance values must be in [0, 1]."""
@@ -190,9 +189,7 @@ class TestCalculateFeatureDepthImportance:
         """Keys from depth-importance and frequency should be the same set."""
         tree = _two_feature_tree()
         freq_keys = set(FeatureImportanceAnalyzer.calculate_feature_frequency(tree).keys())
-        depth_keys = set(
-            FeatureImportanceAnalyzer.calculate_feature_depth_importance(tree).keys()
-        )
+        depth_keys = set(FeatureImportanceAnalyzer.calculate_feature_depth_importance(tree).keys())
         assert freq_keys == depth_keys
 
     def test_different_trees_give_different_importances(self):

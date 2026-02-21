@@ -1,8 +1,7 @@
 """Run Pareto optimization and visualize results - FIXED TO USE CONFIG."""
 
-from pathlib import Path
-
 import argparse
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
