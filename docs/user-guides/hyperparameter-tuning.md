@@ -1,5 +1,7 @@
 # Hyperparameter Tuning with Optuna
 
+> ⚠️ **Planned Feature:** MLflow experiment tracking described in this document is not yet implemented in the current release. Progress is currently saved to JSON logs only.
+
 Complete guide to hyperparameter optimization using Optuna for GA-optimized decision trees.
 
 ## Overview
@@ -424,7 +426,7 @@ study.optimize(objective, n_trials=50, catch=(Exception,))
 ```python
 # Load good starting point
 import yaml
-with open('configs/custom.yaml', 'r') as f:
+with open('configs/paper.yaml', 'r') as f:
     good_config = yaml.safe_load(f)
 
 # Use as first trial
@@ -509,11 +511,11 @@ trials_df.to_csv('results/optimization/optuna_trials.csv', index=False)
 # - state: COMPLETE, PRUNED, FAIL
 ```
 
-### 3. Test Optimized Config
+### 3. Visualize Results
 
 ```bash
-# Test the optimized configuration
-python scripts/test_optimized_config.py
+# Generate comprehensive visualizations and paper figures
+python scripts/visualize_comprehensive.py
 ```
 
 This will:

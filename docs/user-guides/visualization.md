@@ -43,7 +43,7 @@ TreeVisualizer.visualize_tree(
 
 **Output:** `results/figures/tree_structure.png`
 
-![Tree Structure Example](placeholder)
+*Tree structure visualization is generated at runtime and saved to `results/figures/tree_structure.png`.*
 
 **Interpretation:**
 
@@ -520,7 +520,7 @@ plt.savefig('results/figures/confusion_matrix.png', dpi=300)
 
 ```bash
 # Generate all publication figures
-python scripts/visualize_target_paper.py
+python scripts/visualize_comprehensive.py
 ```
 
 **Output:**

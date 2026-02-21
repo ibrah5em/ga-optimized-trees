@@ -15,7 +15,7 @@ The framework provides comprehensive baseline comparisons to validate that GA-op
 
 ```bash
 # Run full baseline comparison
-python scripts/experiment.py --config configs/custom.yaml
+python scripts/experiment.py --config configs/paper.yaml
 
 # Output includes statistical tests comparing GA vs baselines
 ```
@@ -211,7 +211,7 @@ plt.savefig('results/figures/size_comparison.png')
 
 ## Benchmark Results
 
-### Target Results (configs/custom.yaml)
+### Target Results (configs/paper.yaml)
 
 | Dataset | GA Acc | CART Acc | p-value | GA Nodes | CART Nodes | Reduction |
 |---------|--------|----------|---------|----------|------------|-----------|

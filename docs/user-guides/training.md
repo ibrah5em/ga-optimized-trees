@@ -29,14 +29,14 @@ Before training, ensure your data is properly formatted and preprocessed. The bu
 python scripts/train.py --dataset iris
 
 # Train with custom config
-python scripts/train.py --config configs/custom.yaml --dataset breast_cancer
+python scripts/train.py --config configs/paper.yaml --dataset breast_cancer
 
 # Specify label column for local files (name or zero-based index)
 python scripts/train.py --dataset data/my_data.csv --label-column target
 python scripts/train.py --dataset data/my_data.csv --label-column 4
 
 # Override specific parameters
-python scripts/train.py --config configs/custom.yaml --generations 60 --population 120
+python scripts/train.py --config configs/paper.yaml --generations 60 --population 120
 ```
 
 ## Training Workflow
@@ -553,7 +553,7 @@ python scripts/train.py --dataset iris --population 30 --generations 10
 python scripts/train.py --dataset wine --population 50 --generations 30
 
 # Full run (30+ minutes)
-python scripts/train.py --config configs/custom.yaml --dataset breast_cancer
+python scripts/train.py --config configs/paper.yaml --dataset breast_cancer
 ```
 
 ### 2. Balance Accuracy vs Interpretability

@@ -9,7 +9,7 @@ Pareto optimization finds multiple solutions representing different trade-offs b
 ## Running Pareto Analysis
 
 ```bash
-python scripts/run_pareto_optimization.py --config configs/custom.yaml --dataset breast_cancer
+python scripts/run_pareto_optimization.py --config configs/paper.yaml --dataset breast_cancer
 ```
 
 **Output:**

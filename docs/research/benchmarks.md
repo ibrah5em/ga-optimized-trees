@@ -10,7 +10,7 @@ Complete benchmark results across datasets.
 | Wine | 88.19% | 87.22% | 0.683 | 10.7 | 20.7 | 48% |
 | Breast Cancer | 91.05% | 91.57% | 0.640 | 6.5 | 35.5 | 82% |
 
-All results use **20-fold cross-validation** with `configs/custom.yaml`.
+All results use **20-fold cross-validation** with `configs/paper.yaml`.
 
 ## Key Findings
 
