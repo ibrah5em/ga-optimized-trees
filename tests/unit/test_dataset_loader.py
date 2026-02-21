@@ -27,7 +27,7 @@ import pandas as pd
 import pytest
 
 # FIXED: we now Use correct import path
-from src.ga_trees.data.dataset_loader import DatasetLoader, DataValidator, load_benchmark_dataset
+from ga_trees.data.dataset_loader import DatasetLoader, DataValidator, load_benchmark_dataset
 
 # ============================================================================
 # FIXTURES
