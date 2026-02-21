@@ -139,3 +139,10 @@ Desktop.ini
 
 # Windows Zone.Identifier
 *:Zone.Identifier
+# Model outputs (should not be in repo)
+models/*.pkl
+models/*.png
+
+# Experiment results (regenerable)
+results/optimization/*.json
+results/statistics/*.xlsx
