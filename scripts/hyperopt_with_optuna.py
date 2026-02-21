@@ -16,10 +16,7 @@ Usage:
     python scripts/hyperopt_with_optuna.py --study-name my_study --resume
 """
 
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import argparse
 import json
@@ -631,7 +628,7 @@ Examples:
     logger.info("Next steps:")
     logger.info(f"1. Review: results/optimization/{study_name}_report.json")
     logger.info(f"2. Test config: python scripts/experiment.py --config {args.output}")
-    logger.info(f"3. Compare: python scripts/test_optimized_config.py")
+    logger.info(f"3. Visualize: python scripts/visualize_comprehensive.py")
     logger.info("=" * 70)
 
 

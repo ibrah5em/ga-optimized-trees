@@ -9,11 +9,6 @@ Usage in scripts:
     X, y = load_any_dataset('titanic')
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from typing import Tuple
 
 import numpy as np

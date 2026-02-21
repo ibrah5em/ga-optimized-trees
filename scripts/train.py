@@ -5,14 +5,14 @@ NOW SUPPORTS 25+ DATASETS!
 
 Usage:
     # Sklearn datasets
-    python scripts/train.py --config configs/custom.yaml --dataset iris
+    python scripts/train.py --config configs/paper.yaml --dataset iris
 
     # OpenML datasets
-    python scripts/train.py --config configs/custom.yaml --dataset heart
-    python scripts/train.py --config configs/custom.yaml --dataset titanic
+    python scripts/train.py --config configs/paper.yaml --dataset heart
+    python scripts/train.py --config configs/paper.yaml --dataset titanic
 
     # Custom CSV
-    python scripts/train.py --config configs/custom.yaml --dataset data/my_data.csv
+    python scripts/train.py --config configs/paper.yaml --dataset data/my_data.csv
 """
 
 import argparse
@@ -23,9 +23,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -177,16 +174,16 @@ def main():
         epilog="""
 Examples:
   # Sklearn datasets
-  python scripts/train.py --config configs/custom.yaml --dataset iris
-  python scripts/train.py --config configs/custom.yaml --dataset wine
+  python scripts/train.py --config configs/paper.yaml --dataset iris
+  python scripts/train.py --config configs/paper.yaml --dataset wine
   
   # OpenML datasets (NEW!)
-  python scripts/train.py --config configs/custom.yaml --dataset heart
-  python scripts/train.py --config configs/custom.yaml --dataset titanic
-  python scripts/train.py --config configs/custom.yaml --dataset credit_g
+  python scripts/train.py --config configs/paper.yaml --dataset heart
+  python scripts/train.py --config configs/paper.yaml --dataset titanic
+  python scripts/train.py --config configs/paper.yaml --dataset credit_g
   
   # Custom CSV file
-  python scripts/train.py --config configs/custom.yaml --dataset data/my_data.csv
+  python scripts/train.py --config configs/paper.yaml --dataset data/my_data.csv
         """,
     )
 

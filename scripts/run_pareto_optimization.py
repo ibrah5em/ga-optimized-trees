@@ -1,9 +1,6 @@
 """Run Pareto optimization and visualize results - FIXED TO USE CONFIG."""
 
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import argparse
 
@@ -19,7 +16,7 @@ from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
 
 
-def load_config(config_path="configs/custom.yaml"):
+def load_config(config_path="configs/paper.yaml"):
     """Load configuration from YAML file."""
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
@@ -330,7 +327,7 @@ def main():
     """Run Pareto front approximation."""
     parser = argparse.ArgumentParser(description="Run Pareto front analysis")
     parser.add_argument(
-        "--config", type=str, default="configs/custom.yaml", help="Path to configuration file"
+        "--config", type=str, default="configs/paper.yaml", help="Path to configuration file"
     )
     parser.add_argument(
         "--dataset",
