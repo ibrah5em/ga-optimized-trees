@@ -376,21 +376,23 @@ class DatasetLoader:
 
             # Encode categorical features
             for col in df.columns:
-                if df[col].dtype == "object" or df[col].dtype.name == "category":
+                if not pd.api.types.is_numeric_dtype(df[col]):
                     df[col] = df[col].astype(str)
                     df[col] = df[col].replace("nan", "missing_value")
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
-                elif df[col].dtype in ["float64", "float32", "int64", "int32"]:
+                else:
                     if df[col].isna().any():
                         df[col] = df[col].fillna(df[col].median())
 
             X = df.values.astype(float)
 
             # Encode labels
-            if y.dtype == object or (len(y) > 0 and isinstance(y[0], str)):
+            if not pd.api.types.is_numeric_dtype(pd.Series(y)) or (
+                len(y) > 0 and isinstance(y[0], str)
+            ):
                 le = LabelEncoder()
-                y = le.fit_transform(y.astype(str))
+                y = le.fit_transform(pd.array(y).astype(str))
                 target_names = list(le.classes_)
             else:
                 y = y.astype(int)
@@ -413,20 +415,22 @@ class DatasetLoader:
 
             # Encode categorical features
             for col in df.columns:
-                if df[col].dtype == "object" or df[col].dtype.name == "category":
+                if not pd.api.types.is_numeric_dtype(df[col]):
                     df[col] = df[col].astype(str)
                     df[col] = df[col].replace("nan", "missing_value")
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
-                elif df[col].dtype in ["float64", "float32", "int64", "int32"]:
+                else:
                     if df[col].isna().any():
                         df[col] = df[col].fillna(df[col].median())
 
             X = df.values.astype(float)
 
-            if y.dtype == object or (len(y) > 0 and isinstance(y[0], str)):
+            if not pd.api.types.is_numeric_dtype(pd.Series(y)) or (
+                len(y) > 0 and isinstance(y[0], str)
+            ):
                 le = LabelEncoder()
-                y = le.fit_transform(y.astype(str))
+                y = le.fit_transform(pd.array(y).astype(str))
                 target_names = list(le.classes_)
             else:
                 y = y.astype(int)
