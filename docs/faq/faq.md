@@ -103,7 +103,7 @@ n_generations: 20
 
 **Standard experiments:**
 ```yaml
-# configs/custom.yaml
+# configs/paper.yaml
 population_size: 80
 n_generations: 40
 # Runtime: 5-10 minutes per dataset
@@ -221,14 +221,14 @@ best_tree = ga_engine.evolve(X_train, y_train, verbose=True)
 
 **Option 2: Add to data loader**
 
-See [Custom Dataset Example](../examples/custom-dataset.md)
+See [Custom Dataset Guide](../data/dataset-loader.md)
 
 ### How do I save and load models?
 
 Models are automatically saved during training:
 
 ```bash
-python scripts/train.py --config configs/custom.yaml --dataset iris
+python scripts/train.py --config configs/paper.yaml --dataset iris
 # Saves to: models/best_tree.pkl
 ```
 
@@ -255,7 +255,7 @@ y_pred = predictor.predict(tree, X_test)
 
 ### Which config file should I use?
 
-- **`configs/custom.yaml`** - Recommended for most use cases ✓
+- **`configs/paper.yaml`** - Recommended for most use cases ✓
 - **`configs/default.yaml`** - Learning/testing
 - **`configs/balanced.yaml`** - Equal objectives
 - **`configs/optimized.yaml`** - Optuna-tuned
@@ -265,7 +265,7 @@ y_pred = predictor.predict(tree, X_test)
 Command line overrides config file:
 
 ```bash
-python scripts/train.py --config configs/custom.yaml \
+python scripts/train.py --config configs/paper.yaml \
     --generations 50 \
     --population 100 \
     --max-depth 7
@@ -353,7 +353,7 @@ weights:
 ### How do I visualize the Pareto front?
 
 ```bash
-python scripts/run_pareto_optimization.py --config configs/custom.yaml
+python scripts/run_pareto_optimization.py --config configs/paper.yaml
 ```
 
 Creates `results/figures/pareto_front.png` showing accuracy vs interpretability trade-offs.
@@ -442,7 +442,7 @@ Preliminary support exists in `src/ga_trees/ga/multi_objective.py`. For full NSG
 
 ### How do I contribute?
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for:
 - Development setup
 - Code style guidelines
 - Testing requirements
@@ -503,7 +503,7 @@ Run from project root:
 
 ```bash
 cd ga-optimized-trees
-python -m scripts.train --config configs/custom.yaml
+python -m scripts.train --config configs/paper.yaml
 ```
 
 Or reinstall:

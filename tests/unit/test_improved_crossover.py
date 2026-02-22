@@ -53,7 +53,6 @@ def test_parent_map():
         assert parent_map[node.node_id] is not None, f"Node {node.node_id} has no parent"
 
     print("✓ All nodes have correct parent references")
-    return True
 
 
 def test_crossover_basic():
@@ -87,17 +86,8 @@ def test_crossover_basic():
     is_valid1, errors1 = validate_tree_structure(child1)
     is_valid2, errors2 = validate_tree_structure(child2)
 
-    if is_valid1:
-        print("✓ Child 1 structure is valid")
-    else:
-        print(f"✗ Child 1 has errors: {errors1}")
-
-    if is_valid2:
-        print("✓ Child 2 structure is valid")
-    else:
-        print(f"✗ Child 2 has errors: {errors2}")
-
-    return is_valid1 and is_valid2
+    assert is_valid1, f"Child 1 has errors: {errors1}"
+    assert is_valid2, f"Child 2 has errors: {errors2}"
 
 
 def test_depth_fixing():
@@ -137,12 +127,8 @@ def test_depth_fixing():
         right_ok = check_depths(node.right_child, expected + 1)
         return left_ok and right_ok
 
-    if check_depths(tree.root, 0):
-        print("✓ All depths fixed correctly")
-        return True
-    else:
-        print("✗ Depth fixing failed")
-        return False
+    assert check_depths(tree.root, 0), "Depth fixing failed"
+    print("✓ All depths fixed correctly")
 
 
 def test_pruning():
@@ -170,12 +156,8 @@ def test_pruning():
 
     print(f"After pruning to depth=3: {new_depth}")
 
-    if new_depth <= 3:
-        print("✓ Pruning successful")
-        return True
-    else:
-        print("✗ Pruning failed")
-        return False
+    assert new_depth <= 3, f"Pruning failed: depth is {new_depth}, expected <= 3"
+    print("✓ Pruning successful")
 
 
 def test_multiple_crossovers():
@@ -214,13 +196,8 @@ def test_multiple_crossovers():
 
     print("Performed 20 crossovers")
     print(f"Failures: {failures}/20")
-
-    if failures == 0:
-        print("✓ All crossovers successful")
-        return True
-    else:
-        print(f"✗ {failures} crossovers failed")
-        return False
+    assert failures == 0, f"{failures} crossovers produced invalid trees"
+    print("✓ All crossovers successful")
 
 
 def run_all_tests():

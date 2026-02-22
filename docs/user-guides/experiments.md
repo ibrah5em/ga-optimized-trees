@@ -19,7 +19,7 @@ The experiments framework provides:
 python scripts/experiment.py
 
 # Run with custom config
-python scripts/experiment.py --config configs/custom.yaml
+python scripts/experiment.py --config configs/paper.yaml
 
 # If using local dataset files, you can specify the label column by name or index
 python scripts/experiment.py --datasets data/my_data.csv --label-column target
@@ -36,7 +36,7 @@ python scripts/experiment.py --config configs/optimized.yaml
 The `scripts/experiment.py` conducts a complete benchmark study:
 
 ```bash
-python scripts/experiment.py --config configs/custom.yaml
+python scripts/experiment.py --config configs/paper.yaml
 ```
 
 **What it does:**
@@ -420,7 +420,7 @@ results = run_custom_dataset_experiment(X, y, "Digits", config)
 ```python
 configs = {
     'balanced': 'configs/balanced.yaml',
-    'accuracy_focused': 'configs/custom.yaml',
+    'accuracy_focused': 'configs/paper.yaml',
     'interpretability_focused': 'configs/diverse.yaml'
 }
 
@@ -558,7 +558,7 @@ fold_results = Parallel(n_jobs=-1)(
 
 ```bash
 # Quick test (2-3 minutes total)
-python scripts/experiment.py --config configs/custom.yaml --cv-folds 3
+python scripts/experiment.py --config configs/paper.yaml --cv-folds 3
 ```
 
 Edit config for fast testing:

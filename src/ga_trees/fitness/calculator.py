@@ -114,51 +114,77 @@ class InterpretabilityCalculator:
 
     @staticmethod
     def _node_complexity(tree) -> float:
-        """Node complexity metric (fewer nodes better)."""
+        """Node complexity metric (fewer nodes better).
+
+        Formula: M₁(T) = 1 - nodes(T) / max_nodes
+        Linear penalty: 0 nodes → 1.0, max_nodes → 0.0
+        """
         num_nodes = tree.get_num_nodes()
         # Normalize: assume max reasonable tree has 127 nodes (depth 7 full binary tree)
         max_nodes = 127
-        return 1.0 / (1.0 + num_nodes / max_nodes)
+        return max(0.0, 1.0 - num_nodes / max_nodes)
 
     @staticmethod
     def _feature_coherence(tree) -> float:
-        """Feature coherence - how well features are grouped."""
-        # Simple version: ratio of unique features to total internal nodes
-        internal_nodes = tree.get_internal_nodes()
-        if not internal_nodes:
-            return 1.0
+        """Feature coherence - reward using fewer features.
 
+        Formula: M₂(T) = 1 - unique_features(T) / total_features
+        Uses fewer features relative to dataset → more coherent.
+        """
         features_used = tree.get_features_used()
         if not features_used:
             return 1.0
 
-        # Fewer unique features relative to nodes = more coherent
-        coherence = 1.0 - (len(features_used) / len(internal_nodes))
+        total_features = tree.n_features
+        if total_features == 0:
+            return 1.0
+
+        # Fewer unique features relative to available features = more coherent
+        coherence = 1.0 - (len(features_used) / total_features)
         return max(0.0, coherence)
 
     @staticmethod
     def _semantic_coherence(tree) -> float:
-        """Semantic coherence - consistency of predictions."""
-        leaves = tree.get_all_leaves()
-        if len(leaves) <= 1:
+        """Semantic coherence - consistency of feature positions.
+
+        Formula: M₄(T) = consistency_score(feature_positions)
+        Trees that reuse the same features at consistent depths
+        exhibit logical coherence. Measures how consistently each
+        feature appears at similar depths in the tree.
+        """
+        internal_nodes = tree.get_internal_nodes()
+        if not internal_nodes:
             return 1.0
 
-        # Calculate entropy of leaf predictions
-        predictions = [l.prediction for l in leaves if l.prediction is not None]
-        if not predictions:
-            return 0.5
+        # Collect depths for each feature
+        feature_depths = {}
+        for node in internal_nodes:
+            if node.feature_idx is not None:
+                if node.feature_idx not in feature_depths:
+                    feature_depths[node.feature_idx] = []
+                feature_depths[node.feature_idx].append(node.depth)
 
-        # For classification: lower entropy = more coherent
-        try:
-            unique, counts = np.unique(predictions, return_counts=True)
-            if len(unique) == 1:
-                return 1.0
-            probs = counts / len(predictions)
-            ent = entropy(probs)
-            max_ent = np.log(len(unique))
-            return 1.0 - (ent / max_ent if max_ent > 0 else 0)
-        except:
-            return 0.5
+        if not feature_depths:
+            return 1.0
+
+        # For each feature, measure how consistently it appears at similar depths
+        # Low std of depths = high consistency
+        max_depth = tree.get_depth()
+        if max_depth == 0:
+            return 1.0
+
+        consistency_scores = []
+        for feature_idx, depths in feature_depths.items():
+            if len(depths) == 1:
+                # Single occurrence = perfectly consistent
+                consistency_scores.append(1.0)
+            else:
+                depth_std = np.std(depths)
+                # Normalize by max_depth: std=0 → 1.0, std=max_depth → 0.0
+                score = 1.0 - min(depth_std / max_depth, 1.0)
+                consistency_scores.append(score)
+
+        return float(np.mean(consistency_scores))
 
 
 class FitnessCalculator:

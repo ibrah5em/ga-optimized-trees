@@ -155,4 +155,4 @@ TreeVisualizer.visualize_tree(
 )
 ```
 
-See other examples: [Medical](medical.md), [Credit Scoring](credit.md), [Custom Dataset](custom-dataset.md)
+See other examples: [Medical](medical.md), [Credit Scoring](credit.md), [Custom Dataset Guide](../data/dataset-loader.md)

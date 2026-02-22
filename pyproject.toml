@@ -122,10 +122,6 @@ Repository = "https://github.com/ibrah5em/ga-optimized-trees"
 Issues = "https://github.com/ibrah5em/ga-optimized-trees/issues"
 Changelog = "https://github.com/ibrah5em/ga-optimized-trees/blob/main/CHANGELOG.md"
 
-[project.scripts]
-ga-trees = "ga_trees.cli:main"
-ga-train = "ga_trees.scripts.train:main"
-ga-experiment = "ga_trees.scripts.experiment:main"
 
 [tool.setuptools]
 packages = ["ga_trees"]
@@ -172,11 +168,16 @@ python_functions = "test_*"
 addopts = [
     "-v",
     "--strict-markers",
-    "--cov=src/ga_trees",
-    "--cov-report=html",
-    "--cov-report=term-missing",
-    "--cov-report=xml",
 ]
+# Uncomment to enable coverage reporting (requires pytest-cov):
+# addopts = [
+#     "-v",
+#     "--strict-markers",
+#     "--cov=src/ga_trees",
+#     "--cov-report=html",
+#     "--cov-report=term-missing",
+#     "--cov-report=xml",
+# ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

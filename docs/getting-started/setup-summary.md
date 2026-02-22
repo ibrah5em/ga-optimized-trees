@@ -1,5 +1,7 @@
 # Setup Summary
 
+> ⚠️ **Planned Feature:** This document references CLI entry points (`ga-trees`, `ga-train`, `ga-experiment`), the `[api]` extra (FastAPI/Uvicorn), and MLflow integration. These are not yet implemented in the current release.
+
 ## 📦 What Was Done
 
 This update modernizes the package configuration to follow current Python packaging standards (PEP 517/518/621).

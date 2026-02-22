@@ -2,13 +2,15 @@
 
 Welcome to the comprehensive documentation for the GA-Optimized Decision Trees framework. This documentation provides detailed guides for researchers, developers, and practitioners.
 
+> **Note:** This documentation corresponds to v1.0.0. Some advanced features (CLI, API server, MLflow integration) are planned but not yet implemented.
+
 ## 📚 Documentation Structure
 
 ### Getting Started
-- [Quick Start Guide](quickstart.md) - Get up and running in 5 minutes
+- [Quick Start Guide](getting-started/quickstart.md) - Get up and running in 5 minutes
 - [Installation Guide](getting-started/installation.md) - Detailed installation instructions
 - [Basic Tutorial](getting-started/tutorial.md) - Step-by-step beginner tutorial
-- [Configuration Guide](getting-started/configuration.md) - Understanding YAML configs
+- [Configuration Guide](getting-started/Configuration.md) - Understanding YAML configs
 - [Dataset loading](data/dataset-loader.md) - preprocessing
 
 
@@ -57,7 +59,7 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Iris Classification](examples/iris.md) - Simple example
 - [Medical Diagnosis](examples/medical.md) - Healthcare application
 - [Credit Scoring](examples/credit.md) - Financial application
-- [Custom Dataset](examples/custom-dataset.md) - Using your own data
+- [Custom Dataset](data/dataset-loader.md) - Using your own data
 
 ### FAQ & Troubleshooting
 - [Frequently Asked Questions](faq/faq.md)
@@ -72,7 +74,7 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 3. [Results](research/results.md)
 
 ### For Practitioners
-1. [Quick Start](quickstart.md)
+1. [Quick Start](getting-started/quickstart.md)
 2. [Training Models](user-guides/training.md)
 3. [Examples](examples/)
 
@@ -106,7 +108,7 @@ docs/
 │   ├── quickstart.md                   # Quick start (5 min) ✓
 │   ├── installation.md                 # Detailed installation
 │   ├── tutorial.md                     # Step-by-step tutorial
-│   └── configuration.md                # Config guide ✓
+│   └── Configuration.md                # Config guide ✓
 ├── core-concepts/
 │   ├── architecture.md                 # System design ✓
 │   ├── genetic-algorithm.md            # GA details
@@ -145,8 +147,7 @@ docs/
 ├── examples/
 │   ├── iris.md                         # Iris example
 │   ├── medical.md                      # Healthcare app
-│   ├── credit.md                       # Financial app
-│   └── custom-dataset.md               # Custom data
+│   └── credit.md                       # Financial app
 └── faq/
     ├── faq.md                          # FAQ ✓
     ├── troubleshooting.md              # Troubleshooting

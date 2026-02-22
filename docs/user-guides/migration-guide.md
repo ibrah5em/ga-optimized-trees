@@ -1,5 +1,7 @@
 # Migration Guide: Enhanced Package Configuration
 
+> ⚠️ **Planned Feature:** The `[api]` extra (FastAPI/Uvicorn) and MLflow integration listed in this guide are not yet implemented in the current release.
+
 ## What Changed?
 
 The project has been updated to use modern Python packaging standards with proper dependency management.
@@ -300,7 +302,7 @@ pip install -r requirements.txt
 
 
 1. See [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-2. Read [Contributing Guide](CONTRIBUTING.md)
+2. Read [Contributing Guide](../../CONTRIBUTING.md)
 
 ## Summary
 

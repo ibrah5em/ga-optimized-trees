@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import csv
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -18,9 +17,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from scipy import stats
 from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 from sklearn.ensemble import RandomForestClassifier
@@ -117,8 +113,10 @@ def load_config(config_path=None):
         "tree": {"max_depth": 5, "min_samples_split": 10, "min_samples_leaf": 5},
         "fitness": {
             "mode": "weighted_sum",
-            "accuracy_weight": 0.65,
-            "interpretability_weight": 0.35,
+            "weights": {
+                "accuracy": 0.65,
+                "interpretability": 0.35,
+            },
             "interpretability_weights": {
                 "node_complexity": 0.6,
                 "feature_coherence": 0.2,
@@ -278,10 +276,17 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
 
         # FAST FITNESS with FIXED interpretability
         fitness_config = config["fitness"]
+        # Support both nested (weights.accuracy) and flat (accuracy_weight) formats
+        if "weights" in fitness_config:
+            acc_w = fitness_config["weights"]["accuracy"]
+            interp_w = fitness_config["weights"]["interpretability"]
+        else:
+            acc_w = fitness_config.get("accuracy_weight", 0.65)
+            interp_w = fitness_config.get("interpretability_weight", 0.35)
         fitness_calc = FastFitnessCalculator(
             mode=fitness_config["mode"],
-            accuracy_weight=fitness_config["accuracy_weight"],
-            interpretability_weight=fitness_config["interpretability_weight"],
+            accuracy_weight=acc_w,
+            interpretability_weight=interp_w,
             interpretability_weights=fitness_config["interpretability_weights"],
         )
 
@@ -627,10 +632,15 @@ def main():
     print("\nKey Configuration:")
     print(f"  GA: {config['ga']['population_size']} pop, {config['ga']['n_generations']} gen")
     print(f"  Tree: max_depth={config['tree']['max_depth']}")
-    print(
-        f"  Fitness: acc_weight={config['fitness']['accuracy_weight']}, "
-        f"interp_weight={config['fitness']['interpretability_weight']}"
-    )
+    fc = config["fitness"]
+    if "weights" in fc:
+        print(
+            f"  Fitness: acc_weight={fc['weights']['accuracy']}, interp_weight={fc['weights']['interpretability']}"
+        )
+    else:
+        print(
+            f"  Fitness: acc_weight={fc.get('accuracy_weight', 'N/A')}, interp_weight={fc.get('interpretability_weight', 'N/A')}"
+        )
     print(f"  Datasets: {', '.join(chosen_datasets)}")
 
     datasets = chosen_datasets

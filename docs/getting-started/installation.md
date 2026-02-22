@@ -1,5 +1,7 @@
 # Installation Guide
 
+> ⚠️ **Planned Feature:** The `[api]` extra (FastAPI/Uvicorn) and MLflow experiment tracking listed below are optional dependencies for features not yet implemented in the current release.
+
 This guide covers all installation methods for `ga-optimized-trees`.
 
 ## Quick Start
@@ -320,7 +322,7 @@ After installation:
 
 If you encounter issues:
 
-1. Check [Troubleshooting Guide](docs/faq/troubleshooting.md)
+1. Check [Troubleshooting Guide](../faq/troubleshooting.md)
 2. Search [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
 3. Open a new issue with:
    - Python version: `python --version`

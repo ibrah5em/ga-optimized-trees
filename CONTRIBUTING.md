@@ -18,14 +18,16 @@ Thank you for your interest in contributing to GA-Optimized Decision Trees! This
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    
-   # Install development dependencies
+   # Install with development dependencies
    pip install -e ".[dev]"
-   pip install -r requirements.txt
+   
+   # Setup pre-commit hooks
+   pre-commit install
    ```
 
 3. **Verify setup**
    ```bash
-   pytest tests/unit/test_basic.py -v
+   pytest tests/ -v
    ```
 
 ## 📋 Contribution Workflow
@@ -125,7 +127,7 @@ import numpy as np
 import pandas as pd
 
 # Local
-from src.ga_trees.genotype.tree import TreeGenotype
+from ga_trees.genotype import TreeGenotype
 ```
 
 **Naming Conventions**:

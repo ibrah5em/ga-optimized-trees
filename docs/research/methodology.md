@@ -14,7 +14,7 @@
 
 ### Hyperparameters
 
-**GA (configs/custom.yaml)**:
+**GA (configs/paper.yaml)**:
 ```yaml
 population_size: 80
 n_generations: 40

@@ -10,7 +10,7 @@ Multi-objective optimization finds a set of Pareto-optimal solutions representin
 
 ```bash
 # Run Pareto optimization
-python scripts/run_pareto_optimization.py --config configs/custom.yaml --dataset breast_cancer
+python scripts/run_pareto_optimization.py --config configs/paper.yaml --dataset breast_cancer
 ```
 
 ## Understanding Pareto Fronts
