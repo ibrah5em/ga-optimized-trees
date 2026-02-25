@@ -16,9 +16,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
-logger = logging.getLogger(__name__)
-
-# Assuming tree_genotype.py is available
 from ga_trees.ga.improved_crossover import safe_subtree_crossover
 from ga_trees.genotype.tree_genotype import (
     Node,
@@ -26,6 +23,8 @@ from ga_trees.genotype.tree_genotype import (
     create_internal_node,
     create_leaf_node,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

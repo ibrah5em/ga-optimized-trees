@@ -344,7 +344,8 @@ if __name__ == "__main__":
     print("=" * 70)
 
     # This is a demonstration example - needs actual TreeGenotype to run
-    print("""
+    print(
+        """
     Usage in GAEngine:
 
     # Replace this code in engine.py:
@@ -354,4 +355,5 @@ if __name__ == "__main__":
         def subtree_crossover(parent1, parent2):
             return safe_subtree_crossover(parent1, parent2)
 
-   """)
+   """
+    )

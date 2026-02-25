@@ -6,7 +6,7 @@ Trees are represented as binary decision trees with constrained structure.
 """
 
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Literal, Optional, Tuple, Union
 
 import numpy as np

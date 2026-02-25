@@ -13,7 +13,7 @@ Changes from original:
 
 import copy
 import random
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 from deap import base, creator, tools

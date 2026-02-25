@@ -1,14 +1,6 @@
 """Unit tests for tree genotype."""
 
-import numpy as np
-import pytest
-
-from ga_trees.genotype.tree_genotype import (
-    Node,
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 
 class TestNode:

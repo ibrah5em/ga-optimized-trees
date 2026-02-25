@@ -5,15 +5,10 @@ Covers:
 - FeatureImportanceAnalyzer.calculate_feature_depth_importance
 """
 
-import numpy as np
 import pytest
 
 from ga_trees.evaluation.feature_importance import FeatureImportanceAnalyzer
-from ga_trees.genotype.tree_genotype import (
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
 # Tree factories

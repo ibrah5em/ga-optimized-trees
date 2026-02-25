@@ -798,13 +798,13 @@ Pytest-compatible tests for Dataset Loader - FIXED VERSION
 Usage:
     # Run all dataset loader tests
     pytest tests/unit/test_dataset_loader.py -v
-    
+
     # Run with coverage
     pytest tests/unit/test_dataset_loader.py -v --cov=src.ga_trees.data
-    
+
     # Run specific test
     pytest tests/unit/test_dataset_loader.py::TestSklearnDatasets::test_load_iris -v
-    
+
     # Run only fast tests (skip slow OpenML tests)
     pytest tests/unit/test_dataset_loader.py -v -m "not slow"
 """

@@ -29,12 +29,19 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 # Setup
 n_features, n_classes = X_train.shape[1], len(np.unique(y))
-feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)}
+feature_ranges = {
+    i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)
+}
 
 # Configure
 ga_config = GAConfig(population_size=30, n_generations=20)
-initializer = TreeInitializer(n_features=n_features, n_classes=n_classes, max_depth=4,
-                              min_samples_split=5, min_samples_leaf=2)
+initializer = TreeInitializer(
+    n_features=n_features,
+    n_classes=n_classes,
+    max_depth=4,
+    min_samples_split=5,
+    min_samples_leaf=2,
+)
 fitness_calc = FitnessCalculator()
 mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
 
@@ -44,9 +51,13 @@ best_tree = ga_engine.evolve(X_train, y_train)
 
 # Evaluate
 from ga_trees.fitness.calculator import TreePredictor
+
 y_pred = TreePredictor().predict(best_tree, X_test)
 from sklearn.metrics import accuracy_score
-print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}, Nodes: {best_tree.get_num_nodes()}")
+
+print(
+    f"Accuracy: {accuracy_score(y_test, y_pred):.4f}, Nodes: {best_tree.get_num_nodes()}"
+)
 ```
 
 ## Next Steps

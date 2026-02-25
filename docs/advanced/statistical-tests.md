@@ -37,6 +37,7 @@ def cohens_d(scores1, scores2):
     pooled_std = np.sqrt((np.var(scores1) + np.var(scores2)) / 2)
     return mean_diff / pooled_std if pooled_std > 0 else 0.0
 
+
 d = cohens_d(ga_scores, cart_scores)
 print(f"Cohen's d: {d:.4f}")
 
@@ -56,6 +57,7 @@ else:
 ```python
 from scipy import stats
 
+
 def confidence_interval(scores, confidence=0.95):
     """Calculate confidence interval."""
     n = len(scores)
@@ -63,6 +65,7 @@ def confidence_interval(scores, confidence=0.95):
     std_err = stats.sem(scores)
     margin = std_err * stats.t.ppf((1 + confidence) / 2, n - 1)
     return (mean - margin, mean + margin)
+
 
 ci = confidence_interval(ga_scores)
 print(f"95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
@@ -73,11 +76,12 @@ print(f"95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
 For research-quality results:
 
 1. Use **20-fold cross-validation**
-2. Calculate **paired t-test** (p-value)
-3. Calculate **Cohen's d** (effect size)
-4. Report **mean ± std** for all metrics
+1. Calculate **paired t-test** (p-value)
+1. Calculate **Cohen's d** (effect size)
+1. Report **mean ± std** for all metrics
 
 Example from our results:
+
 ```
 Breast Cancer:
   GA: 91.05% ± 5.60%, Nodes: 6.5

@@ -7,14 +7,15 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 ## 📚 Documentation Structure
 
 ### Getting Started
+
 - [Quick Start Guide](getting-started/quickstart.md) - Get up and running in 5 minutes
 - [Installation Guide](getting-started/installation.md) - Detailed installation instructions
 - [Basic Tutorial](getting-started/tutorial.md) - Step-by-step beginner tutorial
 - [Configuration Guide](getting-started/Configuration.md) - Understanding YAML configs
 - [Dataset loading](data/dataset-loader.md) - preprocessing
 
-
 ### Core Concepts
+
 - [Architecture Overview](core-concepts/architecture.md) - System design and components
 - [Genetic Algorithm](core-concepts/genetic-algorithm.md) - How the GA works
 - [Tree Representation](core-concepts/tree-representation.md) - Genotype structure
@@ -22,6 +23,7 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Interpretability Metrics](core-concepts/interpretability.md) - How we measure interpretability
 
 ### API Reference
+
 - [Genotype Module](api-reference/genotype.md) - Tree structure classes
 - [GA Engine](api-reference/ga-engine.md) - Evolution engine
 - [Fitness Calculator](api-reference/fitness.md) - Fitness evaluation
@@ -29,6 +31,7 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Evaluation Tools](api-reference/evaluation.md) - Metrics and visualization
 
 ### User Guides
+
 - [Training Models](user-guides/training.md) - How to train custom models
 - [Running Experiments](user-guides/experiments.md) - Benchmark experiments
 - [Hyperparameter Tuning](user-guides/hyperparameter-tuning.md) - Optimize with Optuna
@@ -37,6 +40,7 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Model Export](user-guides/model-export.md) - Save and load models
 
 ### Advanced Topics
+
 - [Multi-Objective Optimization](advanced/multi-objective.md) - NSGA-II implementation
 - [Custom Fitness Functions](advanced/custom-fitness.md) - Extend the framework
 - [Custom Operators](advanced/custom-operators.md) - Add new genetic operators
@@ -44,24 +48,28 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 - [Statistical Testing](advanced/statistical-tests.md) - Rigorous evaluation
 
 ### Research
+
 - [Methodology](research/methodology.md) - Research approach
 - [Results](research/results.md) - Experimental results
 - [Benchmarks](research/benchmarks.md) - Dataset performance
 - [Publications](research/publications.md) - Academic papers
 
 ### Development
+
 - [Contributing Guide](development/contributing.md) - How to contribute
 - [Code Style](development/code-style.md) - Coding standards
 - [Testing](development/testing.md) - Test suite overview
 - [CI/CD Pipeline](development/ci-cd.md) - Continuous integration
 
 ### Examples
+
 - [Iris Classification](examples/iris.md) - Simple example
 - [Medical Diagnosis](examples/medical.md) - Healthcare application
 - [Credit Scoring](examples/credit.md) - Financial application
 - [Custom Dataset](data/dataset-loader.md) - Using your own data
 
 ### FAQ & Troubleshooting
+
 - [Frequently Asked Questions](faq/faq.md)
 - [Troubleshooting](faq/troubleshooting.md)
 - [Performance Tips](faq/performance.md)
@@ -69,19 +77,22 @@ Welcome to the comprehensive documentation for the GA-Optimized Decision Trees f
 ## 🎯 Quick Navigation
 
 ### For Researchers
+
 1. [Architecture Overview](core-concepts/architecture.md)
-2. [Methodology](research/methodology.md)
-3. [Results](research/results.md)
+1. [Methodology](research/methodology.md)
+1. [Results](research/results.md)
 
 ### For Practitioners
+
 1. [Quick Start](getting-started/quickstart.md)
-2. [Training Models](user-guides/training.md)
-3. [Examples](examples/)
+1. [Training Models](user-guides/training.md)
+1. [Examples](examples/)
 
 ### For Developers
+
 1. [Contributing Guide](development/contributing.md)
-2. [API Reference](api-reference/)
-3. [Testing](development/testing.md)
+1. [API Reference](api-reference/)
+1. [Testing](development/testing.md)
 
 ## 📖 Documentation Conventions
 

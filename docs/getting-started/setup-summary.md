@@ -9,6 +9,7 @@ This update modernizes the package configuration to follow current Python packag
 ## 🎯 Key Changes
 
 ### 1. **Enhanced pyproject.toml**
+
 - ✅ Proper dependency declarations
 - ✅ Optional extras defined (`viz`, `optimization`, `baselines`, `explainability`, `api`)
 - ✅ Development tools configuration
@@ -16,22 +17,26 @@ This update modernizes the package configuration to follow current Python packag
 - ✅ Entry points for CLI tools
 
 ### 2. **Modernized setup.py**
+
 - ✅ Maintained for backward compatibility
 - ✅ Reads from pyproject.toml standards
 - ✅ Proper dependency grouping
 - ✅ Entry points for console scripts
 
 ### 3. **Cleaned requirements.txt**
+
 - ✅ **ONLY core dependencies** (9 packages)
 - ✅ No optional dependencies
 - ✅ Clear installation instructions
 - ✅ Version pins for stability
 
 ### 4. **New Requirements Files**
+
 - ✅ `requirements-optional.txt` - All optional features
 - ✅ `requirements-dev.txt` - Development tools
 
 ### 5. **Enhanced CI/CD**
+
 - ✅ Multi-platform testing (Ubuntu, Windows, macOS)
 - ✅ Python 3.8-3.12 support
 - ✅ Code quality checks (black, isort, flake8, mypy)
@@ -39,6 +44,7 @@ This update modernizes the package configuration to follow current Python packag
 - ✅ Package building and validation
 
 ### 6. **Pre-commit Hooks**
+
 - ✅ Automatic code formatting
 - ✅ Import sorting
 - ✅ Linting checks
@@ -46,6 +52,7 @@ This update modernizes the package configuration to follow current Python packag
 - ✅ Security checks (bandit)
 
 ### 7. **Additional Files**
+
 - ✅ `MANIFEST.in` - Package distribution
 - ✅ `.pre-commit-config.yaml` - Git hooks
 - ✅ `INSTALLATION.md` - Comprehensive guide
@@ -77,13 +84,16 @@ ga-optimized-trees
 ## 🚀 Installation Methods
 
 ### Minimal (Core Only)
+
 ```bash
 pip install -e .
 ```
-**Installs:** 9 core packages  
+
+**Installs:** 9 core packages
 **Use for:** Basic usage, minimal footprint
 
 ### With Features
+
 ```bash
 # Visualization
 pip install -e .[viz]
@@ -96,12 +106,14 @@ pip install -e .[all]
 ```
 
 ### Development
+
 ```bash
 pip install -e .[dev]
 pre-commit install
 ```
 
 ### Legacy (Still Works)
+
 ```bash
 pip install -r requirements.txt
 pip install -e .
@@ -116,6 +128,7 @@ python validate_setup.py
 ```
 
 This checks:
+
 - ✓ Python version (3.8+)
 - ✓ Core dependencies
 - ✓ Package installation
@@ -129,11 +142,13 @@ This checks:
 ### For Users (Just Using the Package)
 
 **Option 1: Minimal**
+
 ```bash
 pip install -e .
 ```
 
 **Option 2: Full Features**
+
 ```bash
 pip install -e .[all]
 ```
@@ -157,11 +172,13 @@ pytest tests/ -v
 ## 🎉 Benefits
 
 ### 1. **Cleaner Dependencies**
+
 - Core: 9 packages (was 15+)
 - Optional features clearly separated
 - No unnecessary bloat
 
 ### 2. **Better Developer Experience**
+
 ```bash
 # Before
 pip install numpy pandas scikit-learn scipy deap matplotlib seaborn pyyaml tqdm
@@ -173,6 +190,7 @@ pip install -e .[dev]
 ```
 
 ### 3. **Faster Installation**
+
 ```bash
 # Core only: ~30 seconds
 pip install -e .
@@ -182,11 +200,13 @@ pip install -r requirements.txt  # (with optional deps)
 ```
 
 ### 4. **Modern Standards**
+
 - PEP 517/518/621 compliant
 - Ready for PyPI publication
 - Works with modern tools (poetry, pip-tools, etc.)
 
 ### 5. **Automatic Quality Checks**
+
 ```bash
 # Setup once
 pre-commit install
@@ -239,17 +259,20 @@ python validate_setup.py
 ## 🐛 Troubleshooting
 
 ### "Extra 'xyz' not found"
+
 ```bash
 pip install --upgrade pip
 pip install -e .[all]
 ```
 
 ### "No module named 'ga_trees'"
+
 ```bash
 pip install -e .
 ```
 
 ### "Pre-commit hook failed"
+
 ```bash
 pre-commit run --all-files
 git add -u
@@ -258,34 +281,38 @@ git commit
 
 ## 📊 Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Core deps | 15+ packages | 9 packages |
-| Optional deps | Mixed in | Separate extras |
-| Install time | ~2 min | ~30 sec (core) |
-| Dev setup | Manual | `pip install -e .[dev]` |
-| CI/CD | Basic | Multi-platform |
-| Standards | Mixed | PEP 517/518/621 |
-| Code quality | Manual | Automatic (pre-commit) |
+| Aspect        | Before       | After                   |
+| ------------- | ------------ | ----------------------- |
+| Core deps     | 15+ packages | 9 packages              |
+| Optional deps | Mixed in     | Separate extras         |
+| Install time  | ~2 min       | ~30 sec (core)          |
+| Dev setup     | Manual       | `pip install -e .[dev]` |
+| CI/CD         | Basic        | Multi-platform          |
+| Standards     | Mixed        | PEP 517/518/621         |
+| Code quality  | Manual       | Automatic (pre-commit)  |
 
 ## 🎯 Next Steps
 
 1. **Validate Setup**
+
    ```bash
    python validate_setup.py
    ```
 
-2. **Run Quick Test**
+1. **Run Quick Test**
+
    ```bash
    python scripts/train.py --dataset iris --generations 5
    ```
 
-3. **Try Full Experiment**
+1. **Try Full Experiment**
+
    ```bash
    python scripts/experiment.py --config configs/default.yaml
    ```
 
-4. **Setup Development** (if contributing)
+1. **Setup Development** (if contributing)
+
    ```bash
    pip install -e .[dev]
    pre-commit install
@@ -331,7 +358,7 @@ git commit -m "feat: add new feature"
 - **Docs:** `docs/README.md`
 - **FAQ:** `docs/faq/faq.md`
 
----
+______________________________________________________________________
 
 **Ready to get started?**
 

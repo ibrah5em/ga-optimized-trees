@@ -42,12 +42,12 @@ python scripts/experiment.py --config configs/paper.yaml
 **What it does:**
 
 1. Loads datasets (Iris, Wine, Breast Cancer)
-2. Runs 20-fold cross-validation for each:
-    - GA-Optimized Trees
-    - CART baseline
-    - Random Forest baseline
-3. Computes statistical tests (t-tests, Cohen's d)
-4. Saves results to CSV and YAML
+1. Runs 20-fold cross-validation for each:
+   - GA-Optimized Trees
+   - CART baseline
+   - Random Forest baseline
+1. Computes statistical tests (t-tests, Cohen's d)
+1. Saves results to CSV and YAML
 
 **Expected runtime:**
 
@@ -69,7 +69,7 @@ ga:
   mutation_prob: 0.18
   tournament_size: 4
   elitism_ratio: 0.12
-  
+
   mutation_types:
     threshold_perturbation: 0.45
     feature_replacement: 0.25
@@ -88,7 +88,7 @@ fitness:
   weights:
     accuracy: 0.68
     interpretability: 0.32
-  
+
   interpretability_weights:
     node_complexity: 0.50
     feature_coherence: 0.10
@@ -138,94 +138,98 @@ n_folds = 20
 skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
 
 # Storage for results
-ga_results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': []}
-cart_results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': []}
+ga_results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": []}
+cart_results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": []}
 
 # Run cross-validation
 for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
     print(f"Fold {fold}/{n_folds}...")
-    
+
     X_train, X_test = X[train_idx], X[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
-    
+
     # Standardize
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
-    
+
     # ===== GA Training =====
     n_features = X_train.shape[1]
     n_classes = len(np.unique(y))
-    feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) 
-                     for i in range(n_features)}
-    
+    feature_ranges = {
+        i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)
+    }
+
     ga_config = GAConfig(
         population_size=80,
         n_generations=40,
         crossover_prob=0.72,
         mutation_prob=0.18,
         tournament_size=4,
-        elitism_ratio=0.12
+        elitism_ratio=0.12,
     )
-    
+
     initializer = TreeInitializer(
         n_features=n_features,
         n_classes=n_classes,
         max_depth=6,
         min_samples_split=8,
-        min_samples_leaf=3
+        min_samples_leaf=3,
     )
-    
+
     fitness_calc = FitnessCalculator(
-        mode='weighted_sum',
-        accuracy_weight=0.68,
-        interpretability_weight=0.32
+        mode="weighted_sum", accuracy_weight=0.68, interpretability_weight=0.32
     )
-    
+
     mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
-    
-    ga_engine = GAEngine(ga_config, initializer, 
-                        fitness_calc.calculate_fitness, mutation)
+
+    ga_engine = GAEngine(
+        ga_config, initializer, fitness_calc.calculate_fitness, mutation
+    )
     best_tree = ga_engine.evolve(X_train, y_train, verbose=False)
-    
+
     # GA Evaluation
     predictor = TreePredictor()
     y_pred_ga = predictor.predict(best_tree, X_test)
-    
-    ga_results['test_acc'].append(accuracy_score(y_test, y_pred_ga))
-    ga_results['test_f1'].append(f1_score(y_test, y_pred_ga, average='weighted'))
-    ga_results['nodes'].append(best_tree.get_num_nodes())
-    ga_results['depth'].append(best_tree.get_depth())
-    
+
+    ga_results["test_acc"].append(accuracy_score(y_test, y_pred_ga))
+    ga_results["test_f1"].append(f1_score(y_test, y_pred_ga, average="weighted"))
+    ga_results["nodes"].append(best_tree.get_num_nodes())
+    ga_results["depth"].append(best_tree.get_depth())
+
     # ===== CART Baseline =====
     cart = DecisionTreeClassifier(max_depth=6, random_state=42)
     cart.fit(X_train, y_train)
     y_pred_cart = cart.predict(X_test)
-    
-    cart_results['test_acc'].append(accuracy_score(y_test, y_pred_cart))
-    cart_results['test_f1'].append(f1_score(y_test, y_pred_cart, average='weighted'))
-    cart_results['nodes'].append(cart.tree_.node_count)
-    cart_results['depth'].append(cart.tree_.max_depth)
-    
-    print(f"  GA: Acc={ga_results['test_acc'][-1]:.3f}, Nodes={ga_results['nodes'][-1]}")
-    print(f"  CART: Acc={cart_results['test_acc'][-1]:.3f}, Nodes={cart_results['nodes'][-1]}")
+
+    cart_results["test_acc"].append(accuracy_score(y_test, y_pred_cart))
+    cart_results["test_f1"].append(f1_score(y_test, y_pred_cart, average="weighted"))
+    cart_results["nodes"].append(cart.tree_.node_count)
+    cart_results["depth"].append(cart.tree_.max_depth)
+
+    print(
+        f"  GA: Acc={ga_results['test_acc'][-1]:.3f}, Nodes={ga_results['nodes'][-1]}"
+    )
+    print(
+        f"  CART: Acc={cart_results['test_acc'][-1]:.3f}, Nodes={cart_results['nodes'][-1]}"
+    )
 
 # ===== Statistical Analysis =====
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
-print("="*60)
+print("=" * 60)
 
 # Compute means and stds
-ga_acc_mean = np.mean(ga_results['test_acc'])
-ga_acc_std = np.std(ga_results['test_acc'])
-cart_acc_mean = np.mean(cart_results['test_acc'])
-cart_acc_std = np.std(cart_results['test_acc'])
+ga_acc_mean = np.mean(ga_results["test_acc"])
+ga_acc_std = np.std(ga_results["test_acc"])
+cart_acc_mean = np.mean(cart_results["test_acc"])
+cart_acc_std = np.std(cart_results["test_acc"])
 
 print(f"\nGA Accuracy: {ga_acc_mean:.4f} ± {ga_acc_std:.4f}")
 print(f"CART Accuracy: {cart_acc_mean:.4f} ± {cart_acc_std:.4f}")
 
-ga_nodes_mean = np.mean(ga_results['nodes'])
-cart_nodes_mean = np.mean(cart_results['nodes'])
+ga_nodes_mean = np.mean(ga_results["nodes"])
+cart_nodes_mean = np.mean(cart_results["nodes"])
 reduction = (1 - ga_nodes_mean / cart_nodes_mean) * 100
 
 print(f"\nGA Nodes: {ga_nodes_mean:.1f}")
@@ -233,8 +237,10 @@ print(f"CART Nodes: {cart_nodes_mean:.1f}")
 print(f"Size Reduction: {reduction:.1f}%")
 
 # Statistical test
-t_stat, p_value = stats.ttest_rel(ga_results['test_acc'], cart_results['test_acc'])
-pooled_std = np.sqrt((np.var(ga_results['test_acc']) + np.var(cart_results['test_acc'])) / 2)
+t_stat, p_value = stats.ttest_rel(ga_results["test_acc"], cart_results["test_acc"])
+pooled_std = np.sqrt(
+    (np.var(ga_results["test_acc"]) + np.var(cart_results["test_acc"])) / 2
+)
 cohens_d = (ga_acc_mean - cart_acc_mean) / pooled_std if pooled_std > 0 else 0.0
 
 print(f"\nPaired t-test:")
@@ -294,9 +300,9 @@ FINAL RESULTS
 
 Dataset              Model           Test Acc              Nodes  Depth
 --------------------------------------------------------------------------------
-iris                 GA-Optimized    0.9455 ± 0.0807      7.4    2.4  
-iris                 CART            0.9241 ± 0.1043      16.4   4.4  
-iris                 Random Forest   0.9533 ± 0.0340      N/A    N/A  
+iris                 GA-Optimized    0.9455 ± 0.0807      7.4    2.4
+iris                 CART            0.9241 ± 0.1043      16.4   4.4
+iris                 Random Forest   0.9533 ± 0.0340      N/A    N/A
 
 ======================================================================
 Tree Size Analysis (GA vs CART)
@@ -357,9 +363,9 @@ else:
 
 **Interpretation:**
 
-- |d| < 0.2: Negligible difference
-- 0.2 ≤ |d| < 0.5: Small effect
-- 0.5 ≤ |d| < 0.8: Medium effect
+- |d| \< 0.2: Negligible difference
+- 0.2 ≤ |d| \< 0.5: Small effect
+- 0.5 ≤ |d| \< 0.8: Medium effect
 - |d| ≥ 0.8: Large effect
 
 ### Confidence Intervals
@@ -385,32 +391,38 @@ print(f"95% CI: [{mean - ci:.4f}, {mean + ci:.4f}]")
 ```python
 def run_custom_dataset_experiment(X, y, dataset_name, config, n_folds=10):
     """Run experiment on custom dataset."""
-    
+
     print(f"\n{'='*70}")
     print(f"Running Experiment: {dataset_name}")
     print(f"{'='*70}")
-    
+
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
-    results = {'test_acc': [], 'test_f1': [], 'nodes': [], 'depth': []}
-    
+    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": []}
+
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
-        print(f"  Fold {fold}/{n_folds}...", end=' ')
-        
+        print(f"  Fold {fold}/{n_folds}...", end=" ")
+
         # ... training logic ...
-        
+
         print(f"Acc={acc:.3f}, Nodes={nodes}")
-    
+
     # Statistical summary
     print(f"\nResults for {dataset_name}:")
-    print(f"  Accuracy: {np.mean(results['test_acc']):.4f} ± {np.std(results['test_acc']):.4f}")
-    print(f"  F1 Score: {np.mean(results['test_f1']):.4f} ± {np.std(results['test_f1']):.4f}")
+    print(
+        f"  Accuracy: {np.mean(results['test_acc']):.4f} ± {np.std(results['test_acc']):.4f}"
+    )
+    print(
+        f"  F1 Score: {np.mean(results['test_f1']):.4f} ± {np.std(results['test_f1']):.4f}"
+    )
     print(f"  Avg Nodes: {np.mean(results['nodes']):.1f}")
     print(f"  Avg Depth: {np.mean(results['depth']):.1f}")
-    
+
     return results
+
 
 # Example usage
 from sklearn.datasets import load_digits
+
 X, y = load_digits(return_X_y=True)
 results = run_custom_dataset_experiment(X, y, "Digits", config)
 ```
@@ -419,9 +431,9 @@ results = run_custom_dataset_experiment(X, y, "Digits", config)
 
 ```python
 configs = {
-    'balanced': 'configs/balanced.yaml',
-    'accuracy_focused': 'configs/paper.yaml',
-    'interpretability_focused': 'configs/diverse.yaml'
+    "balanced": "configs/balanced.yaml",
+    "accuracy_focused": "configs/paper.yaml",
+    "interpretability_focused": "configs/diverse.yaml",
 }
 
 all_results = {}
@@ -430,19 +442,19 @@ for config_name, config_path in configs.items():
     print(f"\n{'='*70}")
     print(f"Testing Configuration: {config_name}")
     print(f"{'='*70}")
-    
+
     config = load_config(config_path)
     results = run_ga_experiment(X, y, "Breast Cancer", config, n_folds=5)
     all_results[config_name] = results
 
 # Compare configurations
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("CONFIGURATION COMPARISON")
-print("="*70)
+print("=" * 70)
 
 for config_name, results in all_results.items():
-    acc = np.mean(results['test_acc'])
-    nodes = np.mean(results['nodes'])
+    acc = np.mean(results["test_acc"])
+    nodes = np.mean(results["nodes"])
     print(f"{config_name:20s}: Acc={acc:.4f}, Nodes={nodes:.1f}")
 ```
 
@@ -455,25 +467,30 @@ results_by_pop = {}
 
 for pop_size in population_sizes:
     print(f"\nTesting population_size={pop_size}")
-    
+
     # Modify config
-    config['ga']['population_size'] = pop_size
-    
+    config["ga"]["population_size"] = pop_size
+
     # Run experiment (3 folds for speed)
     results = run_ga_experiment(X, y, "Iris", config, n_folds=3)
-    results_by_pop[pop_size] = np.mean(results['test_acc'])
+    results_by_pop[pop_size] = np.mean(results["test_acc"])
 
 # Plot results
 import matplotlib.pyplot as plt
 
 plt.figure(figsize=(10, 6))
-plt.plot(population_sizes, list(results_by_pop.values()), 
-         marker='o', linewidth=2, markersize=8)
-plt.xlabel('Population Size')
-plt.ylabel('Mean Test Accuracy')
-plt.title('Sensitivity to Population Size')
+plt.plot(
+    population_sizes,
+    list(results_by_pop.values()),
+    marker="o",
+    linewidth=2,
+    markersize=8,
+)
+plt.xlabel("Population Size")
+plt.ylabel("Mean Test Accuracy")
+plt.title("Sensitivity to Population Size")
 plt.grid(True, alpha=0.3)
-plt.savefig('results/sensitivity_population.png')
+plt.savefig("results/sensitivity_population.png")
 ```
 
 ## Reproducibility
@@ -484,6 +501,7 @@ plt.savefig('results/sensitivity_population.png')
 import random
 import numpy as np
 
+
 def set_seed(seed=42):
     """Set all random seeds."""
     random.seed(seed)
@@ -491,6 +509,7 @@ def set_seed(seed=42):
     # If using torch/tensorflow in future:
     # torch.manual_seed(seed)
     # tf.random.set_seed(seed)
+
 
 # Always set seed before experiments
 set_seed(42)
@@ -507,30 +526,33 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-def save_experiment_metadata(config, results, output_dir='results'):
+
+def save_experiment_metadata(config, results, output_dir="results"):
     """Save complete experiment metadata."""
-    
+
     metadata = {
-        'timestamp': datetime.now().isoformat(),
-        'config': config,
-        'results_summary': {
-            'mean_accuracy': float(np.mean(results['test_acc'])),
-            'std_accuracy': float(np.std(results['test_acc'])),
-            'mean_nodes': float(np.mean(results['nodes'])),
-            'mean_depth': float(np.mean(results['depth'])),
+        "timestamp": datetime.now().isoformat(),
+        "config": config,
+        "results_summary": {
+            "mean_accuracy": float(np.mean(results["test_acc"])),
+            "std_accuracy": float(np.std(results["test_acc"])),
+            "mean_nodes": float(np.mean(results["nodes"])),
+            "mean_depth": float(np.mean(results["depth"])),
         },
-        'system_info': {
-            'python_version': sys.version,
-            'numpy_version': np.__version__,
-            'sklearn_version': sklearn.__version__,
-        }
+        "system_info": {
+            "python_version": sys.version,
+            "numpy_version": np.__version__,
+            "sklearn_version": sklearn.__version__,
+        },
     }
-    
+
     # Save as JSON
-    output_path = Path(output_dir) / f'experiment_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-    with open(output_path, 'w') as f:
+    output_path = (
+        Path(output_dir) / f'experiment_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+    )
+    with open(output_path, "w") as f:
         json.dump(metadata, f, indent=2)
-    
+
     print(f"✓ Experiment metadata saved: {output_path}")
 ```
 
@@ -541,16 +563,17 @@ def save_experiment_metadata(config, results, output_dir='results'):
 ```python
 from joblib import Parallel, delayed
 
+
 def run_fold(fold_data, config):
     """Run single fold."""
     train_idx, test_idx = fold_data
     # ... training logic ...
     return results
 
+
 # Parallel execution
 fold_results = Parallel(n_jobs=-1)(
-    delayed(run_fold)(fold_data, config) 
-    for fold_data in skf.split(X, y)
+    delayed(run_fold)(fold_data, config) for fold_data in skf.split(X, y)
 )
 ```
 

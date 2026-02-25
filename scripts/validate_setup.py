@@ -5,6 +5,7 @@ Validate package setup and dependencies.
 Run this script to check if everything is properly configured.
 """
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -45,7 +46,7 @@ def check_file_exists(filepath):
 def run_command(cmd, description):
     """Run a shell command and report success."""
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(shlex.split(cmd), capture_output=True, text=True, timeout=30)
         if result.returncode == 0:
             print(f"✓ {description}")
             return True
@@ -101,7 +102,7 @@ def main():
     try:
         import ga_trees
 
-        print(f"✓ ga_trees package found")
+        print("✓ ga_trees package found")
         print(f"  Location: {ga_trees.__file__}")
     except ImportError:
         print("✗ ga_trees package not found")
@@ -190,12 +191,12 @@ def main():
     try:
         import numpy as np
 
-        from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
+        from ga_trees.fitness.calculator import FitnessCalculator
 
         X = np.random.rand(10, 4)
         y = np.random.randint(0, 2, 10)
         fitness_calc = FitnessCalculator()
-        fitness = fitness_calc.calculate_fitness(tree, X, y)
+        fitness_calc.calculate_fitness(tree, X, y)
         print("✓ Fitness calculation")
     except Exception as e:
         print(f"✗ Fitness calculation: {e}")

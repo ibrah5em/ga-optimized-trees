@@ -6,26 +6,12 @@ works correctly, including edge cases identified in the design document.
 Requires: pytest, numpy, scikit-learn
 """
 
-import random
-
 import numpy as np
 import pytest
 
-from ga_trees.fitness.calculator import (
-    DEFAULT_MAX_NODES_FALLBACK,
-    VALID_CLASSIFICATION_METRICS,
-    VALID_MODES,
-    FitnessCalculator,
-    InterpretabilityCalculator,
-    TreePredictor,
-)
+from ga_trees.fitness.calculator import FitnessCalculator, InterpretabilityCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, Mutation
-from ga_trees.genotype.tree_genotype import (
-    Node,
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
 # Shared fixtures

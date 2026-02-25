@@ -2,14 +2,13 @@
 
 import logging
 import warnings
-from typing import Any, Dict, Optional
-
-logger = logging.getLogger(__name__)
+from typing import Any, Dict
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+
+logger = logging.getLogger(__name__)
 
 
 class BaselineModel:

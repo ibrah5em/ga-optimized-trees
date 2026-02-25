@@ -5,6 +5,7 @@ This guide explains how to configure the GA-Optimized Decision Trees framework u
 ## Overview
 
 All hyperparameters are externalized to YAML files for:
+
 - **Reproducibility:** Same config = same results
 - **Experimentation:** Easy parameter comparison
 - **Version control:** Track configuration changes
@@ -25,14 +26,14 @@ experiment:   # Experiment settings
 
 The framework includes several standardized configuration files:
 
-| Config File | Purpose | Best For | Key Features |
-|-------------|---------|----------|--------------|
-| **`paper.yaml`** ⭐ | Research paper settings | Replicating results | 24-77% size reduction |
-| `fast.yaml` | Quick experiments | Development, testing | 3-5× faster |
-| `balanced.yaml` | Equal objectives | General exploration | 50/50 balance |
-| `accuracy_focused.yaml` | Max performance | Production systems | 85% accuracy weight |
-| `interpretability_focused.yaml` | Max transparency | Medical, legal | 60% interp weight |
-| `default.yaml` | Standard settings | First-time users | Good defaults |
+| Config File                     | Purpose                 | Best For             | Key Features          |
+| ------------------------------- | ----------------------- | -------------------- | --------------------- |
+| **`paper.yaml`** ⭐             | Research paper settings | Replicating results  | 24-77% size reduction |
+| `fast.yaml`                     | Quick experiments       | Development, testing | 3-5× faster           |
+| `balanced.yaml`                 | Equal objectives        | General exploration  | 50/50 balance         |
+| `accuracy_focused.yaml`         | Max performance         | Production systems   | 85% accuracy weight   |
+| `interpretability_focused.yaml` | Max transparency        | Medical, legal       | 60% interp weight     |
+| `default.yaml`                  | Standard settings       | First-time users     | Good defaults         |
 
 ### 📄 **Paper Configuration (Recommended)**
 
@@ -52,7 +53,7 @@ fitness:
   weights:
     accuracy: 0.68
     interpretability: 0.32
-  
+
   interpretability_weights:
     node_complexity: 0.50
     feature_coherence: 0.10
@@ -66,8 +67,9 @@ tree:
 ```
 
 **Results achieved:**
+
 - Iris: 55% size reduction
-- Wine: 48% size reduction  
+- Wine: 48% size reduction
 - Breast Cancer: 82% size reduction
 - All with statistically equivalent accuracy (p > 0.05)
 
@@ -99,7 +101,7 @@ ga:
   mutation_prob: 0.18          # Probability of mutation (0-1)
   tournament_size: 4           # Selection pressure (2-7)
   elitism_ratio: 0.12          # Top % preserved (0-0.3)
-  
+
   mutation_types:              # Must sum to 1.0
     threshold_perturbation: 0.45
     feature_replacement: 0.25
@@ -126,7 +128,7 @@ fitness:
   weights:                     # Must sum to 1.0
     accuracy: 0.68
     interpretability: 0.32
-  
+
   interpretability_weights:    # Must sum to 1.0
     node_complexity: 0.50      # Penalize tree size
     feature_coherence: 0.10    # Reward feature reuse
@@ -141,27 +143,30 @@ fitness:
 
 ### By Use Case
 
-| Use Case | Configuration | Why |
-|----------|--------------|-----|
-| **Research replication** | `paper.yaml` | Exact paper parameters |
-| **Quick testing** | `fast.yaml` | Faster iterations |
-| **Production deployment** | `accuracy_focused.yaml` | Max performance |
-| **Medical diagnosis** | `interpretability_focused.yaml` | Transparency required |
-| **General use** | `balanced.yaml` | Good starting point |
+| Use Case                  | Configuration                   | Why                    |
+| ------------------------- | ------------------------------- | ---------------------- |
+| **Research replication**  | `paper.yaml`                    | Exact paper parameters |
+| **Quick testing**         | `fast.yaml`                     | Faster iterations      |
+| **Production deployment** | `accuracy_focused.yaml`         | Max performance        |
+| **Medical diagnosis**     | `interpretability_focused.yaml` | Transparency required  |
+| **General use**           | `balanced.yaml`                 | Good starting point    |
 
 ### By Priority
 
 **Accuracy is most important** (Competitions, production):
+
 ```bash
 python scripts/train.py --config configs/accuracy_focused.yaml
 ```
 
 **Interpretability is most important** (Healthcare, legal):
+
 ```bash
 python scripts/train.py --config configs/interpretability_focused.yaml
 ```
 
 **Equal priority** (Exploration):
+
 ```bash
 python scripts/train.py --config configs/balanced.yaml
 ```
@@ -194,7 +199,7 @@ ga:
   mutation_prob: 0.20
   tournament_size: 3
   elitism_ratio: 0.15
-  
+
   mutation_types:
     threshold_perturbation: 0.45
     feature_replacement: 0.25
@@ -213,7 +218,7 @@ fitness:
   weights:
     accuracy: 0.75            # More accuracy focus
     interpretability: 0.25
-  
+
   interpretability_weights:
     node_complexity: 0.60
     feature_coherence: 0.20
@@ -232,21 +237,25 @@ experiment:
 ## Parameter Guidelines
 
 ### Population Size
+
 - **Small (30-50)**: Fast, may miss optimal solutions
 - **Medium (50-100)**: Good balance ✓ (paper uses 80)
 - **Large (100-200)**: Better exploration, slower
 
 ### Generations
+
 - **Few (20-30)**: Quick experiments
 - **Medium (30-50)**: Standard ✓ (paper uses 40)
 - **Many (50-100)**: Thorough optimization
 
 ### Accuracy Weight
+
 - **0.85-0.95**: Maximum accuracy (production)
 - **0.68-0.75**: Balanced ✓ (paper uses 0.68)
 - **0.50-0.60**: High interpretability (medical)
 
 ### Max Depth
+
 - **3-4**: Very interpretable
 - **5-7**: Good balance ✓ (paper uses 6)
 - **8-10**: More complex, less interpretable
@@ -350,16 +359,16 @@ ga:
 
 ## Troubleshooting
 
-**Problem:** Trees too large  
+**Problem:** Trees too large
 **Solution:** Use `interpretability_focused.yaml` or increase interpretability weight
 
-**Problem:** Accuracy too low  
+**Problem:** Accuracy too low
 **Solution:** Use `accuracy_focused.yaml` or increase accuracy weight
 
-**Problem:** Training too slow  
+**Problem:** Training too slow
 **Solution:** Use `fast.yaml` or reduce population/generations
 
-**Problem:** Results not reproducible  
+**Problem:** Results not reproducible
 **Solution:** Ensure `random_state: 42` in experiment section
 
 ## Next Steps

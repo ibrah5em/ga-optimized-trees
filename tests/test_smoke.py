@@ -42,12 +42,7 @@ def test_subpackage_imports():
         TreeInitializer,
         safe_subtree_crossover,
     )
-    from ga_trees.genotype import (  # noqa
-        Node,
-        TreeGenotype,
-        create_internal_node,
-        create_leaf_node,
-    )
+    from ga_trees.genotype import Node, TreeGenotype, create_internal_node, create_leaf_node  # noqa
 
 
 def test_basic_workflow():

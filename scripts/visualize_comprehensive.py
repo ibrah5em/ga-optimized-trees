@@ -16,7 +16,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 
 # Set style for publication-quality plots
@@ -452,7 +451,7 @@ def create_accuracy_comparison():
     output_dir = Path("results/figures")
     output_dir.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_dir / "accuracy_comparison.png", bbox_inches="tight")
-    print(f"✓ Saved: accuracy_comparison.png")
+    print("✓ Saved: accuracy_comparison.png")
     plt.close()
 
 
@@ -476,7 +475,7 @@ def create_tree_size_comparison():
     ]
 
     # Plot bars
-    bars1 = ax.bar(
+    ax.bar(
         x - width / 2,
         ga_nodes,
         width,
@@ -486,7 +485,7 @@ def create_tree_size_comparison():
         edgecolor="black",
         linewidth=1.5,
     )
-    bars2 = ax.bar(
+    ax.bar(
         x + width / 2,
         cart_nodes,
         width,
@@ -547,7 +546,7 @@ def create_tree_size_comparison():
 
     plt.tight_layout()
     plt.savefig(Path("results/figures") / "tree_size_comparison.png", bbox_inches="tight")
-    print(f"✓ Saved: tree_size_comparison.png")
+    print("✓ Saved: tree_size_comparison.png")
     plt.close()
 
 
@@ -556,7 +555,6 @@ def create_tradeoff_scatter():
     fig, ax = plt.subplots(figsize=(10, 8))
 
     # Prepare data
-    data_points = []
     colors = {"GA": "#FF6B6B", "CART": "#4ECDC4"}
     markers = {"GA": "o", "CART": "s"}
     sizes = {"GA": 300, "CART": 200}
@@ -647,7 +645,7 @@ def create_tradeoff_scatter():
 
     plt.tight_layout()
     plt.savefig(Path("results/figures") / "tradeoff_scatter.png", bbox_inches="tight")
-    print(f"✓ Saved: tradeoff_scatter.png")
+    print("✓ Saved: tradeoff_scatter.png")
     plt.close()
 
 
@@ -731,7 +729,7 @@ def create_speed_comparison():
 
     plt.tight_layout()
     plt.savefig(Path("results/figures") / "speed_comparison.png", bbox_inches="tight")
-    print(f"✓ Saved: speed_comparison.png")
+    print("✓ Saved: speed_comparison.png")
     plt.close()
 
 
@@ -811,7 +809,7 @@ def create_summary_table():
 
     plt.tight_layout()
     plt.savefig(Path("results/figures") / "summary_table.png", bbox_inches="tight")
-    print(f"✓ Saved: summary_table.png")
+    print("✓ Saved: summary_table.png")
     plt.close()
 
 
@@ -822,40 +820,40 @@ def create_key_findings():
 
     findings_text = """
     🏆 KEY FINDINGS 🏆
-    
+
     1. INTERPRETABILITY WIN
        • GA produces 2-7× SMALLER trees than CART
        • Iris: 7.4 nodes vs 13.8 (46% smaller)
-       • Wine: 9.0 nodes vs 17.8 (49% smaller)  
+       • Wine: 9.0 nodes vs 17.8 (49% smaller)
        • Breast Cancer: 4.2 nodes vs 27.4 (85% smaller!) ⭐
-    
+
     2. ACCURACY TRADE-OFF
        • Iris: 95.33% (GA) vs 94.67% (CART) → +0.7% BETTER! ✓
        • Wine: 87.60% (GA) vs 89.32% (CART) → -1.7% loss
        • Breast Cancer: 90.34% (GA) vs 92.80% (CART) → -2.5% loss
        • Average loss: -1.2% for 4.7× smaller trees
-    
+
     3. SPEED
        • GA: 3-7 seconds per dataset (fast enough!)
        • CART: <0.1 seconds (baseline)
        • Trade-off acceptable for offline training
-    
+
     4. STATISTICAL SIGNIFICANCE
        • All differences p > 0.05 (not significant)
        • Breast Cancer: p = 0.0513 (borderline!)
        • Cohen's d = -0.853 (large effect size)
-    
+
     5. PRACTICAL VALUE
        ✓ Medical: Explainable diagnosis (4 nodes = 2-3 rules)
        ✓ Finance: Regulatory compliance
        ✓ Legal: Defendable decisions
        ✓ Trust: Human-understandable models
-    
+
     6. COMPARISON TO ENSEMBLE
        • Random Forest: 95-98% accuracy (best)
        • BUT: Black box, 100+ trees
        • GA: Interpretable single tree with competitive accuracy
-    
+
     CONCLUSION: GA successfully optimizes for interpretability
     with minimal accuracy loss. Ideal for domains where
     explanation matters more than 1-2% accuracy gain.
@@ -874,7 +872,7 @@ def create_key_findings():
 
     plt.tight_layout()
     plt.savefig(Path("results/figures") / "key_findings.png", bbox_inches="tight")
-    print(f"✓ Saved: key_findings.png")
+    print("✓ Saved: key_findings.png")
     plt.close()
 
 

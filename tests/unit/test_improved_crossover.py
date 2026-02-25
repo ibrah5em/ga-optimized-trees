@@ -16,7 +16,6 @@ from ga_trees.ga.improved_crossover import (
     safe_subtree_crossover,
     validate_tree_structure,
 )
-from ga_trees.genotype.tree_genotype import TreeGenotype
 
 
 def test_parent_map():

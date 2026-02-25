@@ -46,14 +46,13 @@ experiment:
 from sklearn.model_selection import train_test_split
 
 # Use 20% of data for development
-X_sample, _, y_sample, _ = train_test_split(
-    X, y, train_size=0.2, stratify=y
-)
+X_sample, _, y_sample, _ = train_test_split(X, y, train_size=0.2, stratify=y)
 ```
 
 ### Large Populations
 
 Monitor memory usage and reduce if needed:
+
 ```bash
 # Monitor during training
 watch -n 1 free -h
