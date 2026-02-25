@@ -147,13 +147,13 @@ class ParetoOptimizer:
             population = tools.selNSGA2(population + offspring, population_size)
 
             if verbose and gen % 10 == 0:
-                front0 = tools.sortNondominated(population, len(population), first_front_only=True)[0]
+                front0 = tools.sortNondominated(population, len(population), first_front_only=True)[
+                    0
+                ]
                 print(f"Gen {gen}: front size={len(front0)}, pop={len(population)}")
 
         # Extract Pareto front
-        pareto_front = tools.sortNondominated(
-            population, len(population), first_front_only=True
-        )[0]
+        pareto_front = tools.sortNondominated(population, len(population), first_front_only=True)[0]
 
         # Unwrap TreeGenotype objects
         return [ind[0] for ind in pareto_front]
@@ -162,9 +162,7 @@ class ParetoOptimizer:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _create_population(
-        self, X: np.ndarray, y: np.ndarray, size: int
-    ) -> list:
+    def _create_population(self, X: np.ndarray, y: np.ndarray, size: int) -> list:
         """Create initial DEAP-wrapped population."""
         population = []
         for _ in range(size):

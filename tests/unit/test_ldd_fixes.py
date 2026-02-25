@@ -40,8 +40,12 @@ def _two_node_tree(max_depth: int = 5) -> TreeGenotype:
         feature_idx=0, threshold=0.5, left_child=left, right_child=right, depth=0
     )
     return TreeGenotype(
-        root=root, n_features=4, n_classes=2, max_depth=max_depth,
-        min_samples_split=2, min_samples_leaf=1,
+        root=root,
+        n_features=4,
+        n_classes=2,
+        max_depth=max_depth,
+        min_samples_split=2,
+        min_samples_leaf=1,
     )
 
 
@@ -49,8 +53,12 @@ def _single_leaf_tree() -> TreeGenotype:
     """A tree with a single leaf node (trivial tree)."""
     root = create_leaf_node(prediction=0, depth=0)
     return TreeGenotype(
-        root=root, n_features=4, n_classes=2, max_depth=5,
-        min_samples_split=2, min_samples_leaf=1,
+        root=root,
+        n_features=4,
+        n_classes=2,
+        max_depth=5,
+        min_samples_split=2,
+        min_samples_leaf=1,
     )
 
 
@@ -60,23 +68,32 @@ def _deep_tree(depth: int = 3) -> TreeGenotype:
     for d in range(depth - 1, -1, -1):
         right_leaf = create_leaf_node(prediction=0, depth=d + 1)
         node = create_internal_node(
-            feature_idx=0, threshold=0.5 + d * 0.01,
-            left_child=node, right_child=right_leaf, depth=d,
+            feature_idx=0,
+            threshold=0.5 + d * 0.01,
+            left_child=node,
+            right_child=right_leaf,
+            depth=d,
         )
     return TreeGenotype(
-        root=node, n_features=4, n_classes=2, max_depth=depth + 2,
-        min_samples_split=2, min_samples_leaf=1,
+        root=node,
+        n_features=4,
+        n_classes=2,
+        max_depth=depth + 2,
+        min_samples_split=2,
+        min_samples_leaf=1,
     )
 
 
 def _linearly_separable_data(n_samples: int = 10):
     """Dataset perfectly separable on feature 0 at 0.5."""
-    X = np.column_stack([
-        np.linspace(0.1, 0.95, n_samples),
-        np.random.rand(n_samples),
-        np.random.rand(n_samples),
-        np.random.rand(n_samples),
-    ])
+    X = np.column_stack(
+        [
+            np.linspace(0.1, 0.95, n_samples),
+            np.random.rand(n_samples),
+            np.random.rand(n_samples),
+            np.random.rand(n_samples),
+        ]
+    )
     y = (X[:, 0] > 0.5).astype(int)
     return X, y
 
@@ -170,12 +187,14 @@ class TestLDD4_VectorizedPrediction:
     def test_predict_matches_expected(self):
         """Predictions match expected values for a simple split."""
         tree = _two_node_tree()
-        X = np.array([
-            [0.1, 0.5, 0.5, 0.5],  # left → 0
-            [0.3, 0.5, 0.5, 0.5],  # left → 0
-            [0.6, 0.5, 0.5, 0.5],  # right → 1
-            [0.9, 0.5, 0.5, 0.5],  # right → 1
-        ])
+        X = np.array(
+            [
+                [0.1, 0.5, 0.5, 0.5],  # left → 0
+                [0.3, 0.5, 0.5, 0.5],  # left → 0
+                [0.6, 0.5, 0.5, 0.5],  # right → 1
+                [0.9, 0.5, 0.5, 0.5],  # right → 1
+            ]
+        )
         preds = TreePredictor.predict(tree, X)
         np.testing.assert_array_equal(preds, [0, 0, 1, 1])
 

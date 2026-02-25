@@ -81,8 +81,7 @@ class TreePredictor:
             return np.array([], dtype=float)
         if X.shape[1] < tree.n_features:
             raise ValueError(
-                f"X has {X.shape[1]} features but tree expects "
-                f"at least {tree.n_features}."
+                f"X has {X.shape[1]} features but tree expects " f"at least {tree.n_features}."
             )
 
         # --- LDD-4: vectorized batch prediction ---
@@ -232,9 +231,8 @@ class InterpretabilityCalculator:
             score += weights["tree_balance"] * tree.get_tree_balance()
 
         if "semantic_coherence" in weights:
-            score += (
-                weights["semantic_coherence"]
-                * InterpretabilityCalculator._semantic_coherence(tree)
+            score += weights["semantic_coherence"] * InterpretabilityCalculator._semantic_coherence(
+                tree
             )
 
         return score
@@ -346,9 +344,7 @@ class FitnessCalculator:
         if mode not in VALID_MODES:
             raise ValueError(f"mode must be one of {VALID_MODES}, got '{mode}'.")
         if not (0.0 <= accuracy_weight <= 1.0):
-            raise ValueError(
-                f"accuracy_weight must be in [0, 1], got {accuracy_weight}."
-            )
+            raise ValueError(f"accuracy_weight must be in [0, 1], got {accuracy_weight}.")
         if not (0.0 <= interpretability_weight <= 1.0):
             raise ValueError(
                 f"interpretability_weight must be in [0, 1], got {interpretability_weight}."
@@ -412,9 +408,7 @@ class FitnessCalculator:
         if X.ndim != 2:
             raise ValueError(f"X must be 2-D, got {X.ndim}-D.")
         if len(X) != len(y):
-            raise ValueError(
-                f"X and y length mismatch: {len(X)} vs {len(y)}."
-            )
+            raise ValueError(f"X and y length mismatch: {len(X)} vs {len(y)}.")
 
         # Fit leaf predictions on training data
         self.predictor.fit_leaf_predictions(tree, X, y)
@@ -448,33 +442,24 @@ class FitnessCalculator:
 
         # weighted_sum mode
         fitness: float = (
-            self.accuracy_weight * accuracy
-            + self.interpretability_weight * interpretability
+            self.accuracy_weight * accuracy + self.interpretability_weight * interpretability
         )
         return fitness
 
-    def _compute_classification_metric(
-        self, y_true: np.ndarray, y_pred: np.ndarray
-    ) -> float:
+    def _compute_classification_metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Compute the configured classification metric (LDD-12)."""
         if self.classification_metric == "accuracy":
             return float(accuracy_score(y_true, y_pred))
         elif self.classification_metric == "f1_macro":
-            return float(
-                f1_score(y_true, y_pred, average="macro", zero_division=0)
-            )
+            return float(f1_score(y_true, y_pred, average="macro", zero_division=0))
         elif self.classification_metric == "f1_weighted":
-            return float(
-                f1_score(y_true, y_pred, average="weighted", zero_division=0)
-            )
+            return float(f1_score(y_true, y_pred, average="weighted", zero_division=0))
         elif self.classification_metric == "balanced_accuracy":
             return float(balanced_accuracy_score(y_true, y_pred))
         else:
             return float(accuracy_score(y_true, y_pred))
 
-    def _compute_regression_metric(
-        self, y_true: np.ndarray, y_pred: np.ndarray
-    ) -> float:
+    def _compute_regression_metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """Compute the configured regression metric."""
         if self.regression_metric == "r2":
             return float(max(0.0, r2_score(y_true, y_pred)))
