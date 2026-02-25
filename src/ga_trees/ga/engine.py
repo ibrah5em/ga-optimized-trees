@@ -481,10 +481,11 @@ class GAEngine:
                 child1.fitness_ = None
                 child2.fitness_ = None
 
-                next_population.extend([child1, child2])
+                next_population.append(child1)
+                if len(next_population) < self.config.population_size:
+                    next_population.append(child2)
 
-            # Trim to population size
-            self.population = next_population[: self.config.population_size]
+            self.population = next_population
 
             # Evaluate new individuals
             self.evaluate_population(X, y)
