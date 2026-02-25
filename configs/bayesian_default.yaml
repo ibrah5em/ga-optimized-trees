@@ -1,0 +1,14 @@
+# Example Bayesian configuration - default
+# Use symmetric Dirichlet prior of 1.0 for all classes by default
+
+n_samples: 200
+confidence_level: 0.95
+calibration_weight: 0.1
+confidence_weight: 0.05
+
+# For multi-class problems, override dirichlet_prior_alpha with a list of length n_classes
+# dirichlet_prior_alpha: [1.0, 1.0, 1.0]
+
+# For binary problems, you can set beta priors instead
+# beta_prior_a: 1.0
+# beta_prior_b: 1.0
