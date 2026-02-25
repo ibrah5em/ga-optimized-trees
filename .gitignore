@@ -69,6 +69,8 @@ docs/.*
 .DS_Store
 Thumbs.db
 
+# AI Agent
+.claude
 # Project specific
 # Data directories
 data/raw/*
