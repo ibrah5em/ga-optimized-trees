@@ -85,7 +85,10 @@ class TreePredictor:
             )
 
         # --- LDD-4: vectorized batch prediction ---
-        return TreePredictor._predict_batch(tree.root, X)
+        result = TreePredictor._predict_batch(tree.root, X)
+        if tree.task_type == "classification":
+            return result.astype(int)
+        return result
 
     @staticmethod
     def _predict_batch(root, X: np.ndarray) -> np.ndarray:
