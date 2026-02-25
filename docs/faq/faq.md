@@ -434,11 +434,22 @@ The fitness calculator automatically handles regression (MSE-based).
 
 ### Can I use NSGA-II for multi-objective optimization?
 
-Preliminary support exists in `src/ga_trees/ga/multi_objective.py`. For full NSGA-II:
+Yes! `ParetoOptimizer` in `src/ga_trees/ga/multi_objective.py` implements full
+NSGA-II with real crossover and mutation operators:
 
-1. See `docs/advanced/multi-objective.md`
-2. Use the Pareto optimization script as a starting point
-3. The current implementation uses weighted-sum for simplicity
+```python
+from ga_trees.ga import ParetoOptimizer
+
+optimizer = ParetoOptimizer(
+    initializer=initializer,
+    fitness_fn=fitness_calc.calculate_fitness,  # mode='pareto' returns (acc, interp)
+    mutation_fn=mutation.mutate,
+    random_state=42,
+)
+front = optimizer.evolve_pareto_front(X_train, y_train, population_size=100, n_generations=50)
+```
+
+See `scripts/run_pareto_optimization.py` for a complete example.
 
 ### How do I contribute?
 

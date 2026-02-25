@@ -255,11 +255,13 @@ FitnessCalculator(
     mode='weighted_sum',              # 'weighted_sum' or 'pareto'
     accuracy_weight=0.68,             # Weight for accuracy
     interpretability_weight=0.32,     # Weight for interpretability
+    classification_metric='accuracy', # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
+    regression_metric='neg_mse',      # 'neg_mse', 'r2'
     interpretability_weights={
         'node_complexity': 0.50,      # Penalty for tree size
         'feature_coherence': 0.10,    # Reward feature reuse
         'tree_balance': 0.10,         # Reward balanced trees
-        'semantic_coherence': 0.30    # Reward prediction consistency
+        'semantic_coherence': 0.30    # Feature depth consistency
     }
 )
 ```
@@ -267,7 +269,12 @@ FitnessCalculator(
 **Fitness Mode:**
 
 - `weighted_sum`: Single objective = accuracy_weight × acc + interpretability_weight × interp
-- `pareto`: Multi-objective optimization (experimental)
+- `pareto`: Multi-objective optimization returning (accuracy, interpretability) tuple
+
+**Classification Metric:** Use `f1_weighted` or `balanced_accuracy` for imbalanced datasets.
+
+**Validation Set:** Pass `X_val, y_val` to `calculate_fitness()` to evaluate generalization
+rather than training accuracy.
 
 
 

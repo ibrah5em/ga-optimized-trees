@@ -51,10 +51,14 @@ class MedicalFitnessCalculator(FitnessCalculator):
     - Reward simple trees
     """
     
-    def calculate_fitness(self, tree, X, y):
-        # Fit leaf predictions
+    def calculate_fitness(self, tree, X, y, X_val=None, y_val=None):
+        # Fit leaf predictions on training data
         self.predictor.fit_leaf_predictions(tree, X, y)
-        y_pred = self.predictor.predict(tree, X)
+
+        # Evaluate on validation set if provided (LDD-3)
+        X_eval = X_val if X_val is not None else X
+        y_eval = y_val if y_val is not None else y
+        y_pred = self.predictor.predict(tree, X_eval)
         
         # Calculate recall (most important for medical)
         recall = recall_score(y, y_pred, average='weighted')

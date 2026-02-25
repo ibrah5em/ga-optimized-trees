@@ -22,3 +22,11 @@ __all__ = [
     "Mutation",
     "safe_subtree_crossover",
 ]
+
+# ParetoOptimizer requires DEAP (optional dependency)
+try:
+    from .multi_objective import ParetoOptimizer
+
+    __all__.append("ParetoOptimizer")
+except ImportError:
+    pass

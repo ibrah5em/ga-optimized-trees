@@ -28,6 +28,7 @@ tree:
 # Fitness Function
 fitness:
   mode: weighted_sum
+  classification_metric: accuracy    # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
   weights:
     accuracy: 0.68
     interpretability: 0.32

@@ -39,7 +39,8 @@ class MetricsCalculator:
         if y_prob is not None and len(np.unique(y_true)) == 2:
             try:
                 metrics["roc_auc"] = roc_auc_score(y_true, y_prob[:, 1])
-            except:
+            except (ValueError, IndexError):
+                # LDD-10: only catch expected failures (e.g., single class, wrong shape)
                 pass
 
         return metrics
