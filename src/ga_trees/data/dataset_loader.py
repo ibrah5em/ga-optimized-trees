@@ -51,7 +51,6 @@ from sklearn.utils import resample
 logger = logging.getLogger(__name__)
 
 
-
 class DataValidator:
     """Validate and clean dataset."""
 

@@ -450,7 +450,9 @@ class GAEngine:
                     self.best_individual = best_ind.copy()
 
                 if verbose and generation % 10 == 0:
-                    logger.info("Gen %d: Best=%.4f, Avg=%.4f", generation, best_fitness, avg_fitness)
+                    logger.info(
+                        "Gen %d: Best=%.4f, Avg=%.4f", generation, best_fitness, avg_fitness
+                    )
 
             # Create next generation
             next_population = []

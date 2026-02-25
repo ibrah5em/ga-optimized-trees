@@ -12,7 +12,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 
 
-
 class BaselineModel:
     """Base class for baseline models."""
 
