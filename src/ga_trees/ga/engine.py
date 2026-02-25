@@ -245,8 +245,11 @@ class Crossover:
             if node is None:
                 return None
             if depth >= max_depth:
-                # Convert to leaf
-                return create_leaf_node(node.prediction if node.is_leaf() else 0, depth)
+                # Convert to leaf — preserve prediction if leaf, else use None
+                # (will be corrected by fit_leaf_predictions during evaluation)
+                pred = node.prediction if node.is_leaf() else None
+                leaf = create_leaf_node(pred if pred is not None else 0, depth)
+                return leaf
             if node.is_leaf():
                 return node
             node.left_child = prune_node(node.left_child, depth + 1)

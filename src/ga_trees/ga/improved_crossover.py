@@ -258,8 +258,16 @@ def prune_to_depth(tree: TreeGenotype, max_depth: int) -> TreeGenotype:
             if node.is_leaf():
                 return node
             else:
-                # Convert internal node to leaf
-                return create_leaf_node(0, depth)
+                # Attempt to inherit prediction from leftmost leaf descendant
+                descendant = node
+                while descendant and not descendant.is_leaf():
+                    descendant = descendant.left_child
+                pred = (
+                    descendant.prediction
+                    if (descendant and descendant.prediction is not None)
+                    else 0
+                )
+                return create_leaf_node(pred, depth)
 
         # If leaf, return as is
         if node.is_leaf():
