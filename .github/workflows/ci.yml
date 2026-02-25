@@ -121,6 +121,9 @@ jobs:
         pytest tests/integration/ -v --cov=src/ga_trees
 
     - name: Run experiment script
+      env:
+        PYTHONIOENCODING: utf-8
+        PYTHONUTF8: "1"
       run: |
         python scripts/experiment.py --config configs/default.yaml
 
