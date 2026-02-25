@@ -172,7 +172,7 @@ class XGBoostBaseline(BaselineModel):
                     verbosity=0,
                 )
                 self.model.fit(X, y)
-        except ImportError:
-            logger.warning("XGBoost not installed, skipping")
+        except Exception as e:
+            logger.warning("XGBoost unavailable, skipping: %s", e)
             self.model = None
         return self
