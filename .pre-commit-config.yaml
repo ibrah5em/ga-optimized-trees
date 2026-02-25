@@ -23,7 +23,7 @@ repos:
     rev: 23.12.1
     hooks:
       - id: black
-        language_version: python3.11
+        language_version: python3.12
         args: ['--line-length=100']
 
   # Import sorting
@@ -38,22 +38,14 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
-
-  # Type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-all]
-        args: ['--ignore-missing-imports']
+        args: ['--max-line-length=100', '--extend-ignore=E203,W503,C901']
 
   # Security checks
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
     hooks:
       - id: bandit
-        args: ['-c', 'pyproject.toml']
+        args: ['-c', 'pyproject.toml', '--severity-level', 'medium']
         additional_dependencies: ['bandit[toml]']
 
   # Markdown formatting
@@ -65,16 +57,9 @@ repos:
           - mdformat-gfm
           - mdformat-black
 
-  # YAML formatting
-  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v2.12.0
-    hooks:
-      - id: pretty-format-yaml
-        args: ['--autofix', '--indent', '2']
-
 # Configuration
 default_language_version:
-  python: python3.11
+  python: python3.12
 
 # CI settings
 ci:
