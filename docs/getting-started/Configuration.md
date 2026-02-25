@@ -121,6 +121,8 @@ tree:
 ```yaml
 fitness:
   mode: weighted_sum           # 'weighted_sum' or 'pareto'
+  classification_metric: accuracy  # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
+  regression_metric: neg_mse       # 'neg_mse', 'r2'
   weights:                     # Must sum to 1.0
     accuracy: 0.68
     interpretability: 0.32
@@ -129,8 +131,11 @@ fitness:
     node_complexity: 0.50      # Penalize tree size
     feature_coherence: 0.10    # Reward feature reuse
     tree_balance: 0.10         # Prefer balanced trees
-    semantic_coherence: 0.30   # Consistent predictions
+    semantic_coherence: 0.30   # Feature depth consistency
 ```
+
+> **Tip:** For imbalanced datasets, use `classification_metric: f1_weighted` or
+> `balanced_accuracy` to prevent the GA from evolving majority-class-only trees.
 
 ## Choosing the Right Configuration
 
