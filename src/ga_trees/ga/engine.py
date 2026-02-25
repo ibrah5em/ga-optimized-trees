@@ -333,9 +333,16 @@ class Mutation:
             return tree  # Nothing to prune (root-only or single internal node)
 
         node = random.choice(candidates)
+        # Inherit prediction from the leftmost leaf descendant
+        descendant = node
+        while descendant and not descendant.is_leaf():
+            descendant = descendant.left_child
+        inherited_pred = (
+            descendant.prediction if (descendant and descendant.prediction is not None) else 0
+        )
         # Convert to leaf
         node.node_type = "leaf"
-        node.prediction = 0  # Will be updated during fitness evaluation
+        node.prediction = inherited_pred
         node.left_child = None
         node.right_child = None
         node.feature_idx = None
