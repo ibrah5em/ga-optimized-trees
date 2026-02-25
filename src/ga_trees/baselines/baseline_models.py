@@ -1,14 +1,16 @@
 """Baseline model implementations for comparison."""
 
+import logging
 import warnings
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 
-warnings.filterwarnings("ignore")
 
 
 class BaselineModel:
@@ -163,14 +165,16 @@ class XGBoostBaseline(BaselineModel):
         try:
             from xgboost import XGBClassifier
 
-            self.model = XGBClassifier(
-                max_depth=self.max_depth,
-                n_estimators=self.n_estimators,
-                random_state=self.random_state,
-                verbosity=0,
-            )
-            self.model.fit(X, y)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning)
+                self.model = XGBClassifier(
+                    max_depth=self.max_depth,
+                    n_estimators=self.n_estimators,
+                    random_state=self.random_state,
+                    verbosity=0,
+                )
+                self.model.fit(X, y)
         except ImportError:
-            print("XGBoost not installed, skipping")
+            logger.warning("XGBoost not installed, skipping")
             self.model = None
         return self

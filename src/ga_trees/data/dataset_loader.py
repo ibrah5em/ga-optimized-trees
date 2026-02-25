@@ -36,6 +36,7 @@ also:
 4. Warning suppression for expected numpy warnings
 """
 
+import logging
 import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
@@ -47,7 +48,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.utils import resample
 
-warnings.filterwarnings("ignore")
+logger = logging.getLogger(__name__)
+
 
 
 class DataValidator:
@@ -215,7 +217,7 @@ class DatasetLoader:
             Dictionary with keys: X_train, X_test, y_train, y_test,
             feature_names, target_names, metadata
         """
-        print(f"Loading dataset: {name}")
+        logger.info("Loading dataset: %s", name)
 
         # FIX: Check if it's a file path FIRST (before checking dataset names)
         path = Path(name)
@@ -254,9 +256,8 @@ class DatasetLoader:
         if not valid:
             raise ValueError(f"Invalid dataset: {warnings_list}")
         if warnings_list:
-            print(f"\n⚠️  Data Quality Warnings:")
-            for i, warning in enumerate(warnings_list, 1):
-                print(f"  {i}. {warning}")
+            for warning in warnings_list:
+                logger.warning("Data quality: %s", warning)
 
         # Clean if needed (use median by default - more robust)
         X, y = self.validator.clean_dataset(X, y, strategy="median")
@@ -267,10 +268,7 @@ class DatasetLoader:
         if len(X) < min_samples_required:
             # Try to continue with warning for very small datasets
             if len(X) >= 5:
-                print(
-                    f"\n⚠️  Warning: Small dataset ({len(X)} samples). "
-                    f"Results may not be reliable."
-                )
+                logger.warning("Small dataset (%d samples). Results may not be reliable.", len(X))
             else:
                 raise ValueError(
                     f"Dataset too small: {len(X)} samples. "
@@ -290,8 +288,8 @@ class DatasetLoader:
             )
         except ValueError as e:
             if "stratify" in str(e).lower():
-                print(
-                    "⚠️  Stratification failed (likely too few samples per class). Using random split."
+                logger.warning(
+                    "Stratification failed (likely too few samples per class). Using random split."
                 )
                 X_train, X_test, y_train, y_test = train_test_split(
                     X, y, test_size=test_size, random_state=random_state, stratify=None
@@ -319,9 +317,11 @@ class DatasetLoader:
             "standardized": standardize,
         }
 
-        print(
-            f"✓ Loaded: {metadata['n_samples']} samples, "
-            f"{metadata['n_features']} features, {metadata['n_classes']} classes"
+        logger.info(
+            "Loaded: %d samples, %d features, %d classes",
+            metadata["n_samples"],
+            metadata["n_features"],
+            metadata["n_classes"],
         )
 
         return {
@@ -473,7 +473,7 @@ class DatasetLoader:
         if df.shape[1] < 2:
             raise ValueError(f"File must have at least 2 columns (features + target): {filepath}")
 
-        print(f"Loaded file with shape: {df.shape}")
+        logger.info("Loaded file with shape: %s", df.shape)
 
         # Assume last column is target
         X = df.iloc[:, :-1].values
@@ -558,7 +558,7 @@ class DatasetLoader:
             X = np.vstack(X_balanced)
             y = np.hstack(y_balanced)
 
-        print(f"✓ Balanced dataset using {strategy}")
+        logger.info("Balanced dataset using %s", strategy)
         return X, y
 
     @staticmethod
