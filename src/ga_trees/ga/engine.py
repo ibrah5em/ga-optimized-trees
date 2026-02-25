@@ -9,11 +9,14 @@ This file contains the full genetic algorithm engine including:
 - Main evolution loop
 """
 
+import logging
 import random
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 # Assuming tree_genotype.py is available
 from ga_trees.ga.improved_crossover import safe_subtree_crossover
@@ -447,7 +450,7 @@ class GAEngine:
                     self.best_individual = best_ind.copy()
 
                 if verbose and generation % 10 == 0:
-                    print(f"Gen {generation}: Best={best_fitness:.4f}, Avg={avg_fitness:.4f}")
+                    logger.info("Gen %d: Best=%.4f, Avg=%.4f", generation, best_fitness, avg_fitness)
 
             # Create next generation
             next_population = []
