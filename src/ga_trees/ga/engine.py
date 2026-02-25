@@ -29,7 +29,18 @@ from ga_trees.genotype.tree_genotype import (
 
 @dataclass
 class GAConfig:
-    """Configuration for genetic algorithm."""
+    """Configuration for genetic algorithm.
+
+    Attributes:
+        population_size: Number of individuals per generation (must be > 0).
+        n_generations: Number of evolutionary generations (must be > 0).
+        crossover_prob: Probability of crossover, in [0, 1].
+        mutation_prob: Probability of mutation, in [0, 1].
+        tournament_size: Tournament selection size (must be >= 2).
+        elitism_ratio: Fraction of population preserved as elite, in [0, 1).
+        mutation_types: Mapping of mutation operator names to selection weights.
+        random_state: Optional seed for reproducibility (LDD-9).
+    """
 
     population_size: int = 100
     n_generations: int = 50
@@ -38,8 +49,23 @@ class GAConfig:
     tournament_size: int = 3
     elitism_ratio: float = 0.1
     mutation_types: Dict[str, float] = None
+    random_state: Optional[int] = None
 
     def __post_init__(self):
+        # --- LDD-5: input validation ---
+        if self.population_size <= 0:
+            raise ValueError(f"population_size must be > 0, got {self.population_size}.")
+        if self.n_generations <= 0:
+            raise ValueError(f"n_generations must be > 0, got {self.n_generations}.")
+        if not (0.0 <= self.crossover_prob <= 1.0):
+            raise ValueError(f"crossover_prob must be in [0, 1], got {self.crossover_prob}.")
+        if not (0.0 <= self.mutation_prob <= 1.0):
+            raise ValueError(f"mutation_prob must be in [0, 1], got {self.mutation_prob}.")
+        if self.tournament_size < 2:
+            raise ValueError(f"tournament_size must be >= 2, got {self.tournament_size}.")
+        if not (0.0 <= self.elitism_ratio < 1.0):
+            raise ValueError(f"elitism_ratio must be in [0, 1), got {self.elitism_ratio}.")
+
         if self.mutation_types is None:
             self.mutation_types = {
                 "threshold_perturbation": 0.4,
@@ -294,12 +320,18 @@ class Mutation:
         return tree
 
     def prune_subtree(self, tree: TreeGenotype) -> TreeGenotype:
-        """Convert random internal node to leaf."""
-        internal_nodes = tree.get_internal_nodes()
-        if not internal_nodes or len(internal_nodes) <= 1:
-            return tree  # Don't prune root if it's the only internal node
+        """Convert random internal node to leaf.
 
-        node = random.choice(internal_nodes)
+        LDD-13: Root node is excluded from candidates to prevent
+        accidentally converting the entire tree into a single leaf.
+        """
+        internal_nodes = tree.get_internal_nodes()
+        # LDD-13: exclude root from candidates
+        candidates = [n for n in internal_nodes if n.node_id != tree.root.node_id]
+        if not candidates:
+            return tree  # Nothing to prune (root-only or single internal node)
+
+        node = random.choice(candidates)
         # Convert to leaf
         node.node_type = "leaf"
         node.prediction = 0  # Will be updated during fitness evaluation
@@ -380,6 +412,11 @@ class GAEngine:
         Returns:
             Best individual found
         """
+        # --- LDD-9: reproducibility ---
+        if self.config.random_state is not None:
+            random.seed(self.config.random_state)
+            np.random.seed(self.config.random_state)
+
         # Initialize
         self.initialize_population(X, y)
         self.evaluate_population(X, y)
