@@ -35,6 +35,7 @@ jobs:
         pip install pytest pytest-cov pytest-xdist
 
     - name: Run unit tests
+      shell: bash
       run: |
         pytest tests/unit/ -v \
           --cov=src/ga_trees \
