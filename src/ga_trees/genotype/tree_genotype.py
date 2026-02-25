@@ -6,6 +6,7 @@ Trees are represented as binary decision trees with constrained structure.
 """
 
 import copy
+import json
 from dataclasses import dataclass
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -302,6 +303,95 @@ class TreeGenotype:
                 result["prediction"] = node.prediction
 
         return result
+
+    def to_json(self, filepath: str = None, indent: int = 2) -> str:
+        """Serialize tree to JSON string. Optionally write to file.
+
+        Args:
+            filepath: If provided, write JSON to this file path.
+            indent: JSON indentation level.
+
+        Returns:
+            JSON string representation.
+        """
+        data = self.to_dict()
+        json_str = json.dumps(data, indent=indent, default=str)
+        if filepath:
+            with open(filepath, "w") as f:
+                f.write(json_str)
+        return json_str
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TreeGenotype":
+        """Reconstruct a TreeGenotype from a dictionary (inverse of to_dict).
+
+        Args:
+            data: Dictionary with keys: n_features, n_classes, task_type,
+                  max_depth, min_samples_split, min_samples_leaf, root.
+
+        Returns:
+            Reconstructed TreeGenotype.
+        """
+        root = cls._node_from_dict(data["root"])
+        tree = cls(
+            root=root,
+            n_features=data["n_features"],
+            n_classes=data["n_classes"],
+            task_type=data.get("task_type", "classification"),
+            max_depth=data.get("max_depth", 5),
+            min_samples_split=data.get("min_samples_split", 10),
+            min_samples_leaf=data.get("min_samples_leaf", 5),
+        )
+        # Restore metadata if present
+        meta = data.get("metadata", {})
+        tree.fitness_ = meta.get("fitness")
+        tree.accuracy_ = meta.get("accuracy")
+        tree.interpretability_ = meta.get("interpretability")
+        return tree
+
+    @classmethod
+    def from_json(cls, source: str) -> "TreeGenotype":
+        """Reconstruct a TreeGenotype from a JSON string or file path.
+
+        Args:
+            source: JSON string, or a file path ending in '.json'.
+
+        Returns:
+            Reconstructed TreeGenotype.
+        """
+        if source.strip().startswith("{"):
+            data = json.loads(source)
+        else:
+            with open(source, "r") as f:
+                data = json.load(f)
+        return cls.from_dict(data)
+
+    @staticmethod
+    def _node_from_dict(data: dict) -> "Node":
+        """Reconstruct a Node from a dictionary."""
+        if data is None:
+            return None
+
+        node = Node(
+            node_type=data["node_type"],
+            node_id=data.get("node_id", 0),
+            depth=data.get("depth", 0),
+        )
+
+        if data["node_type"] == "internal":
+            node.feature_idx = data.get("feature_idx")
+            node.threshold = data.get("threshold")
+            node.operator = data.get("operator", "<=")
+            node.left_child = TreeGenotype._node_from_dict(data.get("left_child"))
+            node.right_child = TreeGenotype._node_from_dict(data.get("right_child"))
+        else:
+            pred = data.get("prediction")
+            if isinstance(pred, list):
+                node.prediction = np.array(pred)
+            else:
+                node.prediction = pred
+
+        return node
 
     def to_rules(self) -> List[str]:
         """Extract human-readable rules from tree."""
