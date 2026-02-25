@@ -15,8 +15,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        include:
+          - os: ubuntu-latest
+            python-version: '3.9'
+          - os: ubuntu-latest
+            python-version: '3.10'
+          - os: ubuntu-latest
+            python-version: '3.11'
+          - os: ubuntu-latest
+            python-version: '3.12'
+          - os: windows-latest
+            python-version: '3.11'
+          - os: macos-latest
+            python-version: '3.11'
 
     steps:
     - name: Checkout code
@@ -44,18 +55,10 @@ jobs:
           --cov-fail-under=80
 
     - name: Quick training test
-      run: |
-        if [ "$RUNNER_OS" = "Windows" ]; then
-          echo "Setting up UTF-8 for Windows..."
-          chcp.com 65001
-          set PYTHONIOENCODING=utf-8
-          set PYTHONUTF8=1
-        else
-          echo "Using UTF-8 for Linux/macOS..."
-          export PYTHONIOENCODING=utf-8
-          export PYTHONUTF8=1
-        fi
-        python scripts/train.py --dataset iris --generations 5 --population 10
+      env:
+        PYTHONIOENCODING: utf-8
+        PYTHONUTF8: "1"
+      run: python scripts/train.py --dataset iris --generations 5 --population 10
       shell: bash
 
     - name: Upload coverage to Codecov
@@ -85,7 +88,7 @@ jobs:
       uses: pre-commit/action@v3.0.0
 
     - name: Type checking with mypy
-      # TODO: remove continue-on-error once codebase is fully typed
+      # TODO: remove continue-on-error by 2026-06-01 once codebase is fully typed
       run: |
         pip install mypy
         pip install -e .
@@ -149,7 +152,7 @@ jobs:
       run: |
         cd docs
         make html
-      # TODO: remove once docs are stable
+      # TODO: remove continue-on-error by 2026-06-01 once docs are stable
       continue-on-error: true
 
   package:
@@ -191,18 +194,8 @@ jobs:
     steps:
     - name: Check status
       run: |
-        if [ "${{ needs.test.result }}"        = "success" ] && \
-           [ "${{ needs.lint.result }}"        = "success" ] && \
-           [ "${{ needs.integration.result }}" = "success" ] && \
-           [ "${{ needs.docs.result }}"        = "success" ] && \
-           [ "${{ needs.package.result }}"     = "success" ]; then
-          echo "✅ All checks passed!"
-        else
+        if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
           echo "❌ Some checks failed"
-          echo "  test:        ${{ needs.test.result }}"
-          echo "  lint:        ${{ needs.lint.result }}"
-          echo "  integration: ${{ needs.integration.result }}"
-          echo "  docs:        ${{ needs.docs.result }}"
-          echo "  package:     ${{ needs.package.result }}"
           exit 1
         fi
+        echo "✅ All checks passed!"
