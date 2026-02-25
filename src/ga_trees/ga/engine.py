@@ -9,9 +9,7 @@ This file contains the full genetic algorithm engine including:
 - Main evolution loop
 """
 
-import copy
 import random
-from collections import deque
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -345,7 +343,7 @@ class Mutation:
     def expand_leaf(self, tree: TreeGenotype) -> TreeGenotype:
         """Convert random leaf to internal node (if depth allows)."""
         leaves = tree.get_all_leaves()
-        expandable_leaves = [l for l in leaves if l.depth < tree.max_depth - 1]
+        expandable_leaves = [leaf for leaf in leaves if leaf.depth < tree.max_depth - 1]
 
         if not expandable_leaves:
             return tree
