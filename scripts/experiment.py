@@ -202,6 +202,7 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             tournament_size=config["ga"]["tournament_size"],
             elitism_ratio=config["ga"]["elitism_ratio"],
             mutation_types=config["ga"]["mutation_types"],
+            early_stopping_rounds=config["ga"].get("early_stopping_rounds", None),
         )
 
         initializer = TreeInitializer(
@@ -261,9 +262,9 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
 
 
 def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
-    """Run CART baseline."""
+    """Run constrained CART baseline (same depth/sample limits as GA)."""
     print(f"\n{'='*70}")
-    print(f"Running CART on {dataset_name}")
+    print(f"Running CART (constrained) on {dataset_name}")
     print(f"{'='*70}")
 
     skf = StratifiedKFold(
@@ -277,9 +278,17 @@ def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
+        # Standardize — same preprocessing as GA for a fair comparison
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
         start = time.time()
         model = DecisionTreeClassifier(
-            max_depth=config["tree"]["max_depth"], random_state=config["experiment"]["random_state"]
+            max_depth=config["tree"]["max_depth"],
+            min_samples_split=config["tree"]["min_samples_split"],
+            min_samples_leaf=config["tree"]["min_samples_leaf"],
+            random_state=config["experiment"]["random_state"],
         )
         model.fit(X_train, y_train)
         elapsed = time.time() - start
@@ -303,8 +312,64 @@ def run_cart_experiment(X, y, dataset_name, config, n_folds=5):
     return results
 
 
+def run_cart_unconstrained_experiment(X, y, dataset_name, config, n_folds=5):
+    """Run unconstrained CART baseline (sklearn defaults, no depth limit).
+
+    Shows the true CART performance ceiling without the GA's tree constraints.
+    """
+    print(f"\n{'='*70}")
+    print(f"Running CART (unconstrained) on {dataset_name}")
+    print(f"{'='*70}")
+
+    skf = StratifiedKFold(
+        n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
+    )
+    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "features": [], "time": []}
+
+    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
+        print(f"  Fold {fold}/{n_folds}...", end=" ")
+
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+
+        # Standardize — consistent with GA and constrained CART
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        start = time.time()
+        # No depth or sample constraints — true CART ceiling
+        model = DecisionTreeClassifier(random_state=config["experiment"]["random_state"])
+        model.fit(X_train, y_train)
+        elapsed = time.time() - start
+
+        y_pred = model.predict(X_test)
+
+        results["test_acc"].append(accuracy_score(y_test, y_pred))
+        results["test_f1"].append(f1_score(y_test, y_pred, average="weighted"))
+        results["nodes"].append(model.tree_.node_count)
+        results["depth"].append(model.tree_.max_depth)
+        try:
+            used = np.unique(model.tree_.feature[model.tree_.feature >= 0])
+            results["features"].append(len(used))
+        except Exception:
+            results["features"].append(np.nan)
+        results["time"].append(elapsed)
+
+        print(
+            f"Acc={results['test_acc'][-1]:.3f}, Nodes={results['nodes'][-1]}, Time={elapsed:.1f}s"
+        )
+
+    return results
+
+
 def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
-    """Run Random Forest baseline."""
+    """Run Random Forest baseline with unlimited depth (true RF performance ceiling).
+
+    Uses max_depth=None (sklearn default) so RF is not hobbled by the GA's tree
+    depth constraint.  Total node count across all estimators is recorded to
+    illustrate the interpretability cost of ensembles.
+    """
     print(f"\n{'='*70}")
     print(f"Running Random Forest on {dataset_name}")
     print(f"{'='*70}")
@@ -312,7 +377,7 @@ def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
     skf = StratifiedKFold(
         n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
     )
-    results = {"test_acc": [], "test_f1": [], "time": []}
+    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "time": []}
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         print(f"  Fold {fold}/{n_folds}...", end=" ")
@@ -323,7 +388,7 @@ def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
         start = time.time()
         model = RandomForestClassifier(
             n_estimators=100,
-            max_depth=config["tree"]["max_depth"],
+            max_depth=None,  # unconstrained — true RF ceiling
             random_state=config["experiment"]["random_state"],
             n_jobs=-1,
         )
@@ -336,7 +401,13 @@ def run_rf_experiment(X, y, dataset_name, config, n_folds=5):
         results["test_f1"].append(f1_score(y_test, y_pred, average="weighted"))
         results["time"].append(elapsed)
 
-        print(f"Acc={results['test_acc'][-1]:.3f}, Time={elapsed:.1f}s")
+        # Total node count across all trees — shows the interpretability cost
+        total_nodes = sum(tree.tree_.node_count for tree in model.estimators_)
+        avg_depth = float(np.mean([tree.tree_.max_depth for tree in model.estimators_]))
+        results["nodes"].append(total_nodes)
+        results["depth"].append(avg_depth)
+
+        print(f"Acc={results['test_acc'][-1]:.3f}, TotalNodes={total_nodes}, Time={elapsed:.1f}s")
 
     return results
 
@@ -519,12 +590,19 @@ def print_summary(all_results, config, config_name="default"):
     results_file = output_dir / f"result-{config_name}-{date_str}.csv"
     df.to_csv(results_file, index=False)
 
+    # Also save to results/tables/ so visualize_comprehensive.py can read it
+    tables_dir = output_dir / "tables"
+    tables_dir.mkdir(exist_ok=True)
+    tables_file = tables_dir / f"results-{config_name}.csv"
+    df.to_csv(tables_file, index=False)
+
     # Save configuration used
     config_file = output_dir / f"config-{config_name}-{date_str}.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f, default_flow_style=False)
 
     print(f"\n✓ Results saved to: {results_file}")
+    print(f"✓ Tables CSV saved to: {tables_file}")
     print(f"✓ Config saved to: {config_file}")
 
 
@@ -600,6 +678,9 @@ def main():
             X, y, dataset_name, config, n_folds=config["experiment"]["cv_folds"]
         )
         dataset_results["CART"] = run_cart_experiment(
+            X, y, dataset_name, config, n_folds=config["experiment"]["cv_folds"]
+        )
+        dataset_results["CART (unconstrained)"] = run_cart_unconstrained_experiment(
             X, y, dataset_name, config, n_folds=config["experiment"]["cv_folds"]
         )
         dataset_results["Random Forest"] = run_rf_experiment(
