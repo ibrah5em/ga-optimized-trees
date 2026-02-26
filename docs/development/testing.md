@@ -46,10 +46,10 @@ def test_tree_crossover():
     # Arrange
     parent1 = create_sample_tree(depth=2)
     parent2 = create_sample_tree(depth=2)
-    
+
     # Act
     child1, child2 = Crossover.subtree_crossover(parent1, parent2)
-    
+
     # Assert
     assert child1.get_depth() <= parent1.max_depth
     assert child2.get_depth() <= parent2.max_depth
@@ -63,12 +63,15 @@ def test_tree_crossover():
 def test_mutation_reduces_tree_size_when_pruning():
     pass
 
+
 def test_fitness_increases_with_accuracy():
     pass
+
 
 # Bad - vague
 def test_mutation():
     pass
+
 
 def test_tree():
     pass
@@ -82,10 +85,12 @@ def test_tree():
 import pytest
 from sklearn.datasets import load_iris
 
+
 @pytest.fixture
 def iris_data():
     """Load Iris dataset."""
     return load_iris(return_X_y=True)
+
 
 @pytest.fixture
 def simple_tree():
@@ -111,11 +116,13 @@ def test_tree_prediction(simple_tree, iris_data):
 **Target:** 80%+ overall
 
 **Check coverage:**
+
 ```bash
 pytest tests/ --cov=src/ga_trees --cov-report=term-missing
 ```
 
 **View HTML report:**
+
 ```bash
 pytest tests/ --cov=src/ga_trees --cov-report=html
 open htmlcov/index.html
@@ -124,8 +131,8 @@ open htmlcov/index.html
 ## Best Practices
 
 1. **Test public API**: Don't test private methods
-2. **One assertion per concept**: Split complex tests
-3. **Descriptive names**: Test name explains what's tested
-4. **Fast tests**: Use small datasets, mock when needed
-5. **Isolated tests**: No dependencies between tests
-6. **Deterministic**: Set random seeds
+1. **One assertion per concept**: Split complex tests
+1. **Descriptive names**: Test name explains what's tested
+1. **Fast tests**: Use small datasets, mock when needed
+1. **Isolated tests**: No dependencies between tests
+1. **Deterministic**: Set random seeds

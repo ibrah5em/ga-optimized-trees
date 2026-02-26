@@ -3,12 +3,7 @@
 Expose tree genotype and node classes for easy import.
 """
 
-from .tree_genotype import (
-    Node,
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from .tree_genotype import Node, TreeGenotype, create_internal_node, create_leaf_node
 
 __all__ = [
     "TreeGenotype",

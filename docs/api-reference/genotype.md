@@ -12,18 +12,18 @@ Represents a single node in the decision tree (internal or leaf).
 
 ### Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `node_type` | `Literal['internal', 'leaf']` | Type of node |
-| `feature_idx` | `Optional[int]` | Feature index for splits (internal nodes only) |
-| `threshold` | `Optional[float]` | Split threshold (internal nodes only) |
-| `operator` | `Literal['<=', '>']` | Comparison operator (default: '<=') |
-| `left_child` | `Optional[Node]` | Left child node |
-| `right_child` | `Optional[Node]` | Right child node |
-| `prediction` | `Optional[Union[int, float, np.ndarray]]` | Prediction value (leaf nodes only) |
-| `depth` | `int` | Depth in tree (root = 0) |
-| `node_id` | `int` | Unique node identifier |
-| `samples_count` | `int` | Number of samples reaching this node |
+| Attribute       | Type                                      | Description                                    |
+| --------------- | ----------------------------------------- | ---------------------------------------------- |
+| `node_type`     | `Literal['internal', 'leaf']`             | Type of node                                   |
+| `feature_idx`   | `Optional[int]`                           | Feature index for splits (internal nodes only) |
+| `threshold`     | `Optional[float]`                         | Split threshold (internal nodes only)          |
+| `operator`      | `Literal['<=', '>']`                      | Comparison operator (default: '\<=')           |
+| `left_child`    | `Optional[Node]`                          | Left child node                                |
+| `right_child`   | `Optional[Node]`                          | Right child node                               |
+| `prediction`    | `Optional[Union[int, float, np.ndarray]]` | Prediction value (leaf nodes only)             |
+| `depth`         | `int`                                     | Depth in tree (root = 0)                       |
+| `node_id`       | `int`                                     | Unique node identifier                         |
+| `samples_count` | `int`                                     | Number of samples reaching this node           |
 
 ### Methods
 
@@ -34,6 +34,7 @@ Check if this is a leaf node.
 **Returns:** `True` if leaf, `False` otherwise
 
 **Example:**
+
 ```python
 if node.is_leaf():
     print(f"Prediction: {node.prediction}")
@@ -52,6 +53,7 @@ Get the height of subtree rooted at this node.
 **Returns:** Height (leaf = 0)
 
 **Example:**
+
 ```python
 height = node.get_height()
 print(f"Subtree height: {height}")
@@ -70,6 +72,7 @@ Get depths of all leaves in subtree.
 **Returns:** List of leaf depths
 
 **Example:**
+
 ```python
 depths = node.get_leaf_depths()
 print(f"Leaf depths: {depths}")
@@ -83,6 +86,7 @@ Get set of features used in subtree.
 **Returns:** Set of feature indices
 
 **Example:**
+
 ```python
 features = node.get_features_used()
 print(f"Features used: {features}")
@@ -94,7 +98,7 @@ Create a deep copy of this node and its subtree.
 
 **Returns:** New `Node` instance
 
----
+______________________________________________________________________
 
 ## `TreeGenotype`
 
@@ -116,6 +120,7 @@ TreeGenotype(
 ```
 
 **Parameters:**
+
 - `root`: Root node of the tree
 - `n_features`: Number of input features
 - `n_classes`: Number of target classes
@@ -126,18 +131,19 @@ TreeGenotype(
 - `max_features`: Maximum features to consider (None = all)
 
 **Example:**
+
 ```python
-from ga_trees.genotype.tree_genotype import TreeGenotype, create_leaf_node, create_internal_node
+from ga_trees.genotype.tree_genotype import (
+    TreeGenotype,
+    create_leaf_node,
+    create_internal_node,
+)
 
 # Create simple tree
 left = create_leaf_node(prediction=0, depth=1)
 right = create_leaf_node(prediction=1, depth=1)
 root = create_internal_node(
-    feature_idx=0,
-    threshold=0.5,
-    left_child=left,
-    right_child=right,
-    depth=0
+    feature_idx=0, threshold=0.5, left_child=left, right_child=right, depth=0
 )
 
 tree = TreeGenotype(
@@ -146,23 +152,23 @@ tree = TreeGenotype(
     n_classes=2,
     max_depth=5,
     min_samples_split=10,
-    min_samples_leaf=5
+    min_samples_leaf=5,
 )
 ```
 
 ### Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `root` | `Node` | Root node of the tree |
-| `n_features` | `int` | Number of features |
-| `n_classes` | `int` | Number of classes |
-| `task_type` | `str` | 'classification' or 'regression' |
-| `max_depth` | `int` | Maximum depth constraint |
-| `min_samples_split` | `int` | Minimum samples to split |
-| `min_samples_leaf` | `int` | Minimum samples in leaf |
-| `fitness_` | `Optional[float]` | Fitness score (set during evolution) |
-| `accuracy_` | `Optional[float]` | Accuracy score (set during evaluation) |
+| Attribute           | Type              | Description                                    |
+| ------------------- | ----------------- | ---------------------------------------------- |
+| `root`              | `Node`            | Root node of the tree                          |
+| `n_features`        | `int`             | Number of features                             |
+| `n_classes`         | `int`             | Number of classes                              |
+| `task_type`         | `str`             | 'classification' or 'regression'               |
+| `max_depth`         | `int`             | Maximum depth constraint                       |
+| `min_samples_split` | `int`             | Minimum samples to split                       |
+| `min_samples_leaf`  | `int`             | Minimum samples in leaf                        |
+| `fitness_`          | `Optional[float]` | Fitness score (set during evolution)           |
+| `accuracy_`         | `Optional[float]` | Accuracy score (set during evaluation)         |
 | `interpretability_` | `Optional[float]` | Interpretability score (set during evaluation) |
 
 ### Methods
@@ -176,6 +182,7 @@ Get maximum depth of the tree.
 **Returns:** Tree depth
 
 **Example:**
+
 ```python
 depth = tree.get_depth()
 print(f"Tree depth: {depth}")
@@ -200,6 +207,7 @@ Get list of all nodes in tree (breadth-first traversal).
 **Returns:** List of all nodes
 
 **Example:**
+
 ```python
 nodes = tree.get_all_nodes()
 print(f"Total nodes: {len(nodes)}")
@@ -230,6 +238,7 @@ Get set of all features used in tree.
 **Returns:** Set of feature indices
 
 **Example:**
+
 ```python
 features = tree.get_features_used()
 print(f"Features used: {features}")
@@ -248,14 +257,16 @@ Get count of unique features used.
 
 Calculate tree balance metric.
 
-**Returns:** Balance score in [0, 1] where 1 is perfectly balanced
+**Returns:** Balance score in \[0, 1\] where 1 is perfectly balanced
 
 **Formula:**
+
 ```
 balance = 1 - min(std(leaf_depths) / max_depth, 1.0)
 ```
 
 **Example:**
+
 ```python
 balance = tree.get_tree_balance()
 print(f"Tree balance: {balance:.4f}")
@@ -272,6 +283,7 @@ Validate tree structure and constraints.
 **Returns:** Tuple of (is_valid, list_of_errors)
 
 **Checks:**
+
 - Depth constraint
 - Feature indices validity
 - Threshold presence in internal nodes
@@ -279,6 +291,7 @@ Validate tree structure and constraints.
 - Tree structure consistency
 
 **Example:**
+
 ```python
 valid, errors = tree.validate()
 if not valid:
@@ -298,6 +311,7 @@ Create a deep copy of this tree.
 **Returns:** New `TreeGenotype` instance
 
 **Example:**
+
 ```python
 tree_copy = tree.copy()
 tree_copy.root.threshold = 0.3  # Modify copy
@@ -311,6 +325,7 @@ Convert tree to dictionary representation.
 **Returns:** Dictionary with tree structure and metadata
 
 **Example:**
+
 ```python
 tree_dict = tree.to_dict()
 print(f"Tree depth: {tree_dict['metadata']['depth']}")
@@ -324,6 +339,7 @@ Extract human-readable rules from tree.
 **Returns:** List of rule strings
 
 **Example:**
+
 ```python
 rules = tree.to_rules()
 print("Decision Rules:")
@@ -336,7 +352,7 @@ for i, rule in enumerate(rules, 1):
 # 3. IF X[0] > 0.5000 THEN class=1
 ```
 
----
+______________________________________________________________________
 
 ## Factory Functions
 
@@ -352,12 +368,14 @@ create_leaf_node(
 ```
 
 **Parameters:**
+
 - `prediction`: Prediction value
 - `depth`: Node depth (default: 0)
 
 **Returns:** Leaf `Node`
 
 **Example:**
+
 ```python
 leaf = create_leaf_node(prediction=1, depth=2)
 assert leaf.is_leaf()
@@ -379,6 +397,7 @@ create_internal_node(
 ```
 
 **Parameters:**
+
 - `feature_idx`: Feature index for split
 - `threshold`: Split threshold
 - `left_child`: Left child node (≤ threshold)
@@ -388,28 +407,29 @@ create_internal_node(
 **Returns:** Internal `Node`
 
 **Example:**
+
 ```python
 left = create_leaf_node(0, depth=1)
 right = create_leaf_node(1, depth=1)
 internal = create_internal_node(
-    feature_idx=0,
-    threshold=0.5,
-    left_child=left,
-    right_child=right,
-    depth=0
+    feature_idx=0, threshold=0.5, left_child=left, right_child=right, depth=0
 )
 assert internal.is_internal()
 assert internal.feature_idx == 0
 ```
 
----
+______________________________________________________________________
 
 ## Usage Examples
 
 ### Example 1: Create Custom Tree
 
 ```python
-from ga_trees.genotype.tree_genotype import TreeGenotype, create_leaf_node, create_internal_node
+from ga_trees.genotype.tree_genotype import (
+    TreeGenotype,
+    create_leaf_node,
+    create_internal_node,
+)
 
 # Build tree manually
 # Tree structure:
@@ -424,19 +444,11 @@ leaf1 = create_leaf_node(1, depth=2)
 leaf2 = create_leaf_node(2, depth=1)
 
 left_branch = create_internal_node(
-    feature_idx=1,
-    threshold=0.3,
-    left_child=leaf0,
-    right_child=leaf1,
-    depth=1
+    feature_idx=1, threshold=0.3, left_child=leaf0, right_child=leaf1, depth=1
 )
 
 root = create_internal_node(
-    feature_idx=0,
-    threshold=0.5,
-    left_child=left_branch,
-    right_child=leaf2,
-    depth=0
+    feature_idx=0, threshold=0.5, left_child=left_branch, right_child=leaf2, depth=0
 )
 
 tree = TreeGenotype(
@@ -445,14 +457,14 @@ tree = TreeGenotype(
     n_classes=3,
     max_depth=5,
     min_samples_split=10,
-    min_samples_leaf=5
+    min_samples_leaf=5,
 )
 
 # Analyze tree
-print(f"Depth: {tree.get_depth()}")           # Output: 2
-print(f"Nodes: {tree.get_num_nodes()}")       # Output: 5
-print(f"Leaves: {tree.get_num_leaves()}")     # Output: 3
-print(f"Features: {tree.get_features_used()}") # Output: {0, 1}
+print(f"Depth: {tree.get_depth()}")  # Output: 2
+print(f"Nodes: {tree.get_num_nodes()}")  # Output: 5
+print(f"Leaves: {tree.get_num_leaves()}")  # Output: 3
+print(f"Features: {tree.get_features_used()}")  # Output: {0, 1}
 ```
 
 ### Example 2: Tree Inspection

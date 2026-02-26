@@ -9,15 +9,13 @@ This file contains the full genetic algorithm engine including:
 - Main evolution loop
 """
 
-import copy
+import logging
 import random
-from collections import deque
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
-# Assuming tree_genotype.py is available
 from ga_trees.ga.improved_crossover import safe_subtree_crossover
 from ga_trees.genotype.tree_genotype import (
     Node,
@@ -25,6 +23,8 @@ from ga_trees.genotype.tree_genotype import (
     create_internal_node,
     create_leaf_node,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -247,8 +247,11 @@ class Crossover:
             if node is None:
                 return None
             if depth >= max_depth:
-                # Convert to leaf
-                return create_leaf_node(node.prediction if node.is_leaf() else 0, depth)
+                # Convert to leaf — preserve prediction if leaf, else use None
+                # (will be corrected by fit_leaf_predictions during evaluation)
+                pred = node.prediction if node.is_leaf() else None
+                leaf = create_leaf_node(pred if pred is not None else 0, depth)
+                return leaf
             if node.is_leaf():
                 return node
             node.left_child = prune_node(node.left_child, depth + 1)
@@ -332,9 +335,16 @@ class Mutation:
             return tree  # Nothing to prune (root-only or single internal node)
 
         node = random.choice(candidates)
+        # Inherit prediction from the leftmost leaf descendant
+        descendant = node
+        while descendant and not descendant.is_leaf():
+            descendant = descendant.left_child
+        inherited_pred = (
+            descendant.prediction if (descendant and descendant.prediction is not None) else 0
+        )
         # Convert to leaf
         node.node_type = "leaf"
-        node.prediction = 0  # Will be updated during fitness evaluation
+        node.prediction = inherited_pred
         node.left_child = None
         node.right_child = None
         node.feature_idx = None
@@ -345,7 +355,7 @@ class Mutation:
     def expand_leaf(self, tree: TreeGenotype) -> TreeGenotype:
         """Convert random leaf to internal node (if depth allows)."""
         leaves = tree.get_all_leaves()
-        expandable_leaves = [l for l in leaves if l.depth < tree.max_depth - 1]
+        expandable_leaves = [leaf for leaf in leaves if leaf.depth < tree.max_depth - 1]
 
         if not expandable_leaves:
             return tree
@@ -439,7 +449,9 @@ class GAEngine:
                     self.best_individual = best_ind.copy()
 
                 if verbose and generation % 10 == 0:
-                    print(f"Gen {generation}: Best={best_fitness:.4f}, Avg={avg_fitness:.4f}")
+                    logger.info(
+                        "Gen %d: Best=%.4f, Avg=%.4f", generation, best_fitness, avg_fitness
+                    )
 
             # Create next generation
             next_population = []
@@ -473,10 +485,11 @@ class GAEngine:
                 child1.fitness_ = None
                 child2.fitness_ = None
 
-                next_population.extend([child1, child2])
+                next_population.append(child1)
+                if len(next_population) < self.config.population_size:
+                    next_population.append(child2)
 
-            # Trim to population size
-            self.population = next_population[: self.config.population_size]
+            self.population = next_population
 
             # Evaluate new individuals
             self.evaluate_population(X, y)

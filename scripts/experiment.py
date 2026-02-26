@@ -27,70 +27,8 @@ from sklearn.tree import DecisionTreeClassifier
 
 from ga_trees.baselines import XGBoostBaseline
 from ga_trees.data.dataset_loader import DatasetLoader
-from ga_trees.fitness.calculator import FitnessCalculator, InterpretabilityCalculator, TreePredictor
+from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
-
-
-class FastInterpretabilityCalculator(InterpretabilityCalculator):
-    """FIXED interpretability that properly penalizes large trees."""
-
-    @staticmethod
-    def calculate_composite_score(tree, weights):
-        """Fixed composite score."""
-        score = 0.0
-
-        # Node complexity - PROPERLY penalize large trees
-        if "node_complexity" in weights:
-            num_nodes = tree.get_num_nodes()
-            # Exponential penalty for large trees
-            node_score = np.exp(-num_nodes / 15.0)  # Sweet spot around 15 nodes
-            score += weights["node_complexity"] * node_score
-
-        # Feature coherence
-        if "feature_coherence" in weights:
-            internal_nodes = tree.get_internal_nodes()
-            if internal_nodes:
-                features_used = tree.get_features_used()
-                coherence = 1.0 - (len(features_used) / max(len(internal_nodes), 1))
-                score += weights["feature_coherence"] * max(0.0, coherence)
-
-        # Tree balance - CAPPED to avoid rewarding overgrowth
-        if "tree_balance" in weights:
-            balance = tree.get_tree_balance()
-            # Only reward balance if tree isn't too large
-            if tree.get_num_nodes() <= 30:
-                score += weights["tree_balance"] * balance
-            else:
-                # Penalty for large unbalanced trees
-                score += weights["tree_balance"] * balance * 0.5
-
-        # Semantic coherence
-        if "semantic_coherence" in weights:
-            leaves = tree.get_all_leaves()
-            if len(leaves) > 1:
-                predictions = [l.prediction for l in leaves if l.prediction is not None]
-                if predictions:
-                    unique = len(set(predictions))
-                    # More coherent if fewer unique predictions
-                    semantic = 1.0 - (unique / len(predictions))
-                    score += weights["semantic_coherence"] * semantic
-
-        return score
-
-
-class FastFitnessCalculator(FitnessCalculator):
-    """Faster fitness with better interpretability."""
-
-    def __init__(
-        self,
-        mode="weighted_sum",
-        accuracy_weight=0.7,
-        interpretability_weight=0.3,
-        interpretability_weights=None,
-    ):
-        super().__init__(mode, accuracy_weight, interpretability_weight, interpretability_weights)
-        # Use fixed interpretability calculator
-        self.interp_calc = FastInterpretabilityCalculator()
 
 
 def load_config(config_path=None):
@@ -274,7 +212,7 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             min_samples_leaf=config["tree"]["min_samples_leaf"],
         )
 
-        # FAST FITNESS with FIXED interpretability
+        # Fitness configuration
         fitness_config = config["fitness"]
         # Support both nested (weights.accuracy) and flat (accuracy_weight) formats
         if "weights" in fitness_config:
@@ -283,7 +221,7 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         else:
             acc_w = fitness_config.get("accuracy_weight", 0.65)
             interp_w = fitness_config.get("interpretability_weight", 0.35)
-        fitness_calc = FastFitnessCalculator(
+        fitness_calc = FitnessCalculator(
             mode=fitness_config["mode"],
             accuracy_weight=acc_w,
             interpretability_weight=interp_w,
@@ -634,13 +572,13 @@ def main():
     print(f"  Tree: max_depth={config['tree']['max_depth']}")
     fc = config["fitness"]
     if "weights" in fc:
-        print(
-            f"  Fitness: acc_weight={fc['weights']['accuracy']}, interp_weight={fc['weights']['interpretability']}"
-        )
+        acc = fc["weights"]["accuracy"]
+        interp = fc["weights"]["interpretability"]
+        print(f"  Fitness: acc_weight={acc}, interp_weight={interp}")
     else:
-        print(
-            f"  Fitness: acc_weight={fc.get('accuracy_weight', 'N/A')}, interp_weight={fc.get('interpretability_weight', 'N/A')}"
-        )
+        acc = fc.get("accuracy_weight", "N/A")
+        interp = fc.get("interpretability_weight", "N/A")
+        print(f"  Fitness: acc_weight={acc}, interp_weight={interp}")
     print(f"  Datasets: {', '.join(chosen_datasets)}")
 
     datasets = chosen_datasets

@@ -4,7 +4,6 @@ from collections import Counter
 from typing import Dict, List
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 class FeatureImportanceAnalyzer:

@@ -9,12 +9,8 @@ import numpy as np
 import pytest
 
 from ga_trees.evaluation.metrics import MetricsCalculator
-from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
-from ga_trees.genotype.tree_genotype import (
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.fitness.calculator import FitnessCalculator
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -226,3 +222,64 @@ class TestCalculateInterpretabilityMetrics:
         assert result["num_nodes"] == 3
         assert result["num_leaves"] == 2
         assert result["features_used"] == 1
+
+
+# ---------------------------------------------------------------------------
+# ROC-AUC except branch (lines 42-44)
+# ---------------------------------------------------------------------------
+
+
+class TestROCAUCExceptBranch:
+    """Cover the except (ValueError, IndexError) branch in calculate_classification_metrics."""
+
+    def test_invalid_y_prob_shape_does_not_raise(self):
+        """y_prob with only 1 column → IndexError on y_prob[:, 1] → silently skipped."""
+        y_true = np.array([0, 1, 0, 1])
+        y_pred = np.array([0, 1, 0, 1])
+        # 1-column probability → accessing [:, 1] raises IndexError
+        y_prob = np.array([[0.9], [0.2], [0.8], [0.1]])
+        result = MetricsCalculator.calculate_classification_metrics(y_true, y_pred, y_prob)
+        # roc_auc should be absent (exception was caught)
+        assert "roc_auc" not in result
+
+    def test_single_class_y_prob_does_not_raise(self):
+        """roc_auc_score raises ValueError when only one class present → silently skipped."""
+        y_true = np.array([0, 0, 0, 0])  # Only class 0 — but 2 unique → roc_auc will work
+        y_pred = np.array([0, 0, 0, 0])
+        y_prob = np.array([[0.9, 0.1], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4]])
+        # This may raise ValueError internally; result should still be a dict
+        result = MetricsCalculator.calculate_classification_metrics(y_true, y_pred, y_prob)
+        assert isinstance(result, dict)
+
+
+# ---------------------------------------------------------------------------
+# print_classification_report (lines 65-70)
+# ---------------------------------------------------------------------------
+
+
+class TestPrintClassificationReport:
+    """Tests for MetricsCalculator.print_classification_report."""
+
+    def test_prints_classification_report(self, capsys):
+        y_true = np.array([0, 1, 0, 1, 2, 2])
+        y_pred = np.array([0, 1, 1, 1, 2, 0])
+        MetricsCalculator.print_classification_report(y_true, y_pred)
+        captured = capsys.readouterr()
+        assert "Classification Report" in captured.out
+        assert "Confusion Matrix" in captured.out
+
+    def test_uses_target_names_when_provided(self, capsys):
+        y_true = np.array([0, 1, 0])
+        y_pred = np.array([0, 0, 1])
+        MetricsCalculator.print_classification_report(
+            y_true, y_pred, target_names=["setosa", "versicolor"]
+        )
+        captured = capsys.readouterr()
+        assert "setosa" in captured.out
+
+    def test_prints_confusion_matrix(self, capsys):
+        y_true = np.array([0, 1])
+        y_pred = np.array([1, 0])
+        MetricsCalculator.print_classification_report(y_true, y_pred)
+        captured = capsys.readouterr()
+        assert "Confusion Matrix" in captured.out

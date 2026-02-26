@@ -5,6 +5,7 @@ Step-by-step tutorial using Iris dataset.
 ## Introduction
 
 Iris dataset:
+
 - **150 samples**, **4 features**, **3 classes**
 - Features: sepal_length, sepal_width, petal_length, petal_width
 - Classes: setosa, versicolor, virginica
@@ -24,10 +25,12 @@ from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 
 # 1. Load data
 X, y = load_iris(return_X_y=True)
-feature_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
-class_names = ['setosa', 'versicolor', 'virginica']
+feature_names = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+class_names = ["setosa", "versicolor", "virginica"]
 
-print(f"Dataset: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes")
+print(
+    f"Dataset: {X.shape[0]} samples, {X.shape[1]} features, {len(np.unique(y))} classes"
+)
 
 # 2. Split data
 X_train, X_test, y_train, y_test = train_test_split(
@@ -42,14 +45,12 @@ X_test = scaler.transform(X_test)
 # 4. Setup GA
 n_features = X_train.shape[1]
 n_classes = len(np.unique(y))
-feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) 
-                 for i in range(n_features)}
+feature_ranges = {
+    i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)
+}
 
 ga_config = GAConfig(
-    population_size=50,
-    n_generations=30,
-    crossover_prob=0.7,
-    mutation_prob=0.2
+    population_size=50, n_generations=30, crossover_prob=0.7, mutation_prob=0.2
 )
 
 initializer = TreeInitializer(
@@ -57,13 +58,10 @@ initializer = TreeInitializer(
     n_classes=n_classes,
     max_depth=4,
     min_samples_split=5,
-    min_samples_leaf=2
+    min_samples_leaf=2,
 )
 
-fitness_calc = FitnessCalculator(
-    accuracy_weight=0.7,
-    interpretability_weight=0.3
-)
+fitness_calc = FitnessCalculator(accuracy_weight=0.7, interpretability_weight=0.3)
 
 mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
 
@@ -77,9 +75,9 @@ predictor = TreePredictor()
 y_train_pred = predictor.predict(best_tree, X_train)
 y_test_pred = predictor.predict(best_tree, X_test)
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("RESULTS")
-print("="*60)
+print("=" * 60)
 print(f"\nTrain Accuracy: {accuracy_score(y_train, y_train_pred):.4f}")
 print(f"Test Accuracy: {accuracy_score(y_test, y_test_pred):.4f}")
 
@@ -105,6 +103,7 @@ print(classification_report(y_test, y_test_pred, target_names=class_names))
 ```
 
 **Expected Output:**
+
 ```
 Dataset: 150 samples, 4 features, 3 classes
 
@@ -151,7 +150,7 @@ TreeVisualizer.visualize_tree(
     best_tree,
     feature_names=feature_names,
     class_names=class_names,
-    save_path='results/figures/iris_tree'
+    save_path="results/figures/iris_tree",
 )
 ```
 

@@ -27,7 +27,7 @@ import numpy as np
 import optuna
 import yaml
 from sklearn.datasets import load_breast_cancer, load_iris, load_wine
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 
@@ -341,8 +341,6 @@ def objective(
     mean_tree_size = np.mean(tree_sizes)
 
     # Composite score: 80% accuracy + 20% size penalty
-    max_tree_size = 50  # Normalize by maximum expected tree size
-    size_penalty = 1.0 - min(mean_tree_size / max_tree_size, 1.0)
     final_score = mean_accuracy
     if mean_tree_size > 50:
         final_score -= min((mean_tree_size - 50) / 100, 0.05)
@@ -456,7 +454,6 @@ def save_best_config(study: optuna.Study, output_path: str = "configs/optimized.
 def visualize_optimization(study: optuna.Study, output_dir: str = "results/figures"):
     """Create optimization visualizations."""
     try:
-        import matplotlib.pyplot as plt
         from optuna.visualization import (
             plot_optimization_history,
             plot_parallel_coordinate,
@@ -481,7 +478,7 @@ def visualize_optimization(study: optuna.Study, output_dir: str = "results/figur
             fig = plot_parallel_coordinate(study)
             fig.write_html(output_dir / "parallel_coordinate.html")
             logger.info("✓ Saved: parallel_coordinate.html")
-        except:
+        except Exception:
             logger.warning("Parallel coordinate plot failed (needs 2+ parameters)")
 
     except ImportError:
@@ -496,13 +493,13 @@ def main():
 Examples:
   # Fast optimization on Iris
   python scripts/hyperopt_with_optuna.py --preset fast --dataset iris
-  
+
   # Balanced optimization on Breast Cancer
   python scripts/hyperopt_with_optuna.py --preset balanced --dataset breast_cancer
-  
+
   # Custom optimization
   python scripts/hyperopt_with_optuna.py --n-trials 50 --dataset wine --cv-folds 5
-  
+
   # Resume previous study
   python scripts/hyperopt_with_optuna.py --study-name my_study --resume
         """,
@@ -607,14 +604,14 @@ Examples:
     logger.info("=" * 70)
     logger.info(f"\nBest Trial: #{study.best_trial.number}")
     logger.info(f"Best Value: {study.best_value:.4f}")
-    logger.info(f"\nBest Parameters:")
+    logger.info("\nBest Parameters:")
     for key, value in study.best_params.items():
         logger.info(f"  {key:25s}: {value}")
 
     # Get user attributes
     best_trial = study.best_trial
     if "mean_accuracy" in best_trial.user_attrs:
-        logger.info(f"\nPerformance Metrics:")
+        logger.info("\nPerformance Metrics:")
         logger.info(f"  Mean Accuracy: {best_trial.user_attrs['mean_accuracy']:.4f}")
         logger.info(f"  Std Accuracy:  {best_trial.user_attrs['std_accuracy']:.4f}")
         logger.info(f"  Mean Tree Size: {best_trial.user_attrs['mean_tree_size']:.1f}")
@@ -627,7 +624,7 @@ Examples:
     logger.info("Next steps:")
     logger.info(f"1. Review: results/optimization/{study_name}_report.json")
     logger.info(f"2. Test config: python scripts/experiment.py --config {args.output}")
-    logger.info(f"3. Visualize: python scripts/visualize_comprehensive.py")
+    logger.info("3. Visualize: python scripts/visualize_comprehensive.py")
     logger.info("=" * 70)
 
 

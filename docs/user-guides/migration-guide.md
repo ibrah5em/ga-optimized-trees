@@ -44,6 +44,7 @@ tqdm>=4.65.0
 ### 4. **Enhanced CI/CD**
 
 Updated `.github/workflows/ci.yml` with:
+
 - Multi-platform testing (Ubuntu, Windows, macOS)
 - Python 3.8-3.12 support
 - Code quality checks
@@ -54,12 +55,14 @@ Updated `.github/workflows/ci.yml` with:
 ### For Users (Installing the Package)
 
 **Before:**
+
 ```bash
 pip install -r requirements.txt
 pip install -e .
 ```
 
 **Now (Recommended):**
+
 ```bash
 # Core only
 pip install -e .
@@ -72,6 +75,7 @@ pip install -e .[viz,optimization,baselines]
 ```
 
 **Or use requirements files:**
+
 ```bash
 pip install -r requirements.txt  # Core only
 pip install -r requirements-optional.txt  # Optional features
@@ -80,12 +84,14 @@ pip install -r requirements-optional.txt  # Optional features
 ### For Developers
 
 **Before:**
+
 ```bash
 pip install -r requirements.txt
 pip install pytest black flake8
 ```
 
 **Now:**
+
 ```bash
 # Install with dev dependencies
 pip install -e .[dev]
@@ -104,11 +110,13 @@ pytest tests/ -v
 ### For CI/CD
 
 **Before:**
+
 ```yaml
 - run: pip install -r requirements.txt
 ```
 
 **Now:**
+
 ```yaml
 - run: |
     pip install -e .
@@ -118,21 +126,25 @@ pytest tests/ -v
 ## Installation Options
 
 ### Minimal (Core Only)
+
 ```bash
 pip install -e .
 ```
 
 ### With Visualization
+
 ```bash
 pip install -e .[viz]
 ```
 
 ### With Optimization Tools
+
 ```bash
 pip install -e .[optimization]
 ```
 
 ### Everything
+
 ```bash
 pip install -e .[full]
 ```
@@ -140,6 +152,7 @@ pip install -e .[full]
 ## Dependency Groups
 
 ### Core (Always Installed)
+
 - numpy, pandas, scikit-learn, scipy
 - deap (genetic algorithms)
 - matplotlib, seaborn (basic plotting)
@@ -148,35 +161,43 @@ pip install -e .[full]
 ### Optional Extras
 
 #### `viz` - Tree Visualization
+
 - graphviz
 - networkx
 
 #### `optimization` - Hyperparameter Tuning
+
 - optuna
 - mlflow
 
 #### `baselines` - Comparison Models
+
 - xgboost
 - lightgbm
 
 #### `explainability` - Model Interpretation
+
 - shap
 - lime
 
 #### `api` - Web Interface
+
 - fastapi
 - uvicorn
 - pydantic
 
 #### `dev` - Development Tools
+
 - pytest, pytest-cov
 - black, isort, flake8, mypy
 - pre-commit
 
 #### `all` - All Optional Features
+
 - Installs: viz + optimization + baselines + explainability + api
 
 #### `full` - Everything
+
 - Installs: all + dev + docs
 
 ## Breaking Changes
@@ -196,11 +217,13 @@ But you'll see warnings about missing optional dependencies (which you can ignor
 ## Benefits of New System
 
 ### 1. **Cleaner Dependency Management**
+
 - Core dependencies clearly separated from optional ones
 - No unnecessary packages for basic usage
 - Faster installation for minimal setups
 
 ### 2. **Better Developer Experience**
+
 ```bash
 # One command for full dev setup
 pip install -e .[dev]
@@ -210,12 +233,14 @@ pre-commit install
 ```
 
 ### 3. **Improved CI/CD**
+
 - Multi-platform testing
 - Parallel test execution
 - Better error reporting
 - Package validation
 
 ### 4. **Future-Proof**
+
 - PEP 517/518/621 compliant
 - Ready for PyPI publication
 - Modern tooling support
@@ -223,6 +248,7 @@ pre-commit install
 ## Testing Your Migration
 
 ### 1. Clean Installation Test
+
 ```bash
 # Remove old environment
 deactivate
@@ -241,6 +267,7 @@ pytest tests/unit/ -v
 ```
 
 ### 2. Feature Test
+
 ```bash
 # Test optional features
 pip install -e .[viz]
@@ -251,6 +278,7 @@ python scripts/hyperopt_with_optuna.py --preset fast --dataset iris
 ```
 
 ### 3. Development Test
+
 ```bash
 pip install -e .[dev]
 pre-commit run --all-files
@@ -264,6 +292,7 @@ pytest tests/ -v --cov=src/ga_trees
 **Cause:** Typo in extra name or old pip version
 
 **Solution:**
+
 ```bash
 pip install --upgrade pip
 pip install -e .[all]  # Note: brackets, not parentheses
@@ -272,6 +301,7 @@ pip install -e .[all]  # Note: brackets, not parentheses
 ### Issue: Pre-commit hooks failing
 
 **Solution:**
+
 ```bash
 # Update hooks
 pre-commit autoupdate
@@ -283,6 +313,7 @@ pre-commit run --all-files
 ### Issue: Import errors after migration
 
 **Solution:**
+
 ```bash
 # Reinstall in editable mode
 pip install -e . --force-reinstall --no-deps
@@ -300,23 +331,25 @@ pip install -r requirements.txt
 
 ## Questions?
 
-
 1. See [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-2. Read [Contributing Guide](../../CONTRIBUTING.md)
+1. Read [Contributing Guide](../../CONTRIBUTING.md)
 
 ## Summary
 
 ✅ **What to do:**
+
 - Use `pip install -e .` for minimal installation
 - Use `pip install -e .[all]` for everything
 - Install `pre-commit` for development: `pip install -e .[dev]`
 
 ❌ **What NOT to do:**
+
 - Don't manually install packages from requirements.txt
 - Don't ignore pre-commit warnings
 - Don't skip testing after migration
 
 🎉 **Benefits:**
+
 - Cleaner dependencies
 - Faster installation
 - Better tooling

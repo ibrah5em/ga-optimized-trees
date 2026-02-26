@@ -6,7 +6,6 @@ try:
     GRAPHVIZ_AVAILABLE = True
 except ImportError:
     GRAPHVIZ_AVAILABLE = False
-    print("Warning: graphviz not installed. Install with: pip install graphviz")
 
 
 class TreeVisualizer:
@@ -16,8 +15,9 @@ class TreeVisualizer:
     def tree_to_graphviz(tree, feature_names=None, class_names=None):
         """Convert tree to graphviz format."""
         if not GRAPHVIZ_AVAILABLE:
-            print("Graphviz not available!")
-            return None
+            raise ImportError(
+                "graphviz is required for tree visualization. " "Install with: pip install graphviz"
+            )
 
         dot = graphviz.Digraph(comment="Decision Tree")
         dot.attr(rankdir="TB")
@@ -55,6 +55,5 @@ class TreeVisualizer:
     ):
         """Visualize and save tree."""
         dot = TreeVisualizer.tree_to_graphviz(tree, feature_names, class_names)
-        if dot:
-            dot.render(save_path, format="png", cleanup=True)
-            print(f"✓ Tree visualization saved to: {save_path}.png")
+        dot.render(save_path, format="png", cleanup=True)
+        print(f"✓ Tree visualization saved to: {save_path}.png")

@@ -39,16 +39,19 @@ ga-optimized-trees/
 **Purpose:** Represent decision trees as evolvable structures.
 
 **Key Classes:**
+
 - `TreeGenotype`: Main tree representation
 - `Node`: Individual tree nodes (internal/leaf)
 
 **Responsibilities:**
+
 - Tree structure management
 - Constraint validation
 - Tree manipulation (copy, prune, expand)
 - Rule extraction
 
 **Design Decisions:**
+
 - **Binary trees only** for simplicity
 - **Constrained structure** (max depth, min samples)
 - **Deep copy support** for safe evolution
@@ -59,6 +62,7 @@ ga-optimized-trees/
 **Purpose:** Evolve populations of trees using genetic algorithms.
 
 **Key Classes:**
+
 - `GAEngine`: Main evolution loop
 - `TreeInitializer`: Create initial population
 - `Selection`: Tournament and elitism selection
@@ -66,6 +70,7 @@ ga-optimized-trees/
 - `Mutation`: Four mutation operators
 
 **Evolution Process:**
+
 ```
 1. Initialize Population
    ↓
@@ -85,6 +90,7 @@ ga-optimized-trees/
 ```
 
 **Mutation Operators:**
+
 - **Threshold Perturbation (45%):** Adjust split thresholds
 - **Feature Replacement (25%):** Change split features
 - **Prune Subtree (25%):** Simplify tree
@@ -95,17 +101,19 @@ ga-optimized-trees/
 **Purpose:** Evaluate tree quality using multiple objectives.
 
 **Key Classes:**
+
 - `FitnessCalculator`: Main fitness computation
 - `TreePredictor`: Make predictions
 - `InterpretabilityCalculator`: Measure interpretability
 
 **Fitness Formula:**
+
 ```
 Fitness = w₁ × Accuracy + w₂ × Interpretability
 
 where:
   Accuracy = sklearn.metrics.accuracy_score()
-  
+
   Interpretability = Σ wᵢ × ComponentScoreᵢ
   Components:
     - Node Complexity (60%): e^(-nodes/15)
@@ -115,6 +123,7 @@ where:
 ```
 
 **Default Weights:**
+
 - Accuracy: 68%
 - Interpretability: 32%
 
@@ -123,6 +132,7 @@ where:
 **Purpose:** Analyze and visualize results.
 
 **Key Modules:**
+
 - `metrics.py`: Comprehensive metrics
 - `tree_visualizer.py`: Graphviz visualization
 - `feature_importance.py`: Feature analysis
@@ -183,6 +193,7 @@ fitness:
 ```
 
 **Benefits:**
+
 - **Reproducibility:** Same config = same results
 - **Experimentation:** Easy to compare settings
 - **Version control:** Track configuration changes
@@ -191,26 +202,32 @@ fitness:
 ## Design Principles
 
 ### 1. Modularity
+
 Each component has a single, well-defined responsibility.
 
 ### 2. Extensibility
+
 Easy to add:
+
 - New mutation operators
 - Custom fitness functions
 - Additional datasets
 - Alternative algorithms
 
 ### 3. Reproducibility
+
 - Deterministic when seeds are set
 - Configuration-driven experiments
 - Comprehensive logging
 
 ### 4. Performance
+
 - Vectorized numpy operations
 - Parallel fitness evaluation (optional)
 - Efficient tree operations
 
 ### 5. Research-Oriented
+
 - Statistical rigor (20-fold CV)
 - Baseline comparisons
 - Publication-quality visualizations
@@ -219,26 +236,28 @@ Easy to add:
 ## Key Algorithms
 
 ### Subtree Crossover
+
 ```python
 def subtree_crossover(parent1, parent2):
     child1 = parent1.copy()
     child2 = parent2.copy()
-    
+
     # Select random nodes
     node1 = random.choice(child1.get_all_nodes()[1:])
     node2 = random.choice(child2.get_all_nodes()[1:])
-    
+
     # Swap subtrees
     swap_node_contents(node1, node2)
-    
+
     # Repair if needed
     child1 = repair_tree(child1)
     child2 = repair_tree(child2)
-    
+
     return child1, child2
 ```
 
 ### Tournament Selection
+
 ```python
 def tournament_selection(population, tournament_size, n_select):
     selected = []
@@ -252,12 +271,14 @@ def tournament_selection(population, tournament_size, n_select):
 ## Constraint Handling
 
 Trees must satisfy:
+
 1. **Max Depth:** `depth ≤ max_depth`
-2. **Min Samples Split:** `samples ≥ min_samples_split`
-3. **Min Samples Leaf:** `leaf_samples ≥ min_samples_leaf`
-4. **Valid Features:** `0 ≤ feature_idx < n_features`
+1. **Min Samples Split:** `samples ≥ min_samples_split`
+1. **Min Samples Leaf:** `leaf_samples ≥ min_samples_leaf`
+1. **Valid Features:** `0 ≤ feature_idx < n_features`
 
 **Enforcement:**
+
 - **Initialization:** Only create valid trees
 - **Crossover:** Repair after swapping
 - **Mutation:** Prune if constraints violated
@@ -266,6 +287,7 @@ Trees must satisfy:
 ## Performance Considerations
 
 ### Time Complexity
+
 - **Initialization:** O(pop_size × tree_size)
 - **Fitness Evaluation:** O(pop_size × n_samples × tree_depth)
 - **Selection:** O(pop_size × tournament_size)
@@ -273,10 +295,12 @@ Trees must satisfy:
 - **Mutation:** O(tree_size)
 
 ### Space Complexity
+
 - **Population:** O(pop_size × tree_size)
 - **Data:** O(n_samples × n_features)
 
 ### Typical Runtime
+
 - **Iris (150 samples):** ~3 seconds/fold
 - **Wine (178 samples):** ~5 seconds/fold
 - **Breast Cancer (569 samples):** ~7 seconds/fold
@@ -286,6 +310,7 @@ Full 20-fold CV benchmark: ~17 minutes
 ## Extension Points
 
 ### Add Custom Mutation
+
 ```python
 class CustomMutation(Mutation):
     def your_mutation(self, tree):
@@ -294,6 +319,7 @@ class CustomMutation(Mutation):
 ```
 
 ### Add Custom Fitness
+
 ```python
 class CustomFitness(FitnessCalculator):
     def calculate_fitness(self, tree, X, y):
@@ -302,6 +328,7 @@ class CustomFitness(FitnessCalculator):
 ```
 
 ### Add Custom Metric
+
 ```python
 def your_metric(tree):
     # Compute custom interpretability metric

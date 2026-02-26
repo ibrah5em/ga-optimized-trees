@@ -5,15 +5,10 @@ Covers:
 - FeatureImportanceAnalyzer.calculate_feature_depth_importance
 """
 
-import numpy as np
 import pytest
 
 from ga_trees.evaluation.feature_importance import FeatureImportanceAnalyzer
-from ga_trees.genotype.tree_genotype import (
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
 # Tree factories
@@ -199,3 +194,99 @@ class TestCalculateFeatureDepthImportance:
         imp_a = FeatureImportanceAnalyzer.calculate_feature_depth_importance(tree_a)
         imp_b = FeatureImportanceAnalyzer.calculate_feature_depth_importance(tree_b)
         assert imp_a != imp_b
+
+
+# ---------------------------------------------------------------------------
+# plot_feature_importance
+# ---------------------------------------------------------------------------
+
+
+class TestPlotFeatureImportance:
+    """Tests for FeatureImportanceAnalyzer.plot_feature_importance."""
+
+    def test_empty_importance_prints_message(self, capsys):
+        """Empty dict should print 'No features' and return without plotting."""
+        FeatureImportanceAnalyzer.plot_feature_importance({})
+        captured = capsys.readouterr()
+        assert "No features" in captured.out
+
+    def test_empty_importance_does_not_call_plt(self):
+        """No matplotlib calls should occur for empty importance dict."""
+        from unittest.mock import patch
+
+        with patch("matplotlib.pyplot.figure") as mock_fig:
+            FeatureImportanceAnalyzer.plot_feature_importance({})
+            mock_fig.assert_not_called()
+
+    def test_calls_show_with_valid_importance(self):
+        """plt.show() should be called when importance dict is non-empty."""
+        from unittest.mock import patch
+
+        importance = {0: 0.6, 1: 0.4}
+        with patch("matplotlib.pyplot.show") as mock_show, patch("matplotlib.pyplot.figure"), patch(
+            "matplotlib.pyplot.barh"
+        ), patch("matplotlib.pyplot.yticks"), patch("matplotlib.pyplot.xlabel"), patch(
+            "matplotlib.pyplot.title"
+        ), patch(
+            "matplotlib.pyplot.grid"
+        ):
+            FeatureImportanceAnalyzer.plot_feature_importance(importance)
+            mock_show.assert_called_once()
+
+    def test_uses_feature_names_when_provided(self):
+        """Feature labels should come from feature_names list when given."""
+        from unittest.mock import patch
+
+        importance = {0: 0.8, 2: 0.2}
+        feature_names = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+        with patch("matplotlib.pyplot.show"), patch("matplotlib.pyplot.figure"), patch(
+            "matplotlib.pyplot.barh"
+        ), patch("matplotlib.pyplot.yticks") as mock_yticks, patch(
+            "matplotlib.pyplot.xlabel"
+        ), patch(
+            "matplotlib.pyplot.title"
+        ), patch(
+            "matplotlib.pyplot.grid"
+        ):
+            FeatureImportanceAnalyzer.plot_feature_importance(
+                importance, feature_names=feature_names
+            )
+            # yticks should be called with the names from the list
+            call_args = mock_yticks.call_args[0]
+            labels = list(call_args[1])
+            assert any("sepal_length" in str(lbl) or "petal_length" in str(lbl) for lbl in labels)
+
+    def test_calls_savefig_when_save_path_given(self):
+        """plt.savefig() should be called when save_path is provided."""
+        from unittest.mock import patch
+
+        importance = {0: 1.0}
+        with patch("matplotlib.pyplot.show"), patch("matplotlib.pyplot.figure"), patch(
+            "matplotlib.pyplot.barh"
+        ), patch("matplotlib.pyplot.yticks"), patch("matplotlib.pyplot.xlabel"), patch(
+            "matplotlib.pyplot.title"
+        ), patch(
+            "matplotlib.pyplot.grid"
+        ), patch(
+            "matplotlib.pyplot.savefig"
+        ) as mock_save:
+            save_path = "/tmp/fi.png"  # nosec B108
+            FeatureImportanceAnalyzer.plot_feature_importance(importance, save_path=save_path)
+            mock_save.assert_called_once()
+
+    def test_no_savefig_without_save_path(self):
+        """plt.savefig() should NOT be called when save_path is None."""
+        from unittest.mock import patch
+
+        importance = {0: 1.0}
+        with patch("matplotlib.pyplot.show"), patch("matplotlib.pyplot.figure"), patch(
+            "matplotlib.pyplot.barh"
+        ), patch("matplotlib.pyplot.yticks"), patch("matplotlib.pyplot.xlabel"), patch(
+            "matplotlib.pyplot.title"
+        ), patch(
+            "matplotlib.pyplot.grid"
+        ), patch(
+            "matplotlib.pyplot.savefig"
+        ) as mock_save:
+            FeatureImportanceAnalyzer.plot_feature_importance(importance)
+            mock_save.assert_not_called()

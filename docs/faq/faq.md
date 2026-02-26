@@ -7,6 +7,7 @@
 This framework evolves decision trees using genetic algorithms to balance **accuracy** and **interpretability**. Unlike traditional algorithms like CART that only optimize for accuracy, our approach allows explicit control over tree complexity and explainability.
 
 **Use cases:**
+
 - Healthcare: Interpretable diagnostic models
 - Finance: Transparent credit scoring
 - Legal: Explainable classification systems
@@ -14,13 +15,13 @@ This framework evolves decision trees using genetic algorithms to balance **accu
 
 ### How is this different from CART or Random Forest?
 
-| Aspect | CART | Random Forest | GA-Optimized |
-|--------|------|---------------|--------------|
-| Optimization | Greedy (local) | Ensemble | Global (evolutionary) |
-| Objectives | Accuracy only | Accuracy only | Multi-objective |
-| Interpretability | No control | Black box | Explicit control ✓ |
-| Tree size | Often large | N/A (ensemble) | Controllable ✓ |
-| Training time | Very fast | Fast | Moderate |
+| Aspect           | CART           | Random Forest  | GA-Optimized          |
+| ---------------- | -------------- | -------------- | --------------------- |
+| Optimization     | Greedy (local) | Ensemble       | Global (evolutionary) |
+| Objectives       | Accuracy only  | Accuracy only  | Multi-objective       |
+| Interpretability | No control     | Black box      | Explicit control ✓    |
+| Tree size        | Often large    | N/A (ensemble) | Controllable ✓        |
+| Training time    | Very fast      | Fast           | Moderate              |
 
 ### What are the main achievements?
 
@@ -32,12 +33,14 @@ This framework evolves decision trees using genetic algorithms to balance **accu
 ### Is this ready for production use?
 
 The framework is research-oriented and ideal for:
+
 - ✓ Research projects
 - ✓ Proof-of-concept applications
 - ✓ Interpretable model development
 - ✓ Comparative studies
 
 For production deployment:
+
 - Consider training time (minutes vs seconds for CART)
 - Implement model versioning and monitoring
 - Add input validation and error handling
@@ -94,6 +97,7 @@ pip install -e .
 Depends on configuration and dataset:
 
 **Quick experiments:**
+
 ```yaml
 # configs/quick.yaml
 population_size: 30
@@ -102,6 +106,7 @@ n_generations: 20
 ```
 
 **Standard experiments:**
+
 ```yaml
 # configs/paper.yaml
 population_size: 80
@@ -110,6 +115,7 @@ n_generations: 40
 ```
 
 **Research-quality:**
+
 ```yaml
 # configs/research.yaml
 population_size: 100
@@ -121,21 +127,25 @@ cv_folds: 20
 ### How do I speed up training?
 
 1. **Reduce population size:**
+
 ```yaml
 population_size: 50  # Instead of 100
 ```
 
 2. **Reduce generations:**
+
 ```yaml
 n_generations: 30  # Instead of 50
 ```
 
 3. **Use fewer CV folds:**
+
 ```yaml
 cv_folds: 5  # Instead of 20
 ```
 
 4. **Reduce tree depth:**
+
 ```yaml
 max_depth: 4  # Instead of 6
 ```
@@ -149,7 +159,7 @@ fitness:
   weights:
     accuracy: 0.50        # Reduce from 0.68
     interpretability: 0.50  # Increase from 0.32
-  
+
   interpretability_weights:
     node_complexity: 0.70  # Increase from 0.55
 ```
@@ -164,6 +174,7 @@ mutation_types:
 ### My accuracy is too low. How do I improve it?
 
 1. **Increase accuracy weight:**
+
 ```yaml
 fitness:
   weights:
@@ -172,12 +183,14 @@ fitness:
 ```
 
 2. **Allow deeper trees:**
+
 ```yaml
 tree:
   max_depth: 8  # Instead of 6
 ```
 
 3. **Increase population/generations:**
+
 ```yaml
 ga:
   population_size: 120
@@ -185,6 +198,7 @@ ga:
 ```
 
 4. **Try hyperparameter tuning:**
+
 ```bash
 python scripts/hyperopt_with_optuna.py --n-trials 30
 ```
@@ -194,6 +208,7 @@ python scripts/hyperopt_with_optuna.py --n-trials 30
 Yes! Two approaches:
 
 **Option 1: Python API**
+
 ```python
 import numpy as np
 from ga_trees.ga.engine import GAEngine, GAConfig, TreeInitializer, Mutation
@@ -205,12 +220,18 @@ X_train, y_train = load_your_data()
 # Setup
 n_features = X_train.shape[1]
 n_classes = len(np.unique(y_train))
-feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) 
-                 for i in range(n_features)}
+feature_ranges = {
+    i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)
+}
 
 config = GAConfig(population_size=80, n_generations=40)
-initializer = TreeInitializer(n_features=n_features, n_classes=n_classes,
-                             max_depth=6, min_samples_split=8, min_samples_leaf=3)
+initializer = TreeInitializer(
+    n_features=n_features,
+    n_classes=n_classes,
+    max_depth=6,
+    min_samples_split=8,
+    min_samples_leaf=3,
+)
 fitness_calc = FitnessCalculator(accuracy_weight=0.68, interpretability_weight=0.32)
 mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
 
@@ -237,14 +258,15 @@ Load model:
 ```python
 import pickle
 
-with open('models/best_tree.pkl', 'rb') as f:
+with open("models/best_tree.pkl", "rb") as f:
     model_data = pickle.load(f)
 
-tree = model_data['tree']
-scaler = model_data['scaler']  # If standardization was used
+tree = model_data["tree"]
+scaler = model_data["scaler"]  # If standardization was used
 
 # Make predictions
 from ga_trees.fitness.calculator import TreePredictor
+
 predictor = TreePredictor()
 
 X_test = scaler.transform(X_test) if scaler else X_test
@@ -275,12 +297,12 @@ python scripts/train.py --config configs/paper.yaml \
 
 Depends on your priorities:
 
-| Use Case | Accuracy Weight | Interpretability Weight |
-|----------|-----------------|-------------------------|
-| Max accuracy | 0.90 | 0.10 |
-| Balanced (recommended) | 0.68 | 0.32 |
-| Max interpretability | 0.50 | 0.50 |
-| Healthcare/Legal | 0.55 | 0.45 |
+| Use Case               | Accuracy Weight | Interpretability Weight |
+| ---------------------- | --------------- | ----------------------- |
+| Max accuracy           | 0.90            | 0.10                    |
+| Balanced (recommended) | 0.68            | 0.32                    |
+| Max interpretability   | 0.50            | 0.50                    |
+| Healthcare/Legal       | 0.55            | 0.45                    |
 
 ### How many generations is enough?
 
@@ -288,9 +310,9 @@ Monitor convergence:
 
 ```python
 history = ga_engine.get_history()
-plt.plot(history['best_fitness'])
-plt.xlabel('Generation')
-plt.ylabel('Fitness')
+plt.plot(history["best_fitness"])
+plt.xlabel("Generation")
+plt.ylabel("Fitness")
 plt.show()
 ```
 
@@ -311,6 +333,7 @@ iris             CART             92.41 ± 10.43%  16.4
 ```
 
 **Interpretation:**
+
 - GA accuracy: 94.55% (± 8.07% std)
 - GA produces 7.4 nodes on average
 - CART produces 16.4 nodes (55% larger)
@@ -340,6 +363,7 @@ fitness:
 ```
 
 The trade-off:
+
 - **2-3% accuracy loss** for **50-80% smaller trees**
 
 If unacceptable, increase accuracy weight:
@@ -361,6 +385,7 @@ Creates `results/figures/pareto_front.png` showing accuracy vs interpretability 
 ### Can I compare with XGBoost/LightGBM?
 
 Currently, the framework compares with:
+
 - CART (single tree)
 - Random Forest (ensemble)
 - XGBoost (ensemble)
@@ -376,14 +401,15 @@ Yes! Extend `FitnessCalculator`:
 ```python
 from ga_trees.fitness.calculator import FitnessCalculator
 
+
 class MyCustomFitness(FitnessCalculator):
     def calculate_fitness(self, tree, X, y):
         # Your custom logic
         accuracy = super().calculate_fitness(tree, X, y)
         custom_metric = self.my_custom_metric(tree)
-        
+
         return 0.7 * accuracy + 0.3 * custom_metric
-    
+
     def my_custom_metric(self, tree):
         # Example: reward trees with specific features
         preferred_features = {0, 2, 4}
@@ -398,20 +424,21 @@ Yes! Extend `Mutation`:
 ```python
 from ga_trees.ga.engine import Mutation
 
+
 class MyMutation(Mutation):
     def mutate(self, tree, mutation_types):
         # Add your custom mutation type
         mut_type = random.choices(
-            list(mutation_types.keys()) + ['my_custom_mutation'],
+            list(mutation_types.keys()) + ["my_custom_mutation"],
             weights=list(mutation_types.values()) + [0.1],
-            k=1
+            k=1,
         )[0]
-        
-        if mut_type == 'my_custom_mutation':
+
+        if mut_type == "my_custom_mutation":
             return self.my_custom_mutation(tree)
         else:
             return super().mutate(tree, mutation_types)
-    
+
     def my_custom_mutation(self, tree):
         # Your custom mutation logic
         return modified_tree
@@ -425,8 +452,8 @@ Yes! Set `task_type='regression'`:
 initializer = TreeInitializer(
     n_features=n_features,
     n_classes=1,  # Not used for regression
-    task_type='regression',
-    max_depth=6
+    task_type="regression",
+    max_depth=6,
 )
 ```
 
@@ -446,7 +473,9 @@ optimizer = ParetoOptimizer(
     mutation_fn=mutation.mutate,
     random_state=42,
 )
-front = optimizer.evolve_pareto_front(X_train, y_train, population_size=100, n_generations=50)
+front = optimizer.evolve_pareto_front(
+    X_train, y_train, population_size=100, n_generations=50
+)
 ```
 
 See `scripts/run_pareto_optimization.py` for a complete example.
@@ -454,6 +483,7 @@ See `scripts/run_pareto_optimization.py` for a complete example.
 ### How do I contribute?
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md) for:
+
 - Development setup
 - Code style guidelines
 - Testing requirements
@@ -480,6 +510,7 @@ print(errors)
 ```
 
 Common fixes:
+
 - Reduce `max_depth`
 - Increase `min_samples_split`
 - Check feature ranges
@@ -496,15 +527,18 @@ ga:
 ### Training hangs or is very slow
 
 1. Check if stuck in validation:
+
    - Reduce `max_depth`
    - Increase `min_samples_leaf`
 
-2. Reduce complexity:
+1. Reduce complexity:
+
    - Smaller population
    - Fewer generations
    - Fewer CV folds
 
-3. Check data size:
+1. Check data size:
+
    - Large datasets take longer
    - Consider sampling for development
 
@@ -528,11 +562,13 @@ pip install -e .
 ### What's the recommended hardware?
 
 **Minimum:**
+
 - CPU: 2 cores
 - RAM: 4 GB
 - Disk: 500 MB
 
 **Recommended:**
+
 - CPU: 4+ cores
 - RAM: 8+ GB
 - Disk: 1 GB
@@ -544,11 +580,13 @@ Fitness evaluation can be parallelized (planned feature). Currently, training is
 ### How much disk space do results need?
 
 **Per experiment:**
+
 - Results CSV: ~10 KB
 - Saved models: ~100 KB each
 - Figures: ~500 KB each
 
 **Full benchmark suite:**
+
 - ~5 MB total
 
 ## Getting Help
@@ -556,30 +594,35 @@ Fitness evaluation can be parallelized (planned feature). Currently, training is
 ### Where can I get help?
 
 1. **Documentation:** Check `docs/` folder
-2. **Issues:** [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-3. **Discussions:** [GitHub Discussions](https://github.com/ibrah5em/ga-optimized-trees/discussions)
-4. **Email:** ibrah5em@github.com
+1. **Issues:** [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
+1. **Discussions:** [GitHub Discussions](https://github.com/ibrah5em/ga-optimized-trees/discussions)
+1. **Email:** ibrah5em@github.com
 
 ### How do I report a bug?
 
 Open an issue with:
+
 1. **Environment:**
+
    ```bash
    python --version
    pip list | grep -E "(ga-trees|numpy|scikit-learn)"
    ```
 
-2. **Steps to reproduce**
-3. **Expected vs actual behavior**
-4. **Error logs** (if any)
+1. **Steps to reproduce**
+
+1. **Expected vs actual behavior**
+
+1. **Error logs** (if any)
 
 ### How do I request a feature?
 
 Open an issue describing:
+
 1. **Use case:** What problem does this solve?
-2. **Proposed solution:** How should it work?
-3. **Alternatives:** Other approaches you've considered
-4. **Additional context:** Any other relevant information
+1. **Proposed solution:** How should it work?
+1. **Alternatives:** Other approaches you've considered
+1. **Additional context:** Any other relevant information
 
 ## Research & Publications
 
@@ -599,6 +642,7 @@ Yes! The framework is MIT licensed. Please cite:
 ### Where can I find the research methodology?
 
 See [Methodology](../research/methodology.md) for:
+
 - Experimental design
 - Statistical testing approach
 - Baseline configurations
@@ -608,9 +652,10 @@ See [Methodology](../research/methodology.md) for:
 
 Check [Publications](../research/publications.md) for list of papers using this framework.
 
----
+______________________________________________________________________
 
 **Still have questions?** Check:
+
 - [Troubleshooting Guide](troubleshooting.md)
 - [Performance Tips](performance.md)
 - [GitHub Discussions](https://github.com/ibrah5em/ga-optimized-trees/discussions)

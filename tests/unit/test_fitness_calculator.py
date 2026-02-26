@@ -9,16 +9,8 @@ Covers:
 import numpy as np
 import pytest
 
-from ga_trees.fitness.calculator import (
-    FitnessCalculator,
-    InterpretabilityCalculator,
-    TreePredictor,
-)
-from ga_trees.genotype.tree_genotype import (
-    TreeGenotype,
-    create_internal_node,
-    create_leaf_node,
-)
+from ga_trees.fitness.calculator import FitnessCalculator, InterpretabilityCalculator, TreePredictor
+from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
 # Helpers

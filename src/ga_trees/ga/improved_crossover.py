@@ -9,13 +9,13 @@ Stages:
 3. Post-Crossover validation
 """
 
-import copy
+import logging
 import random
 from typing import Dict, Optional, Tuple
 
-import numpy as np
-
 from ga_trees.genotype.tree_genotype import Node, TreeGenotype, create_leaf_node
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Stage 1: Building Parent Map
@@ -208,8 +208,8 @@ def swap_subtrees(
 
         return True
 
-    except Exception as e:
-        print(f"Swap failed: {e}")
+    except (AttributeError, KeyError) as e:
+        logger.debug("Subtree swap failed: %s", e)
         return False
 
 
@@ -258,8 +258,16 @@ def prune_to_depth(tree: TreeGenotype, max_depth: int) -> TreeGenotype:
             if node.is_leaf():
                 return node
             else:
-                # Convert internal node to leaf
-                return create_leaf_node(0, depth)
+                # Attempt to inherit prediction from leftmost leaf descendant
+                descendant = node
+                while descendant and not descendant.is_leaf():
+                    descendant = descendant.left_child
+                pred = (
+                    descendant.prediction
+                    if (descendant and descendant.prediction is not None)
+                    else 0
+                )
+                return create_leaf_node(pred, depth)
 
         # If leaf, return as is
         if node.is_leaf():
@@ -336,14 +344,16 @@ if __name__ == "__main__":
     print("=" * 70)
 
     # This is a demonstration example - needs actual TreeGenotype to run
-    print("""
+    print(
+        """
     Usage in GAEngine:
-    
+
     # Replace this code in engine.py:
-    
+
     class Crossover:
         @staticmethod
         def subtree_crossover(parent1, parent2):
             return safe_subtree_crossover(parent1, parent2)
-    
-   """)
+
+   """
+    )

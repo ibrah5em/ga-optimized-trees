@@ -15,11 +15,13 @@ Calculate comprehensive metrics for model evaluation.
 Calculate classification metrics.
 
 **Parameters:**
+
 - `y_true` (np.ndarray): True labels
 - `y_pred` (np.ndarray): Predicted labels
 - `y_prob` (np.ndarray, optional): Prediction probabilities
 
 **Returns:**
+
 - `dict`: Dictionary with metrics:
   - `accuracy`: Overall accuracy
   - `precision_macro`: Macro-averaged precision
@@ -32,6 +34,7 @@ Calculate classification metrics.
   - `roc_auc` (if binary): ROC-AUC score
 
 **Example:**
+
 ```python
 from ga_trees.evaluation.metrics import MetricsCalculator
 
@@ -48,18 +51,21 @@ print(f"Confusion Matrix:\n{metrics['confusion_matrix']}")
 Calculate interpretability metrics for a tree.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to evaluate
 
 **Returns:**
+
 - `dict`: Dictionary with:
   - `depth`: Tree depth
   - `num_nodes`: Number of nodes
   - `num_leaves`: Number of leaves
   - `features_used`: Number of features used
-  - `tree_balance`: Balance score [0, 1]
+  - `tree_balance`: Balance score \[0, 1\]
   - `interpretability_score`: Overall score
 
 **Example:**
+
 ```python
 interp_metrics = calculator.calculate_interpretability_metrics(best_tree)
 print(f"Depth: {interp_metrics['depth']}")
@@ -72,19 +78,20 @@ print(f"Balance: {interp_metrics['tree_balance']:.4f}")
 Print detailed classification report.
 
 **Parameters:**
+
 - `y_true` (np.ndarray): True labels
 - `y_pred` (np.ndarray): Predicted labels
 - `target_names` (list, optional): Class names
 
 **Example:**
+
 ```python
 calculator.print_classification_report(
-    y_test, y_pred, 
-    target_names=['setosa', 'versicolor', 'virginica']
+    y_test, y_pred, target_names=["setosa", "versicolor", "virginica"]
 )
 ```
 
----
+______________________________________________________________________
 
 ## Module: `ga_trees.evaluation.feature_importance`
 
@@ -99,12 +106,15 @@ Analyze feature importance in evolved trees.
 Count feature usage frequency.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to analyze
 
 **Returns:**
+
 - `dict`: Mapping feature_idx → count
 
 **Example:**
+
 ```python
 from ga_trees.evaluation.feature_importance import FeatureImportanceAnalyzer
 
@@ -118,18 +128,22 @@ print(f"Feature usage: {freq}")  # {0: 3, 1: 2, 2: 1}
 Calculate importance based on depth (higher = more important).
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to analyze
 
 **Returns:**
-- `dict`: Mapping feature_idx → importance score [0, 1]
+
+- `dict`: Mapping feature_idx → importance score \[0, 1\]
 
 **Formula:**
+
 ```
 importance(feature) = Σ (1 / (depth + 1)) for all nodes using feature
 normalized by total
 ```
 
 **Example:**
+
 ```python
 importance = analyzer.calculate_feature_depth_importance(best_tree)
 print(f"Feature 0 importance: {importance[0]:.4f}")
@@ -140,21 +154,23 @@ print(f"Feature 0 importance: {importance[0]:.4f}")
 Visualize feature importance.
 
 **Parameters:**
+
 - `importance` (dict): Feature importance scores
 - `feature_names` (list, optional): Feature names
 - `save_path` (str, optional): Path to save plot
 
 **Example:**
+
 ```python
 importance = analyzer.calculate_feature_depth_importance(best_tree)
 analyzer.plot_feature_importance(
     importance,
-    feature_names=['sepal_length', 'sepal_width', 'petal_length', 'petal_width'],
-    save_path='results/figures/feature_importance.png'
+    feature_names=["sepal_length", "sepal_width", "petal_length", "petal_width"],
+    save_path="results/figures/feature_importance.png",
 )
 ```
 
----
+______________________________________________________________________
 
 ## Module: `ga_trees.evaluation.tree_visualizer`
 
@@ -171,24 +187,25 @@ Visualize decision trees with Graphviz.
 Convert tree to Graphviz format.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to visualize
 - `feature_names` (list, optional): Feature names
 - `class_names` (list, optional): Class names
 
 **Returns:**
+
 - `graphviz.Digraph`: Graphviz diagram object
 
 **Example:**
+
 ```python
 from ga_trees.evaluation.tree_visualizer import TreeVisualizer
 
-feature_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
-class_names = ['setosa', 'versicolor', 'virginica']
+feature_names = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+class_names = ["setosa", "versicolor", "virginica"]
 
 dot = TreeVisualizer.tree_to_graphviz(
-    best_tree,
-    feature_names=feature_names,
-    class_names=class_names
+    best_tree, feature_names=feature_names, class_names=class_names
 )
 
 # Display in Jupyter
@@ -200,23 +217,25 @@ dot
 Visualize and save tree.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to visualize
 - `feature_names` (list, optional): Feature names
 - `class_names` (list, optional): Class names
 - `save_path` (str): Output path (without extension)
 
 **Example:**
+
 ```python
 TreeVisualizer.visualize_tree(
     best_tree,
     feature_names=feature_names,
     class_names=class_names,
-    save_path='results/figures/my_tree'
+    save_path="results/figures/my_tree",
 )
 # Creates: my_tree.png
 ```
 
----
+______________________________________________________________________
 
 ## Module: `ga_trees.evaluation.explainability`
 
@@ -233,11 +252,13 @@ Model explainability with LIME and SHAP.
 Use SHAP to explain tree predictions.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to explain
 - `X` (np.ndarray): Data to explain
 - `feature_names` (list, optional): Feature names
 
 **Example:**
+
 ```python
 from ga_trees.evaluation.explainability import TreeExplainer
 
@@ -245,7 +266,7 @@ from ga_trees.evaluation.explainability import TreeExplainer
 TreeExplainer.explain_with_shap(
     best_tree,
     X_test,
-    feature_names=['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+    feature_names=["sepal_length", "sepal_width", "petal_length", "petal_width"],
 )
 # Displays SHAP summary plot
 ```
@@ -255,23 +276,22 @@ TreeExplainer.explain_with_shap(
 Use LIME to explain single prediction.
 
 **Parameters:**
+
 - `tree` (TreeGenotype): Tree to explain
 - `X` (np.ndarray): Full dataset
 - `instance_idx` (int): Index of instance to explain
 - `feature_names` (list, optional): Feature names
 
 **Example:**
+
 ```python
 # Explain prediction for instance 42
 TreeExplainer.explain_with_lime(
-    best_tree,
-    X_test,
-    instance_idx=42,
-    feature_names=feature_names
+    best_tree, X_test, instance_idx=42, feature_names=feature_names
 )
 ```
 
----
+______________________________________________________________________
 
 ## Complete Evaluation Pipeline
 
@@ -294,9 +314,9 @@ calculator = MetricsCalculator()
 metrics = calculator.calculate_classification_metrics(y_test, y_pred)
 interp_metrics = calculator.calculate_interpretability_metrics(best_tree)
 
-print("="*60)
+print("=" * 60)
 print("EVALUATION RESULTS")
-print("="*60)
+print("=" * 60)
 print(f"\nAccuracy: {metrics['accuracy']:.4f}")
 print(f"F1-Score: {metrics['f1_weighted']:.4f}")
 print(f"Precision: {metrics['precision_weighted']:.4f}")
@@ -314,15 +334,15 @@ analyzer = FeatureImportanceAnalyzer()
 importance = analyzer.calculate_feature_depth_importance(best_tree)
 analyzer.plot_feature_importance(
     importance,
-    feature_names=['feature_' + str(i) for i in range(X_train.shape[1])],
-    save_path='results/figures/feature_importance.png'
+    feature_names=["feature_" + str(i) for i in range(X_train.shape[1])],
+    save_path="results/figures/feature_importance.png",
 )
 
 # 4. Visualize tree
 TreeVisualizer.visualize_tree(
     best_tree,
-    feature_names=['feature_' + str(i) for i in range(X_train.shape[1])],
-    save_path='results/figures/tree_structure'
+    feature_names=["feature_" + str(i) for i in range(X_train.shape[1])],
+    save_path="results/figures/tree_structure",
 )
 
 # 5. Print classification report

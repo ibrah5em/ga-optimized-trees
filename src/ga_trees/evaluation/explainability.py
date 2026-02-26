@@ -1,7 +1,5 @@
 """Model explainability with LIME and SHAP."""
 
-import numpy as np
-
 try:
     import shap
 
@@ -34,7 +32,7 @@ class TreeExplainer:
 
         # Create prediction function
         def predict_fn(X_sample):
-            return np.array([predictor.predict(tree, X_sample)])
+            return predictor.predict(tree, X_sample)
 
         # SHAP explainer
         explainer = shap.Explainer(predict_fn, X)

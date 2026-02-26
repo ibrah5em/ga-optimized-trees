@@ -104,11 +104,11 @@ cart_scores = []
 for train_idx, test_idx in skf.split(X, y):
     X_train, X_test = X[train_idx], X[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
-    
+
     # Train GA
     ga_tree = train_ga(X_train, y_train)  # Your GA training
     ga_scores.append(evaluate(ga_tree, X_test, y_test))
-    
+
     # Train CART
     cart = CARTBaseline(max_depth=5)
     cart.fit(X_train, y_train)
@@ -133,14 +133,14 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 # Compare multiple metrics
 metrics = {
-    'GA': {
-        'accuracy': accuracy_score(y_test, y_pred_ga),
-        'f1': f1_score(y_test, y_pred_ga, average='weighted')
+    "GA": {
+        "accuracy": accuracy_score(y_test, y_pred_ga),
+        "f1": f1_score(y_test, y_pred_ga, average="weighted"),
     },
-    'CART': {
-        'accuracy': accuracy_score(y_test, y_pred_cart),
-        'f1': f1_score(y_test, y_pred_cart, average='weighted')
-    }
+    "CART": {
+        "accuracy": accuracy_score(y_test, y_pred_cart),
+        "f1": f1_score(y_test, y_pred_cart, average="weighted"),
+    },
 }
 
 print(classification_report(y_test, y_pred_ga))
@@ -151,22 +151,14 @@ print(classification_report(y_test, y_pred_ga))
 ```python
 # Compare tree complexity
 comparison = {
-    'Model': ['GA', 'CART', 'RF'],
-    'Nodes': [
-        ga_tree.get_num_nodes(),
-        cart.get_num_nodes(),
-        'N/A'  # Ensemble
-    ],
-    'Depth': [
-        ga_tree.get_depth(),
-        cart.get_depth(),
-        'N/A'
-    ],
-    'Interpretability Score': [
+    "Model": ["GA", "CART", "RF"],
+    "Nodes": [ga_tree.get_num_nodes(), cart.get_num_nodes(), "N/A"],  # Ensemble
+    "Depth": [ga_tree.get_depth(), cart.get_depth(), "N/A"],
+    "Interpretability Score": [
         ga_tree.interpretability_,
         calculate_cart_interpretability(cart),
-        0.0  # Not interpretable
-    ]
+        0.0,  # Not interpretable
+    ],
 }
 ```
 
@@ -178,48 +170,47 @@ comparison = {
 import matplotlib.pyplot as plt
 import pandas as pd
 
-results = pd.DataFrame({
-    'Model': ['GA', 'CART', 'RF', 'XGBoost'],
-    'Accuracy': [0.945, 0.924, 0.953, 0.958],
-    'Std': [0.081, 0.104, 0.034, 0.028]
-})
+results = pd.DataFrame(
+    {
+        "Model": ["GA", "CART", "RF", "XGBoost"],
+        "Accuracy": [0.945, 0.924, 0.953, 0.958],
+        "Std": [0.081, 0.104, 0.034, 0.028],
+    }
+)
 
 plt.figure(figsize=(10, 6))
-plt.bar(results['Model'], results['Accuracy'], yerr=results['Std'])
-plt.ylabel('Accuracy')
-plt.title('Model Accuracy Comparison')
+plt.bar(results["Model"], results["Accuracy"], yerr=results["Std"])
+plt.ylabel("Accuracy")
+plt.title("Model Accuracy Comparison")
 plt.ylim([0.85, 1.0])
-plt.grid(axis='y', alpha=0.3)
-plt.savefig('results/figures/accuracy_comparison.png')
+plt.grid(axis="y", alpha=0.3)
+plt.savefig("results/figures/accuracy_comparison.png")
 ```
 
 ### Size Comparison
 
 ```python
-sizes = {
-    'GA': 7.4,
-    'CART': 16.4,
-    'Pruned CART': 12.8
-}
+sizes = {"GA": 7.4, "CART": 16.4, "Pruned CART": 12.8}
 
 plt.figure(figsize=(10, 6))
 plt.bar(sizes.keys(), sizes.values())
-plt.ylabel('Number of Nodes')
-plt.title('Tree Size Comparison')
-plt.savefig('results/figures/size_comparison.png')
+plt.ylabel("Number of Nodes")
+plt.title("Tree Size Comparison")
+plt.savefig("results/figures/size_comparison.png")
 ```
 
 ## Benchmark Results
 
 ### Target Results (configs/paper.yaml)
 
-| Dataset | GA Acc | CART Acc | p-value | GA Nodes | CART Nodes | Reduction |
-|---------|--------|----------|---------|----------|------------|-----------|
-| Iris | 94.55% | 92.41% | 0.186 | 7.4 | 16.4 | 55% |
-| Wine | 88.19% | 87.22% | 0.683 | 10.7 | 20.7 | 48% |
-| Breast Cancer | 91.05% | 91.57% | 0.640 | 6.5 | 35.5 | 82% |
+| Dataset       | GA Acc | CART Acc | p-value | GA Nodes | CART Nodes | Reduction |
+| ------------- | ------ | -------- | ------- | -------- | ---------- | --------- |
+| Iris          | 94.55% | 92.41%   | 0.186   | 7.4      | 16.4       | 55%       |
+| Wine          | 88.19% | 87.22%   | 0.683   | 10.7     | 20.7       | 48%       |
+| Breast Cancer | 91.05% | 91.57%   | 0.640   | 6.5      | 35.5       | 82%       |
 
 **Key Findings:**
+
 - All p-values > 0.05 → Statistical equivalence ✓
 - GA produces 46-82% smaller trees
 - Minimal accuracy loss for significant size reduction
@@ -231,22 +222,23 @@ plt.savefig('results/figures/size_comparison.png')
 ```python
 from ga_trees.baselines.baseline_models import BaselineModel
 
+
 class MyCustomBaseline(BaselineModel):
     def __init__(self, **kwargs):
         super().__init__("MyCustomModel")
         self.model = YourModelClass(**kwargs)
-    
+
     def fit(self, X, y):
         self.model.fit(X, y)
         return self
-    
+
     def predict(self, X):
         return self.model.predict(X)
-    
+
     def get_depth(self):
         # Implement if applicable
         return self.model.get_depth()
-    
+
     def get_num_nodes(self):
         # Implement if applicable
         return self.model.get_num_nodes()
@@ -260,9 +252,9 @@ from ga_trees.baselines.baseline_models import CARTBaseline, RandomForestBaselin
 from my_module import MyCustomBaseline
 
 baselines = {
-    'CART': CARTBaseline(max_depth=5),
-    'RF': RandomForestBaseline(n_estimators=100),
-    'Custom': MyCustomBaseline(param=value)
+    "CART": CARTBaseline(max_depth=5),
+    "RF": RandomForestBaseline(n_estimators=100),
+    "Custom": MyCustomBaseline(param=value),
 }
 
 for name, baseline in baselines.items():
@@ -285,15 +277,15 @@ min_samples_leaf = 3
 cart = CARTBaseline(
     max_depth=max_depth,
     min_samples_split=min_samples_split,
-    min_samples_leaf=min_samples_leaf
+    min_samples_leaf=min_samples_leaf,
 )
 
 # GA
 ga_config = {
-    'tree': {
-        'max_depth': max_depth,
-        'min_samples_split': min_samples_split,
-        'min_samples_leaf': min_samples_leaf
+    "tree": {
+        "max_depth": max_depth,
+        "min_samples_split": min_samples_split,
+        "min_samples_leaf": min_samples_leaf,
     }
 }
 ```
@@ -312,10 +304,10 @@ skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 metrics = {
-    'accuracy': accuracy_score,
-    'precision': lambda y, p: precision_score(y, p, average='weighted'),
-    'recall': lambda y, p: recall_score(y, p, average='weighted'),
-    'f1': lambda y, p: f1_score(y, p, average='weighted')
+    "accuracy": accuracy_score,
+    "precision": lambda y, p: precision_score(y, p, average="weighted"),
+    "recall": lambda y, p: recall_score(y, p, average="weighted"),
+    "f1": lambda y, p: f1_score(y, p, average="weighted"),
 }
 
 for metric_name, metric_fn in metrics.items():
@@ -329,7 +321,9 @@ for metric_name, metric_fn in metrics.items():
 ### Issue: CART outperforms GA significantly
 
 **Solutions:**
+
 1. Increase accuracy weight:
+
    ```yaml
    fitness:
      weights:
@@ -337,14 +331,16 @@ for metric_name, metric_fn in metrics.items():
        interpretability: 0.20
    ```
 
-2. Increase population/generations:
+1. Increase population/generations:
+
    ```yaml
    ga:
      population_size: 120
      n_generations: 60
    ```
 
-3. Run hyperparameter optimization:
+1. Run hyperparameter optimization:
+
    ```bash
    python scripts/hyperopt_with_optuna.py --dataset your_dataset
    ```
@@ -352,6 +348,7 @@ for metric_name, metric_fn in metrics.items():
 ### Issue: Statistical tests show significance when not expected
 
 **Check:**
+
 - Sample size (use more CV folds)
 - Random seed consistency
 - Data preprocessing consistency

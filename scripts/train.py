@@ -29,9 +29,6 @@ from sklearn.preprocessing import StandardScaler
 from ga_trees.fitness.calculator import FitnessCalculator
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
 
-# Import our modules
-from ga_trees.genotype.tree_genotype import TreeGenotype
-
 
 def load_dataset(name: str, label_column=None):
     """
@@ -127,41 +124,43 @@ def load_config(config_path):
         return yaml.safe_load(f)
 
 
-def merge_config_with_args(config, args):
+def merge_config_with_args(config, args, defaults):
     """
-    Merge config file with command-line arguments.
-    CLI arguments take precedence (if explicitly set by user).
+    Merge config file with CLI arguments.
+    CLI arguments take precedence when explicitly set by the user.
+    An arg is 'explicitly set' if its value differs from the parser default.
     """
     if config is None:
         return args
 
-    # GA parameters
-    if args.population == 100:
-        args.population = config["ga"]["population_size"]
-    if args.generations == 50:
-        args.generations = config["ga"]["n_generations"]
-    if args.crossover_prob == 0.7:
-        args.crossover_prob = config["ga"]["crossover_prob"]
-    if args.mutation_prob == 0.2:
-        args.mutation_prob = config["ga"]["mutation_prob"]
-    if args.tournament_size == 3:
-        args.tournament_size = config["ga"]["tournament_size"]
-    if args.elitism_ratio == 0.1:
-        args.elitism_ratio = config["ga"]["elitism_ratio"]
+    mapping = {
+        "population": ("ga", "population_size"),
+        "generations": ("ga", "n_generations"),
+        "crossover_prob": ("ga", "crossover_prob"),
+        "mutation_prob": ("ga", "mutation_prob"),
+        "tournament_size": ("ga", "tournament_size"),
+        "elitism_ratio": ("ga", "elitism_ratio"),
+        "max_depth": ("tree", "max_depth"),
+        "min_samples_split": ("tree", "min_samples_split"),
+        "min_samples_leaf": ("tree", "min_samples_leaf"),
+        "accuracy_weight": ("fitness", "weights", "accuracy"),
+        "interpretability_weight": ("fitness", "weights", "interpretability"),
+    }
 
-    # Tree parameters
-    if args.max_depth == 5:
-        args.max_depth = config["tree"]["max_depth"]
-    if args.min_samples_split == 10:
-        args.min_samples_split = config["tree"]["min_samples_split"]
-    if args.min_samples_leaf == 5:
-        args.min_samples_leaf = config["tree"]["min_samples_leaf"]
+    for arg_name, config_path in mapping.items():
+        arg_val = getattr(args, arg_name)
+        default_val = getattr(defaults, arg_name)
 
-    # Fitness parameters
-    if args.accuracy_weight == 0.7:
-        args.accuracy_weight = config["fitness"]["weights"]["accuracy"]
-    if args.interpretability_weight == 0.3:
-        args.interpretability_weight = config["fitness"]["weights"]["interpretability"]
+        # Only override with config if user did NOT explicitly set this arg
+        if arg_val == default_val:
+            # Navigate the nested config dict
+            try:
+                value = config
+                for key in config_path:
+                    value = value[key]
+                setattr(args, arg_name, value)
+            except (KeyError, TypeError):
+                pass  # Config doesn't have this key, keep CLI default
 
     return args
 
@@ -175,12 +174,12 @@ Examples:
   # Sklearn datasets
   python scripts/train.py --config configs/paper.yaml --dataset iris
   python scripts/train.py --config configs/paper.yaml --dataset wine
-  
+
   # OpenML datasets (NEW!)
   python scripts/train.py --config configs/paper.yaml --dataset heart
   python scripts/train.py --config configs/paper.yaml --dataset titanic
   python scripts/train.py --config configs/paper.yaml --dataset credit_g
-  
+
   # Custom CSV file
   python scripts/train.py --config configs/paper.yaml --dataset data/my_data.csv
         """,
@@ -240,6 +239,7 @@ Examples:
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--verbose", action="store_true", help="Print progress")
 
+    defaults = parser.parse_args([])
     args = parser.parse_args()
 
     # Load and merge config if provided
@@ -247,7 +247,7 @@ Examples:
     if args.config:
         print(f"Loading configuration from: {args.config}")
         config = load_config(args.config)
-        args = merge_config_with_args(config, args)
+        args = merge_config_with_args(config, args, defaults)
         print("Config loaded and merged with CLI arguments")
 
     # Set random seeds
@@ -380,14 +380,14 @@ Examples:
     test_acc = accuracy_score(y_test, y_test_pred)
     test_f1 = f1_score(y_test, y_test_pred, average="weighted")
 
-    print(f"\nBest Tree Statistics:")
+    print("\nBest Tree Statistics:")
     print(f"  Depth: {best_tree.get_depth()}")
     print(f"  Nodes: {best_tree.get_num_nodes()}")
     print(f"  Leaves: {best_tree.get_num_leaves()}")
     print(f"  Features Used: {best_tree.get_num_features_used()}/{n_features}")
     print(f"  Tree Balance: {best_tree.get_tree_balance():.4f}")
 
-    print(f"\nPerformance:")
+    print("\nPerformance:")
     print(f"  Train Accuracy: {train_acc:.4f}")
     print(f"  Test Accuracy:  {test_acc:.4f}")
     print(f"  Test F1 Score:  {test_f1:.4f}")
@@ -395,7 +395,7 @@ Examples:
     print(f"  Interpretability: {best_tree.interpretability_:.4f}")
 
     # Print rules
-    print(f"\nDecision Rules:")
+    print("\nDecision Rules:")
     rules = best_tree.to_rules()
     for i, rule in enumerate(rules[:10], 1):
         print(f"  {i}. {rule}")

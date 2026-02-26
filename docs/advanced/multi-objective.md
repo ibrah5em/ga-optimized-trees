@@ -33,11 +33,11 @@ A solution is Pareto-optimal if improving one objective requires sacrificing ano
 
 The Pareto script explores different weight combinations:
 
-| Solution | Accuracy | Nodes | Depth | Weight Ratio |
-|----------|----------|-------|-------|--------------|
-| 1 | 94.2% | 15 | 5 | 90/10 (accuracy focused) |
-| 2 | 92.8% | 10 | 4 | 70/30 (balanced) |
-| 3 | 90.1% | 6 | 3 | 50/50 (interpretability focused) |
+| Solution | Accuracy | Nodes | Depth | Weight Ratio                     |
+| -------- | -------- | ----- | ----- | -------------------------------- |
+| 1        | 94.2%    | 15    | 5     | 90/10 (accuracy focused)         |
+| 2        | 92.8%    | 10    | 4     | 70/30 (balanced)                 |
+| 3        | 90.1%    | 6     | 3     | 50/50 (interpretability focused) |
 
 ## Next Steps
 

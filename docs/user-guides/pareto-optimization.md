@@ -13,12 +13,14 @@ python scripts/run_pareto_optimization.py --config configs/paper.yaml --dataset 
 ```
 
 **Output:**
+
 - Console: Summary of Pareto solutions
 - Figure: Pareto front visualization
 
 ## Understanding Results
 
 Example output:
+
 ```
 Config   Acc Weight  Test Acc      Interp        Nodes  Depth
 1        0.30        0.8823        0.7234        8      3

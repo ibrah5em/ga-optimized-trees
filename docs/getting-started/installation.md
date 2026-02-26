@@ -78,6 +78,7 @@ pip install -e .[optimization]
 ```
 
 Includes:
+
 - Optuna (Bayesian optimization)
 - MLflow (experiment tracking)
 
@@ -90,6 +91,7 @@ pip install -e .[baselines]
 ```
 
 Includes:
+
 - XGBoost
 - LightGBM
 
@@ -102,6 +104,7 @@ pip install -e .[explainability]
 ```
 
 Includes:
+
 - SHAP
 - LIME
 
@@ -114,6 +117,7 @@ pip install -e .[api]
 ```
 
 Includes:
+
 - FastAPI
 - Uvicorn
 - Pydantic
@@ -156,6 +160,7 @@ pip install -e .[full]
 ```
 
 This includes:
+
 - Core dependencies
 - All optional features (viz, optimization, baselines, explainability, api)
 - Development tools (testing, linting, formatting)
@@ -197,6 +202,7 @@ pytest tests/unit/ -v
 ### Issue: "No module named 'ga_trees'"
 
 **Solution:**
+
 ```bash
 # Make sure you installed in editable mode
 pip install -e .
@@ -208,6 +214,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 ### Issue: Graphviz not found
 
 **Solution:**
+
 ```bash
 # Install system package first, then Python package
 # Ubuntu/Debian:
@@ -222,6 +229,7 @@ pip install graphviz
 ### Issue: NumPy version conflict
 
 **Solution:**
+
 ```bash
 # Clean install
 pip uninstall numpy
@@ -231,6 +239,7 @@ pip install "numpy>=1.24.0,<2.0.0"
 ### Issue: DEAP import error
 
 **Solution:**
+
 ```bash
 pip install deap>=1.4.1
 ```
@@ -314,17 +323,17 @@ rm -rf build/ dist/ *.egg-info/
 After installation:
 
 1. **Quick Tutorial**: See `docs/getting-started/quickstart.md`
-2. **Run Examples**: Try `python scripts/train.py --dataset iris`
-3. **Read Docs**: Check `docs/README.md`
-4. **Run Tests**: `pytest tests/ -v`
+1. **Run Examples**: Try `python scripts/train.py --dataset iris`
+1. **Read Docs**: Check `docs/README.md`
+1. **Run Tests**: `pytest tests/ -v`
 
 ## Support
 
 If you encounter issues:
 
 1. Check [Troubleshooting Guide](../faq/troubleshooting.md)
-2. Search [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-3. Open a new issue with:
+1. Search [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
+1. Open a new issue with:
    - Python version: `python --version`
    - OS and version
    - Full error traceback

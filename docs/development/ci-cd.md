@@ -11,20 +11,23 @@ Location: `.github/workflows/ci.yml`
 #### 1. Test Job
 
 Runs on multiple platforms and Python versions:
+
 - **Platforms**: Ubuntu, Windows, macOS
 - **Python**: 3.8, 3.9, 3.10, 3.11, 3.12
 
 **Steps:**
+
 1. Checkout code
-2. Setup Python with pip cache
-3. Install dependencies
-4. Run unit tests with coverage
-5. Run quick training test
-6. Upload coverage to Codecov
+1. Setup Python with pip cache
+1. Install dependencies
+1. Run unit tests with coverage
+1. Run quick training test
+1. Upload coverage to Codecov
 
 #### 2. Lint Job
 
 Code quality checks:
+
 - **Black**: Code formatting
 - **isort**: Import sorting
 - **flake8**: Linting
@@ -33,18 +36,21 @@ Code quality checks:
 #### 3. Integration Job
 
 Integration tests:
+
 - Full integration test suite
 - Experiment script validation
 
 #### 4. Documentation Job
 
 Build documentation:
+
 - Sphinx HTML build
 - Check for broken links
 
 #### 5. Package Job
 
 Build and validate package:
+
 - Build wheel and source distribution
 - Check with twine
 - Upload artifacts
@@ -52,6 +58,7 @@ Build and validate package:
 #### 6. Notification Job
 
 Final status check:
+
 - ✅ All checks passed
 - ❌ Some checks failed
 
@@ -84,12 +91,14 @@ mypy src/
 ## Pre-commit Hooks
 
 **Setup:**
+
 ```bash
 pip install pre-commit
 pre-commit install
 ```
 
 **Hooks run automatically on commit:**
+
 - Trailing whitespace removal
 - End-of-file fixer
 - YAML validation
@@ -99,6 +108,7 @@ pre-commit install
 - mypy type checking
 
 **Manual run:**
+
 ```bash
 pre-commit run --all-files
 ```
@@ -108,6 +118,7 @@ pre-commit run --all-files
 **Target:** 80%+ coverage
 
 **Generate report:**
+
 ```bash
 pytest tests/ --cov=src/ga_trees --cov-report=html
 open htmlcov/index.html

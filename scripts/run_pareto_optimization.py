@@ -301,17 +301,17 @@ def print_pareto_summary(results, base_config):
         range(len(results)), key=lambda i: abs(results[i]["accuracy_weight"] - base_acc_weight)
     )
 
-    print(f"\n1. MOST ACCURATE:")
+    print("\n1. MOST ACCURATE:")
     print(f"   Accuracy: {results[best_acc_idx]['test_accuracy']:.4f}")
     print(f"   Nodes: {results[best_acc_idx]['nodes']}")
     print(f"   Interpretability: {results[best_acc_idx]['interpretability']:.4f}")
 
-    print(f"\n2. MOST INTERPRETABLE:")
+    print("\n2. MOST INTERPRETABLE:")
     print(f"   Accuracy: {results[best_interp_idx]['test_accuracy']:.4f}")
     print(f"   Nodes: {results[best_interp_idx]['nodes']}")
     print(f"   Interpretability: {results[best_interp_idx]['interpretability']:.4f}")
 
-    print(f"\n3. SMALLEST TREE:")
+    print("\n3. SMALLEST TREE:")
     print(f"   Accuracy: {results[smallest_tree_idx]['test_accuracy']:.4f}")
     print(f"   Nodes: {results[smallest_tree_idx]['nodes']}")
     print(f"   Interpretability: {results[smallest_tree_idx]['interpretability']:.4f}")

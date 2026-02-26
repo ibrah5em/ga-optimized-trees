@@ -8,7 +8,7 @@
 
 Unlike greedy algorithms like CART that only optimize for accuracy, this multi-objective approach explores solutions across the accuracy–interpretability spectrum. Achieve **46–82% smaller trees** with **statistically equivalent accuracy** (validated with 20-fold CV, p > 0.05).
 
----
+______________________________________________________________________
 
 ## Quick Start
 
@@ -53,10 +53,13 @@ n_classes = len(np.unique(y_train))
 
 # Configure
 config = GAConfig(population_size=80, n_generations=40)
-initializer = TreeInitializer(n_features, n_classes, max_depth=6,
-                              min_samples_split=8, min_samples_leaf=3)
+initializer = TreeInitializer(
+    n_features, n_classes, max_depth=6, min_samples_split=8, min_samples_leaf=3
+)
 fitness_calc = FitnessCalculator(accuracy_weight=0.68, interpretability_weight=0.32)
-feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)}
+feature_ranges = {
+    i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)
+}
 mutation = Mutation(n_features, feature_ranges)
 
 # Evolve
@@ -69,29 +72,29 @@ y_pred = predictor.predict(best_tree, data["X_test"])
 print(f"Tree: {best_tree.get_num_nodes()} nodes, depth {best_tree.get_depth()}")
 ```
 
----
+______________________________________________________________________
 
 ## Benchmark Results
 
 ### Accuracy (20-fold CV)
 
-| Dataset | GA Accuracy | CART Accuracy | p-value | Conclusion |
-|---------|-------------|---------------|---------|------------|
-| Iris | 94.55 ± 8.07% | 92.41 ± 10.43% | 0.186 | No significant difference |
-| Wine | 88.19 ± 10.39% | 87.22 ± 10.70% | 0.683 | No significant difference |
-| Breast Cancer | 91.05 ± 5.60% | 91.57 ± 3.92% | 0.640 | No significant difference |
+| Dataset       | GA Accuracy    | CART Accuracy  | p-value | Conclusion                |
+| ------------- | -------------- | -------------- | ------- | ------------------------- |
+| Iris          | 94.55 ± 8.07%  | 92.41 ± 10.43% | 0.186   | No significant difference |
+| Wine          | 88.19 ± 10.39% | 87.22 ± 10.70% | 0.683   | No significant difference |
+| Breast Cancer | 91.05 ± 5.60%  | 91.57 ± 3.92%  | 0.640   | No significant difference |
 
 ### Tree Size
 
-| Dataset | GA Nodes | CART Nodes | Reduction |
-|---------|----------|------------|-----------|
-| Iris | 7.4 | 16.4 | **55%** |
-| Wine | 10.7 | 20.7 | **48%** |
-| Breast Cancer | 6.5 | 35.5 | **82%** |
+| Dataset       | GA Nodes | CART Nodes | Reduction |
+| ------------- | -------- | ---------- | --------- |
+| Iris          | 7.4      | 16.4       | **55%**   |
+| Wine          | 10.7     | 20.7       | **48%**   |
+| Breast Cancer | 6.5      | 35.5       | **82%**   |
 
 All results use `configs/paper.yaml` with 20-fold cross-validation.
 
----
+______________________________________________________________________
 
 ## How It Works
 
@@ -103,28 +106,28 @@ Fitness = w₁ × Accuracy + w₂ × Interpretability
 
 Interpretability is a composite of node complexity, feature coherence, tree balance, and semantic coherence. The evolutionary loop applies tournament selection, subtree crossover with parent tracking, and four mutation operators (threshold perturbation, feature replacement, subtree pruning, leaf expansion).
 
----
+______________________________________________________________________
 
 ## Configuration
 
 Experiments are driven by YAML config files in `configs/`:
 
-| Config | Use Case |
-|--------|----------|
-| `paper.yaml` | Research config matching published results |
-| `default.yaml` | General-purpose defaults |
-| `fast.yaml` | Quick experiments (small population, few generations) |
-| `balanced.yaml` | Equal accuracy/interpretability weight |
-| `accuracy_focused.yaml` | Maximize accuracy |
-| `interpretability_focused.yaml` | Maximize interpretability |
-| `optimized.yaml` | Optuna-tuned hyperparameters |
+| Config                          | Use Case                                              |
+| ------------------------------- | ----------------------------------------------------- |
+| `paper.yaml`                    | Research config matching published results            |
+| `default.yaml`                  | General-purpose defaults                              |
+| `fast.yaml`                     | Quick experiments (small population, few generations) |
+| `balanced.yaml`                 | Equal accuracy/interpretability weight                |
+| `accuracy_focused.yaml`         | Maximize accuracy                                     |
+| `interpretability_focused.yaml` | Maximize interpretability                             |
+| `optimized.yaml`                | Optuna-tuned hyperparameters                          |
 
 ```bash
 python scripts/train.py --config configs/paper.yaml --dataset breast_cancer
 python scripts/experiment.py --config configs/fast.yaml
 ```
 
----
+______________________________________________________________________
 
 ## Project Structure
 
@@ -149,7 +152,7 @@ ga-optimized-trees/
 └── results/                  # Experiment output
 ```
 
----
+______________________________________________________________________
 
 ## Testing
 
@@ -159,7 +162,7 @@ pytest tests/unit/ -v                               # Unit tests only
 pytest tests/ -v --cov=src/ga_trees                 # With coverage
 ```
 
----
+______________________________________________________________________
 
 ## Contributing
 
@@ -171,13 +174,13 @@ pytest tests/ -v
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
----
+______________________________________________________________________
 
 ## Documentation
 
 Full documentation is in [`docs/`](docs/README.md), covering installation, core concepts, API reference, user guides, and research methodology.
 
----
+______________________________________________________________________
 
 ## License
 
