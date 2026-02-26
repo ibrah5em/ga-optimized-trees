@@ -88,13 +88,16 @@ def safe_subtree_crossover(
     """
     Improved Subtree Crossover with Parent Tracking.
 
-    Steps:
-    1. Copy Parents
-    2. Build Parent Maps
-    3. Select nodes for swapping
-    4. Swap subtrees safely
-    5. Fix depths
-    6. Validation
+    §2.1 + §2.2: Randomly selects between three crossover strategies:
+
+    - **Depth-aware subtree crossover** (60%): prefers swapping nodes at
+      similar depths (±1), with a 10% chance of fully random selection.
+    - **Uniform crossover** (20%): for each pair of matching internal nodes
+      in both trees, randomly swaps the feature/threshold split.  Keeps
+      tree structure intact while varying split logic.
+    - **Size-fair subtree crossover** (20%): like subtree crossover but
+      filters candidates to those within 2× the node count of the selected
+      node, avoiding one parent dominating the offspring.
 
     Args:
         parent1: First tree
@@ -107,48 +110,147 @@ def safe_subtree_crossover(
     child1 = parent1.copy()
     child2 = parent2.copy()
 
-    # 2. Build Parent Maps
-    parent_map1 = build_parent_map(child1.root)
-    parent_map2 = build_parent_map(child2.root)
+    # 2. §2.2: Select crossover strategy
+    strategy_roll = random.random()
 
-    # 3. Collect all nodes (except Root to avoid problems)
-    all_nodes1 = [n for n in child1.get_all_nodes() if n.node_id != child1.root.node_id]
-    all_nodes2 = [n for n in child2.get_all_nodes() if n.node_id != child2.root.node_id]
+    if strategy_roll < 0.20:
+        # Uniform crossover — no parent maps / subtree swap needed
+        _uniform_crossover(child1, child2)
+    else:
+        # Subtree-based crossover (depth-aware or size-fair)
+        parent_map1 = build_parent_map(child1.root)
+        parent_map2 = build_parent_map(child2.root)
 
-    # If not enough nodes, return copies without modification
-    if len(all_nodes1) < 1 or len(all_nodes2) < 1:
-        return child1, child2
+        all_nodes1 = [n for n in child1.get_all_nodes() if n.node_id != child1.root.node_id]
+        all_nodes2 = [n for n in child2.get_all_nodes() if n.node_id != child2.root.node_id]
 
-    # 4. Randomly select nodes for swapping
-    node1 = random.choice(all_nodes1)
-    node2 = random.choice(all_nodes2)
+        if len(all_nodes1) < 1 or len(all_nodes2) < 1:
+            return child1, child2
 
-    # 5. Swap subtrees
-    swap_success = swap_subtrees(node1, node2, parent_map1, parent_map2, child1.root, child2.root)
+        if strategy_roll < 0.40:
+            # §2.2: Size-fair crossover (0.20–0.40 → 20%)
+            swap_success = _size_fair_swap(
+                all_nodes1, all_nodes2, parent_map1, parent_map2, child1.root, child2.root
+            )
+        else:
+            # §2.1: Depth-aware crossover (0.40–1.0 → 60%)
+            swap_success = _depth_aware_swap(
+                all_nodes1, all_nodes2, parent_map1, parent_map2, child1.root, child2.root
+            )
 
-    if not swap_success:
-        # If swap failed, return original copies
-        return child1, child2
+        if not swap_success:
+            return child1, child2
 
-    # 6. Fix depths after swapping
+    # Fix depths after any structural modification
     fix_depths(child1.root, 0)
     fix_depths(child2.root, 0)
 
-    # 7. Pruning if trees exceed max_depth
+    # Prune if trees exceed max_depth
     if child1.get_depth() > child1.max_depth:
         child1 = prune_to_depth(child1, child1.max_depth)
     if child2.get_depth() > child2.max_depth:
         child2 = prune_to_depth(child2, child2.max_depth)
 
-    # 8. Reset IDs
+    # Reset IDs
     child1._assign_node_ids(child1.root, 0)
     child2._assign_node_ids(child2.root, 0)
 
-    # 9. Validation (optional - for development)
-    # is_valid1, errors1 = child1.validate()
-    # is_valid2, errors2 = child2.validate()
-
     return child1, child2
+
+
+# ============================================================================
+# §2.1: Depth-Aware Subtree Crossover helper
+# ============================================================================
+
+
+def _depth_aware_swap(
+    all_nodes1: list,
+    all_nodes2: list,
+    parent_map1: Dict[int, Optional[Node]],
+    parent_map2: Dict[int, Optional[Node]],
+    root1: Node,
+    root2: Node,
+) -> bool:
+    """Select crossover nodes preferring similar depths (§2.1).
+
+    - 90% of the time, ``node2`` is filtered to nodes within ±1 depth
+      of the selected ``node1``.
+    - 10% of the time, ``node2`` is selected fully randomly (for diversity).
+    """
+    node1 = random.choice(all_nodes1)
+
+    if random.random() < 0.90:  # depth-aware
+        candidates = [n for n in all_nodes2 if abs(n.depth - node1.depth) <= 1]
+        node2 = random.choice(candidates) if candidates else random.choice(all_nodes2)
+    else:
+        node2 = random.choice(all_nodes2)
+
+    return swap_subtrees(node1, node2, parent_map1, parent_map2, root1, root2)
+
+
+# ============================================================================
+# §2.2: Size-Fair Subtree Crossover helper
+# ============================================================================
+
+
+def _count_subtree_nodes(node: Optional[Node]) -> int:
+    """Count nodes in a subtree rooted at *node*."""
+    if node is None:
+        return 0
+    if node.is_leaf():
+        return 1
+    return 1 + _count_subtree_nodes(node.left_child) + _count_subtree_nodes(node.right_child)
+
+
+def _size_fair_swap(
+    all_nodes1: list,
+    all_nodes2: list,
+    parent_map1: Dict[int, Optional[Node]],
+    parent_map2: Dict[int, Optional[Node]],
+    root1: Node,
+    root2: Node,
+) -> bool:
+    """Subtree swap where the swapped subtrees are within 2× node count (§2.2).
+
+    Ensures offspring are not dominated by one parent's genetic material.
+    """
+    node1 = random.choice(all_nodes1)
+    size1 = _count_subtree_nodes(node1)
+
+    # Filter by size fairness: swapped subtree should be within 2× of size1
+    size_candidates = [
+        n for n in all_nodes2 if size1 / 2.0 <= _count_subtree_nodes(n) <= size1 * 2.0
+    ]
+    node2 = random.choice(size_candidates) if size_candidates else random.choice(all_nodes2)
+
+    return swap_subtrees(node1, node2, parent_map1, parent_map2, root1, root2)
+
+
+# ============================================================================
+# §2.2: Uniform Crossover helper
+# ============================================================================
+
+
+def _uniform_crossover(child1: TreeGenotype, child2: TreeGenotype) -> None:
+    """Uniform crossover: swap feature/threshold at matching internal nodes (§2.2).
+
+    Recursively walks both trees in lockstep.  Where both trees have an
+    internal node at the same structural position, randomly (50/50) swap
+    the ``feature_idx`` and ``threshold`` values.  Tree *structure* is
+    preserved; only the split logic varies.
+    """
+
+    def _traverse(n1: Optional[Node], n2: Optional[Node]) -> None:
+        if n1 is None or n2 is None:
+            return
+        if n1.is_internal() and n2.is_internal():
+            if random.random() < 0.5:
+                n1.feature_idx, n2.feature_idx = n2.feature_idx, n1.feature_idx
+                n1.threshold, n2.threshold = n2.threshold, n1.threshold
+            _traverse(n1.left_child, n2.left_child)
+            _traverse(n1.right_child, n2.right_child)
+
+    _traverse(child1.root, child2.root)
 
 
 def swap_subtrees(

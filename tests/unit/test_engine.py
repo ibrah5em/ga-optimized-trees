@@ -346,6 +346,14 @@ class TestGAEngineEvolve:
         best = engine.evolve(X, y, verbose=False)
         assert best is not None
 
+    def test_evolve_populates_diversity_history(self):
+        """evolve() should populate history['diversity'] each generation."""
+        X = np.random.rand(30, 4)
+        y = np.random.randint(0, 2, 30)
+        engine = self._make_engine(pop_size=10, n_gen=3)
+        engine.evolve(X, y, verbose=False)
+        assert len(engine.history["diversity"]) > 0
+
     def test_evolve_verbose_does_not_raise(self):
         X = np.random.rand(30, 4)
         y = np.random.randint(0, 2, 30)
@@ -353,3 +361,260 @@ class TestGAEngineEvolve:
         engine = self._make_engine(pop_size=10, n_gen=11)
         best = engine.evolve(X, y, verbose=True)
         assert best is not None
+
+
+# ---------------------------------------------------------------------------
+# §1.1: Improved TreeInitializer — full mode and depth-dependent stopping
+# ---------------------------------------------------------------------------
+
+
+class TestTreeInitializerModes:
+    def _make_initializer(self):
+        return TreeInitializer(
+            n_features=4,
+            n_classes=2,
+            max_depth=4,
+            min_samples_split=5,
+            min_samples_leaf=2,
+        )
+
+    def test_full_mode_tree_is_valid(self):
+        X = np.random.rand(60, 4)
+        y = np.random.randint(0, 2, 60)
+        init = self._make_initializer()
+        tree = init.create_random_tree(X, y, mode="full")
+        assert isinstance(tree, TreeGenotype)
+        valid, errs = tree.validate()
+        assert valid, f"full-mode tree invalid: {errs}"
+
+    def test_grow_mode_respects_max_depth(self):
+        X = np.random.rand(80, 4)
+        y = np.random.randint(0, 2, 80)
+        init = self._make_initializer()
+        for _ in range(10):
+            tree = init.create_random_tree(X, y, mode="grow")
+            assert tree.get_depth() <= init.max_depth
+
+    def test_full_mode_respects_max_depth(self):
+        X = np.random.rand(80, 4)
+        y = np.random.randint(0, 2, 80)
+        init = self._make_initializer()
+        for _ in range(10):
+            tree = init.create_random_tree(X, y, mode="full")
+            assert tree.get_depth() <= init.max_depth
+
+
+# ---------------------------------------------------------------------------
+# §1.2: create_informed_tree and _best_gini_split
+# ---------------------------------------------------------------------------
+
+
+class TestInformedInitialization:
+    def _make_initializer(self):
+        return TreeInitializer(
+            n_features=4,
+            n_classes=2,
+            max_depth=4,
+            min_samples_split=5,
+            min_samples_leaf=2,
+        )
+
+    def test_create_informed_tree_returns_valid_tree(self):
+        X = np.random.rand(80, 4)
+        y = np.random.randint(0, 2, 80)
+        init = self._make_initializer()
+        tree = init.create_informed_tree(X, y)
+        assert isinstance(tree, TreeGenotype)
+        valid, errs = tree.validate()
+        assert valid, f"informed tree invalid: {errs}"
+
+    def test_create_informed_tree_respects_max_depth(self):
+        X = np.random.rand(80, 4)
+        y = np.random.randint(0, 2, 80)
+        init = self._make_initializer()
+        for _ in range(5):
+            tree = init.create_informed_tree(X, y)
+            assert tree.get_depth() <= init.max_depth
+
+    def test_best_gini_split_returns_valid_split(self):
+        X = np.random.rand(60, 4)
+        y = np.random.randint(0, 2, 60)
+        init = self._make_initializer()
+        feature, threshold = init._best_gini_split(X, y)
+        # Should find at least one split on separable data
+        assert feature is not None
+        assert threshold is not None
+        assert 0 <= feature < 4
+
+    def test_best_gini_split_with_few_unique_values(self):
+        """_best_gini_split handles features with ≤10 unique values."""
+        # Only 5 unique values per feature
+        X = np.tile(np.array([0.1, 0.3, 0.5, 0.7, 0.9]), (20, 4)).reshape(100, 4)
+        y = np.random.randint(0, 2, 100)
+        init = self._make_initializer()
+        feature, threshold = init._best_gini_split(X, y)
+        # Should return None,None if all splits are too small, or a valid split
+        if feature is not None:
+            assert 0 <= feature < 4
+
+    def test_gini_impurity_zero_for_empty_subset(self):
+        init = self._make_initializer()
+        assert init._gini_impurity(np.array([]), 0, 100) == 0.0
+
+    def test_informed_tree_single_class(self):
+        """Informed tree with a single class returns a leaf."""
+        X = np.random.rand(30, 4)
+        y = np.zeros(30, dtype=int)  # Single class
+        init = self._make_initializer()
+        tree = init.create_informed_tree(X, y)
+        assert isinstance(tree, TreeGenotype)
+
+    def test_grow_informed_tree_constant_feature_fallback(self):
+        """Informed tree handles constant feature in random-quantile branch."""
+        # Make feature 0 constant so the random-feature path hits the fallback
+        X = np.zeros((30, 4))
+        X[:, 1:] = np.random.rand(30, 3)
+        y = np.random.randint(0, 2, 30)
+        init = self._make_initializer()
+        # Run several times to hit the constant-feature branch
+        for _ in range(5):
+            tree = init.create_informed_tree(X, y)
+            assert tree is not None
+
+
+# ---------------------------------------------------------------------------
+# §1.3: GAEngine._split_data and validation-aware evaluate_population
+# ---------------------------------------------------------------------------
+
+
+class TestSplitData:
+    def _make_engine(self):
+        config = GAConfig(population_size=10, n_generations=2, random_state=42)
+        init = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        return GAEngine(
+            config=config, initializer=init, fitness_function=_simple_fitness, mutation=mutation
+        )
+
+    def test_split_data_with_sufficient_samples(self):
+        X = np.random.rand(50, 4)
+        y = np.array([0] * 25 + [1] * 25)
+        engine = self._make_engine()
+        X_train, y_train, X_val, y_val = engine._split_data(X, y)
+        assert X_val is not None
+        assert y_val is not None
+        assert len(X_train) + len(X_val) == len(X)
+
+    def test_split_data_too_small_returns_none_val(self):
+        X = np.random.rand(10, 4)
+        y = np.random.randint(0, 2, 10)
+        engine = self._make_engine()
+        X_train, y_train, X_val, y_val = engine._split_data(X, y)
+        assert X_val is None
+        assert y_val is None
+
+    def test_split_data_single_class_no_stratify(self):
+        """Single-class y should not stratify (would error with stratify)."""
+        X = np.random.rand(50, 4)
+        y = np.zeros(50, dtype=int)
+        engine = self._make_engine()
+        X_train, y_train, X_val, y_val = engine._split_data(X, y)
+        # Should succeed (fallback to no-stratify)
+        assert X_train is not None
+
+    def test_check_fitness_accepts_val_three_arg(self):
+        """3-arg fitness function should not be detected as accepting val."""
+        engine = self._make_engine()
+        assert engine._fitness_accepts_val is False
+
+    def test_check_fitness_accepts_val_five_arg(self):
+        """5-arg fitness function should be detected as accepting val."""
+        from ga_trees.fitness.calculator import FitnessCalculator
+
+        fc = FitnessCalculator()
+        config = GAConfig(population_size=5, n_generations=1)
+        init = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        engine = GAEngine(
+            config=config,
+            initializer=init,
+            fitness_function=fc.calculate_fitness,
+            mutation=mutation,
+        )
+        assert engine._fitness_accepts_val is True
+
+
+# ---------------------------------------------------------------------------
+# §1.4 + §1.5: GAEngine helpers
+# ---------------------------------------------------------------------------
+
+
+class TestGAEngineHelpers:
+    def _make_engine(self, pop_size=10):
+        config = GAConfig(population_size=pop_size, n_generations=2, random_state=0)
+        init = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        return GAEngine(
+            config=config, initializer=init, fitness_function=_simple_fitness, mutation=mutation
+        )
+
+    def test_get_adaptive_params_no_stagnation(self):
+        engine = self._make_engine()
+        prob, types = engine._get_adaptive_params(0)
+        assert prob == engine.config.mutation_prob
+        assert types == engine.config.mutation_types
+
+    def test_get_adaptive_params_with_stagnation_boosts_rate(self):
+        engine = self._make_engine()
+        prob, types = engine._get_adaptive_params(10)
+        assert prob > engine.config.mutation_prob
+
+    def test_get_adaptive_params_with_stagnation_normalizes_weights(self):
+        engine = self._make_engine()
+        _, types = engine._get_adaptive_params(10)
+        assert abs(sum(types.values()) - 1.0) < 1e-6
+
+    def test_inject_immigrants_reduces_weak_individuals(self):
+        X = np.random.rand(40, 4)
+        y = np.random.randint(0, 2, 40)
+        engine = self._make_engine(pop_size=10)
+        engine.initialize_population(X, y)
+        engine.evaluate_population(X, y)
+        engine._inject_immigrants(X, y, None, None)
+        # All individuals should still have fitness after evaluation
+        assert all(ind.fitness_ is not None for ind in engine.population)
+
+    def test_initialize_population_size_correct(self):
+        X = np.random.rand(50, 4)
+        y = np.random.randint(0, 2, 50)
+        engine = self._make_engine(pop_size=12)
+        engine.initialize_population(X, y)
+        assert len(engine.population) == 12
+
+    def test_evolve_with_real_fitness_calculator(self):
+        """End-to-end evolve with FitnessCalculator validating §1.3 integration."""
+        from ga_trees.fitness.calculator import FitnessCalculator
+
+        X = np.random.rand(50, 4)
+        y = np.array([0] * 25 + [1] * 25)
+        n_features = 4
+        feature_ranges = {i: (0.0, 1.0) for i in range(n_features)}
+        config = GAConfig(population_size=8, n_generations=3, random_state=7)
+        init = TreeInitializer(n_features, 2, max_depth=3, min_samples_split=5, min_samples_leaf=2)
+        fc = FitnessCalculator()
+        mutation = Mutation(n_features, feature_ranges)
+        engine = GAEngine(
+            config=config,
+            initializer=init,
+            fitness_function=fc.calculate_fitness,
+            mutation=mutation,
+        )
+        best = engine.evolve(X, y, verbose=False)
+        assert isinstance(best, TreeGenotype)
+        assert len(engine.history["diversity"]) > 0

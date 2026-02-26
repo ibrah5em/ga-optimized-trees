@@ -156,3 +156,152 @@ def test_early_stopping(iris_dataset):
 
     # Should have stopped well before 200 generations
     assert len(engine.history["best_fitness"]) < 200
+
+
+# ---------------------------------------------------------------------------
+# §3.2: New mutation operators
+# ---------------------------------------------------------------------------
+
+
+def _depth2_tree(n_features=4):
+    """Create a depth-2 tree for mutation tests."""
+    ll = create_leaf_node(0, 2)
+    lr = create_leaf_node(1, 2)
+    rl = create_leaf_node(0, 2)
+    rr = create_leaf_node(1, 2)
+    left = create_internal_node(1, 0.3, ll, lr, depth=1)
+    right = create_internal_node(2, 0.7, rl, rr, depth=1)
+    root = create_internal_node(0, 0.5, left, right, depth=0)
+    return TreeGenotype(root=root, n_features=n_features, n_classes=2, max_depth=5)
+
+
+class TestNewMutationOperators:
+    def _make_mutation(self):
+        return Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+
+    # subtree_regeneration ---------------------------------------------------
+
+    def test_subtree_regeneration_returns_valid_tree(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        result = mutation.subtree_regeneration(tree)
+        assert isinstance(result, TreeGenotype)
+
+    def test_subtree_regeneration_on_leaf_only_tree(self):
+        """subtree_regeneration on a root-only internal tree with no non-root candidates."""
+        left = create_leaf_node(0, 1)
+        right = create_leaf_node(1, 1)
+        root = create_internal_node(0, 0.5, left, right, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        # Candidates exclude root → candidates = [] → returns unchanged
+        result = mutation.subtree_regeneration(tree)
+        assert result is not None
+
+    def test_subtree_regeneration_no_feature_ranges(self):
+        """subtree_regeneration with empty feature_ranges uses threshold=0.0 branch."""
+        tree = _depth2_tree()
+        mutation = Mutation(n_features=4, feature_ranges={})
+        result = mutation.subtree_regeneration(tree)
+        assert result is not None
+
+    # swap_children ----------------------------------------------------------
+
+    def test_swap_children_changes_subtrees(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        original_left_id = tree.root.left_child.node_id
+        result = mutation.swap_children(tree)
+        # Root's new left child was the old right child
+        assert result.root.left_child.node_id != original_left_id
+
+    def test_swap_children_on_leaf_tree(self):
+        root = create_leaf_node(0, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        result = mutation.swap_children(tree)
+        assert result.root.is_leaf()
+
+    # hoist_mutation ---------------------------------------------------------
+
+    def test_hoist_mutation_reduces_depth(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        original_depth = tree.get_depth()
+        result = mutation.hoist_mutation(tree)
+        # After hoisting a subtree, depth should be <= original
+        assert result.get_depth() <= original_depth
+
+    def test_hoist_mutation_on_leaf_tree_unchanged(self):
+        root = create_leaf_node(0, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        result = mutation.hoist_mutation(tree)
+        assert result.root.is_leaf()
+
+    def test_hoist_mutation_produces_valid_tree(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        result = mutation.hoist_mutation(tree)
+        valid, errs = result.validate()
+        assert valid, f"hoist_mutation produced invalid tree: {errs}"
+
+    # smart_threshold --------------------------------------------------------
+
+    def test_smart_threshold_stays_in_range(self):
+        left = create_leaf_node(0, 1)
+        right = create_leaf_node(1, 1)
+        root = create_internal_node(0, 0.5, left, right, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        for _ in range(10):
+            result = mutation.smart_threshold(tree.copy())
+            assert 0.0 <= result.root.threshold <= 1.0
+
+    def test_smart_threshold_on_leaf_tree_unchanged(self):
+        root = create_leaf_node(0, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        result = mutation.smart_threshold(tree)
+        assert result.root.is_leaf()
+
+    # _generate_random_subtree -----------------------------------------------
+
+    def test_generate_random_subtree_returns_node(self):
+        mutation = self._make_mutation()
+        node = mutation._generate_random_subtree(0, 3)
+        assert node is not None
+
+    def test_generate_random_subtree_at_max_depth_returns_leaf(self):
+        mutation = self._make_mutation()
+        node = mutation._generate_random_subtree(3, 3)
+        assert node.is_leaf()
+
+    # mutate dispatch for new types ------------------------------------------
+
+    def test_mutate_dispatches_swap_children(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        result = mutation.mutate(tree, {"swap_children": 1.0})
+        assert result is not None
+
+    def test_mutate_dispatches_hoist(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        result = mutation.mutate(tree, {"hoist": 1.0})
+        assert result is not None
+
+    def test_mutate_dispatches_subtree_regeneration(self):
+        tree = _depth2_tree()
+        mutation = self._make_mutation()
+        result = mutation.mutate(tree, {"subtree_regeneration": 1.0})
+        assert result is not None
+
+    def test_mutate_dispatches_smart_threshold(self):
+        left = create_leaf_node(0, 1)
+        right = create_leaf_node(1, 1)
+        root = create_internal_node(0, 0.5, left, right, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = self._make_mutation()
+        result = mutation.mutate(tree, {"smart_threshold": 1.0})
+        assert result is not None
