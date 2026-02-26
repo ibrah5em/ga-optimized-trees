@@ -50,6 +50,8 @@ class GAConfig:
     elitism_ratio: float = 0.1
     mutation_types: Dict[str, float] = None
     random_state: Optional[int] = None
+    early_stopping_rounds: Optional[int] = None
+    early_stopping_tol: float = 1e-6
 
     def __post_init__(self):
         # --- LDD-5: input validation ---
@@ -431,6 +433,9 @@ class GAEngine:
         self.initialize_population(X, y)
         self.evaluate_population(X, y)
 
+        stagnation_counter = 0
+        previous_best_fitness = -np.inf
+
         for generation in range(self.config.n_generations):
             # Track statistics
             fitnesses = [ind.fitness_ for ind in self.population if ind.fitness_]
@@ -447,6 +452,24 @@ class GAEngine:
                     or best_ind.fitness_ > self.best_individual.fitness_
                 ):
                     self.best_individual = best_ind.copy()
+
+                # Early stopping check
+                if self.config.early_stopping_rounds is not None:
+                    if best_fitness - previous_best_fitness > self.config.early_stopping_tol:
+                        stagnation_counter = 0
+                    else:
+                        stagnation_counter += 1
+
+                    if stagnation_counter >= self.config.early_stopping_rounds:
+                        if verbose:
+                            logger.info(
+                                "Early stopping at generation %d (no improvement for %d rounds)",
+                                generation,
+                                self.config.early_stopping_rounds,
+                            )
+                        break
+
+                    previous_best_fitness = best_fitness
 
                 if verbose and generation % 10 == 0:
                     logger.info(
