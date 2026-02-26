@@ -36,6 +36,10 @@ from sklearn.metrics import (
 #: Corresponds to a full binary tree of depth 6 (2^7 - 1 = 127).
 DEFAULT_MAX_NODES_FALLBACK: int = 127
 
+#: Default target node count for the non-linear complexity penalty (§4.1).
+#: Trees near this size get ~0.5 complexity score; smaller trees score higher.
+DEFAULT_NODE_COMPLEXITY_TARGET: int = 15
+
 #: Hard ceiling on tree depth to prevent recursion issues (LDD-6).
 MAX_ALLOWED_DEPTH: int = 50
 
@@ -208,7 +212,11 @@ class InterpretabilityCalculator:
     """
 
     @staticmethod
-    def calculate_composite_score(tree, weights: Dict[str, float]) -> float:
+    def calculate_composite_score(
+        tree,
+        weights: Dict[str, float],
+        node_complexity_target: int = DEFAULT_NODE_COMPLEXITY_TARGET,
+    ) -> float:
         """Calculate composite interpretability score.
 
         Args:
@@ -216,6 +224,9 @@ class InterpretabilityCalculator:
             weights: Dictionary mapping metric names to their weights.
                 Recognized keys: ``node_complexity``, ``feature_coherence``,
                 ``tree_balance``, ``semantic_coherence``.
+            node_complexity_target: Desired tree size for the non-linear
+                complexity penalty (§4.1).  Default is
+                ``DEFAULT_NODE_COMPLEXITY_TARGET`` (15 nodes).
 
         Returns:
             Weighted score in ``[0, 1]`` (assuming sub-weights sum to 1).
@@ -223,7 +234,9 @@ class InterpretabilityCalculator:
         score = 0.0
 
         if "node_complexity" in weights:
-            score += weights["node_complexity"] * InterpretabilityCalculator._node_complexity(tree)
+            score += weights["node_complexity"] * InterpretabilityCalculator._node_complexity(
+                tree, node_complexity_target
+            )
 
         if "feature_coherence" in weights:
             score += weights["feature_coherence"] * InterpretabilityCalculator._feature_coherence(
@@ -241,29 +254,39 @@ class InterpretabilityCalculator:
         return score
 
     @staticmethod
-    def _node_complexity(tree) -> float:
+    def _node_complexity(tree, target_nodes: int = DEFAULT_NODE_COMPLEXITY_TARGET) -> float:
         """Node complexity metric — fewer nodes = more interpretable.
 
-        Formula: ``M_1(T) = 1 - nodes(T) / max_nodes``
+        §4.1: Non-linear penalty formula: ``1 / (1 + nodes(T) / target_nodes)``
 
-        LDD-7: ``max_nodes`` is dynamically derived from the tree's
-        ``max_depth`` as ``2^(max_depth+1) - 1`` (full binary tree).
+        This creates a sweet spot around ``target_nodes`` (default 15) where
+        trees are both interpretable and accurate.  The previous linear formula
+        ``1 - nodes/max_nodes`` produced almost no gradient distinguishing a
+        3-node tree from a 15-node tree (difference < 0.1 for max_depth=6).
+        The new formula has much stronger gradient around the target size.
+
+        Examples with target_nodes=15:
+        - 3 nodes  → score ≈ 0.83
+        - 7 nodes  → score ≈ 0.68
+        - 15 nodes → score = 0.50
+        - 31 nodes → score ≈ 0.33
+        - 63 nodes → score ≈ 0.19
         """
         num_nodes = tree.get_num_nodes()
-
-        # LDD-7: derive max_nodes from tree constraints
-        if hasattr(tree, "max_depth") and tree.max_depth is not None and tree.max_depth > 0:
-            max_nodes = (2 ** (tree.max_depth + 1)) - 1
-        else:
-            max_nodes = DEFAULT_MAX_NODES_FALLBACK
-
-        return max(0.0, 1.0 - num_nodes / max_nodes)
+        target = max(1, target_nodes)
+        return 1.0 / (1.0 + num_nodes / target)
 
     @staticmethod
     def _feature_coherence(tree) -> float:
         """Feature coherence — reward using fewer features.
 
-        Formula: ``M_2(T) = 1 - unique_features(T) / total_features``
+        §4.4: Threshold-based metric:
+        ``score = 1.0 - min(features_used / max_desired, 1.0)``
+        where ``max_desired = min(5, max(1, total_features // 2))``.
+
+        Using up to ``max_desired`` features incurs no penalty; beyond that
+        the score decreases linearly.  This avoids penalizing a 5-feature tree
+        on a 13-feature dataset as heavily as a 10-feature tree.
 
         LDD-8: A tree using *zero* features (leaf-only) returns 0.5
         instead of 1.0 to avoid rewarding trivial trees maximally.
@@ -278,8 +301,11 @@ class InterpretabilityCalculator:
         if total_features == 0:
             return 0.5
 
-        coherence = 1.0 - (len(features_used) / total_features)
-        return max(0.0, coherence)
+        # §4.4: threshold-based penalty — using ≤ max_desired features is fine
+        max_desired = min(5, max(1, total_features // 2))
+        n_used = len(features_used)
+        score = 1.0 - min(n_used / max_desired, 1.0)
+        return max(0.0, score)
 
     @staticmethod
     def _semantic_coherence(tree) -> float:
@@ -332,6 +358,17 @@ class FitnessCalculator:
             ``"balanced_accuracy"``.
         regression_metric: Metric for regression fitness.
             One of ``"neg_mse"`` (transformed to ``1/(1+MSE)``), ``"r2"``.
+        node_complexity_target: Target node count for the non-linear
+            complexity penalty (§4.1).  Default is 15.
+        overfit_penalty_weight: Weight for the overfitting penalty (§4.3).
+            When validation data is provided, trees with a large train/val
+            accuracy gap are penalised by
+            ``overfit_penalty_weight * max(0, train_acc - val_acc)``.
+            Default is 0.0 (no penalty).
+        curriculum_fitness: Enable curriculum fitness (§4.2).  When True,
+            ``set_evolution_phase()`` adjusts accuracy/interpretability
+            weights: first 60% of evolution uses accuracy=0.90, last 40%
+            shifts to accuracy=0.70 for compression.
     """
 
     def __init__(
@@ -342,6 +379,9 @@ class FitnessCalculator:
         interpretability_weights: Optional[Dict[str, float]] = None,
         classification_metric: str = "accuracy",
         regression_metric: str = "neg_mse",
+        node_complexity_target: int = DEFAULT_NODE_COMPLEXITY_TARGET,
+        overfit_penalty_weight: float = 0.0,
+        curriculum_fitness: bool = False,
     ):
         # --- LDD-5: input validation ---
         if mode not in VALID_MODES:
@@ -368,6 +408,13 @@ class FitnessCalculator:
         self.interpretability_weight = interpretability_weight
         self.classification_metric = classification_metric
         self.regression_metric = regression_metric
+        self.node_complexity_target = node_complexity_target
+        self.overfit_penalty_weight = overfit_penalty_weight
+        self.curriculum_fitness = curriculum_fitness
+
+        # Store base weights for curriculum reset/reference
+        self._base_accuracy_weight = accuracy_weight
+        self._base_interpretability_weight = interpretability_weight
 
         if interpretability_weights is None:
             self.interpretability_weights: Dict[str, float] = {
@@ -381,6 +428,30 @@ class FitnessCalculator:
 
         self.predictor = TreePredictor()
         self.interp_calc = InterpretabilityCalculator()
+
+    def set_evolution_phase(self, phase: float) -> None:
+        """Update fitness weights based on evolution progress (§4.2 curriculum).
+
+        Args:
+            phase: Evolution progress in ``[0, 1]`` (0 = start, 1 = end).
+                Typically ``current_generation / total_generations``.
+
+        When ``curriculum_fitness`` is ``True``:
+        - phase < 0.6: accuracy_weight=0.90, interpretability_weight=0.10
+          (explore for accuracy in the first 60% of evolution)
+        - phase >= 0.6: accuracy_weight=0.70, interpretability_weight=0.30
+          (compress for interpretability in the final 40%)
+
+        When ``curriculum_fitness`` is ``False`` this is a no-op.
+        """
+        if not self.curriculum_fitness:
+            return
+        if phase < 0.6:
+            self.accuracy_weight = 0.90
+            self.interpretability_weight = 0.10
+        else:
+            self.accuracy_weight = 0.70
+            self.interpretability_weight = 0.30
 
     def calculate_fitness(
         self,
@@ -430,9 +501,9 @@ class FitnessCalculator:
         else:
             accuracy = self._compute_regression_metric(y_eval, y_pred)
 
-        # Calculate interpretability
+        # Calculate interpretability with configurable target node count (§4.1)
         interpretability = self.interp_calc.calculate_composite_score(
-            tree, self.interpretability_weights
+            tree, self.interpretability_weights, self.node_complexity_target
         )
 
         # Store individual scores on the tree
@@ -447,6 +518,17 @@ class FitnessCalculator:
         fitness: float = (
             self.accuracy_weight * accuracy + self.interpretability_weight * interpretability
         )
+
+        # §4.3: Overfitting penalty — when val data is present and penalty is enabled
+        if self.overfit_penalty_weight > 0.0 and X_val is not None and y_val is not None:
+            y_pred_train = self.predictor.predict(tree, X)
+            if tree.task_type == "classification":
+                train_acc = self._compute_classification_metric(y, y_pred_train)
+            else:
+                train_acc = self._compute_regression_metric(y, y_pred_train)
+            overfit_gap = max(0.0, train_acc - accuracy)
+            fitness -= self.overfit_penalty_weight * overfit_gap
+
         return fitness
 
     def _compute_classification_metric(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:

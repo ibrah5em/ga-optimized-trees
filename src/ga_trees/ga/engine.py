@@ -916,6 +916,12 @@ class GAEngine:
             # Evaluate new individuals
             self.evaluate_population(X_train, y_train, X_val, y_val)
 
+            # §4.2: Notify fitness_function of current evolution phase (curriculum)
+            phase = (generation + 1) / self.config.n_generations
+            fn = self.fitness_function
+            if hasattr(fn, "__self__") and hasattr(fn.__self__, "set_evolution_phase"):
+                fn.__self__.set_evolution_phase(phase)
+
         return self.best_individual
 
     def get_history(self) -> Dict[str, List]:

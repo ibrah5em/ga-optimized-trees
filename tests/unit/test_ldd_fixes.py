@@ -281,27 +281,23 @@ class TestLDD5_InputValidation:
 
 
 class TestLDD7_DynamicMaxNodes:
-    """LDD-7: Node complexity uses tree.max_depth, not hardcoded 127."""
+    """LDD-7 / §4.1: Node complexity now uses non-linear 1/(1+n/target) formula."""
 
-    def test_max_depth_5_full_tree_scores_zero(self):
-        """A full tree at max_depth=5 should have complexity near 0."""
-        # max_nodes = 2^6 - 1 = 63
-        # With 63 nodes, score = 1 - 63/63 = 0.0
+    def test_small_tree_scores_above_half(self):
+        """A 3-node tree scores above 0.5 with default target_nodes=15."""
+        # 1/(1+3/15) = 1/1.2 ≈ 0.833
         tree = _two_node_tree(max_depth=5)
-        # Manually override node count for testing
         score = InterpretabilityCalculator._node_complexity(tree)
-        # tree has 3 nodes, max_nodes=63 → 1 - 3/63 ≈ 0.952
-        expected = 1.0 - 3.0 / 63.0
+        expected = 1.0 / (1.0 + 3.0 / 15.0)
         assert abs(score - expected) < 1e-6
 
-    def test_different_max_depths_give_different_scores(self):
-        """Same tree under different max_depth constraints yields different scores."""
-        tree5 = _two_node_tree(max_depth=5)  # max_nodes = 63
-        tree10 = _two_node_tree(max_depth=10)  # max_nodes = 2047
-        score5 = InterpretabilityCalculator._node_complexity(tree5)
-        score10 = InterpretabilityCalculator._node_complexity(tree10)
-        # Same number of nodes (3), but different denominators
-        assert score10 > score5  # 1 - 3/2047 > 1 - 3/63
+    def test_larger_tree_scores_lower(self):
+        """A deeper tree with more nodes gets a lower complexity score."""
+        small = _two_node_tree(max_depth=5)  # 3 nodes
+        large = _deep_tree(depth=3)  # ≥ 7 nodes
+        score_small = InterpretabilityCalculator._node_complexity(small)
+        score_large = InterpretabilityCalculator._node_complexity(large)
+        assert score_small > score_large
 
 
 # ===================================================================
@@ -318,11 +314,15 @@ class TestLDD8_FeatureCoherence:
         score = InterpretabilityCalculator._feature_coherence(tree)
         assert score == 0.5
 
-    def test_single_feature_tree_returns_high(self):
-        """A tree using 1 of 4 features should score 0.75."""
+    def test_single_feature_tree_returns_half(self):
+        """§4.4: A tree using 1 of 4 features scores 0.5 (threshold-based formula).
+
+        max_desired = min(5, max(1, 4//2)) = 2
+        score = 1 - min(1/2, 1) = 0.5
+        """
         tree = _two_node_tree()  # uses feature 0 out of 4
         score = InterpretabilityCalculator._feature_coherence(tree)
-        expected = 1.0 - 1.0 / 4.0  # 0.75
+        expected = 1.0 - 1.0 / 2.0  # 0.5
         assert abs(score - expected) < 1e-6
 
 

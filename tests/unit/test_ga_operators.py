@@ -208,12 +208,16 @@ class TestNewMutationOperators:
     # swap_children ----------------------------------------------------------
 
     def test_swap_children_changes_subtrees(self):
-        tree = _depth2_tree()
+        # Use depth-1 tree (single internal node = root) so the choice is deterministic
+        left = create_leaf_node(0, 1)
+        right = create_leaf_node(1, 1)
+        root = create_internal_node(0, 0.5, left, right, depth=0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
         mutation = self._make_mutation()
-        original_left_id = tree.root.left_child.node_id
+        original_left_pred = tree.root.left_child.prediction  # 0
         result = mutation.swap_children(tree)
-        # Root's new left child was the old right child
-        assert result.root.left_child.node_id != original_left_id
+        # Root is the only internal node, so its children must be swapped
+        assert result.root.left_child.prediction != original_left_pred
 
     def test_swap_children_on_leaf_tree(self):
         root = create_leaf_node(0, depth=0)

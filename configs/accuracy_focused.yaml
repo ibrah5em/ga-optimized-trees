@@ -25,8 +25,8 @@ tree:
 fitness:
   mode: weighted_sum
   weights:
-    accuracy: 0.85
-    interpretability: 0.15
+    accuracy: 0.95
+    interpretability: 0.05
 
   interpretability_weights:
     node_complexity: 0.4
