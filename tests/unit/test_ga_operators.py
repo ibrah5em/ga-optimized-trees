@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ga_trees.ga.engine import Crossover, Mutation, Selection, TreeInitializer
+from ga_trees.ga.engine import Crossover, GAConfig, GAEngine, Mutation, Selection, TreeInitializer
 from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 
@@ -128,3 +128,31 @@ class TestTreeInitializer:
         assert tree.get_num_nodes() >= 1
         valid, errors = tree.validate()
         assert valid, f"Tree validation failed: {errors}"
+
+
+def test_early_stopping(iris_dataset):
+    """GA stops early when fitness stagnates."""
+    X, y = iris_dataset
+    n_features = X.shape[1]
+    n_classes = len(np.unique(y))
+    feature_ranges = {i: (float(X[:, i].min()), float(X[:, i].max())) for i in range(n_features)}
+
+    from ga_trees.fitness.calculator import FitnessCalculator
+
+    config = GAConfig(
+        population_size=20,
+        n_generations=200,  # Very high — should stop early
+        early_stopping_rounds=5,
+        random_state=42,
+    )
+    initializer = TreeInitializer(
+        n_features, n_classes, max_depth=3, min_samples_split=5, min_samples_leaf=2
+    )
+    fitness_calc = FitnessCalculator()
+    mutation = Mutation(n_features, feature_ranges)
+    engine = GAEngine(config, initializer, fitness_calc.calculate_fitness, mutation)
+
+    engine.evolve(X, y, verbose=False)
+
+    # Should have stopped well before 200 generations
+    assert len(engine.history["best_fitness"]) < 200
