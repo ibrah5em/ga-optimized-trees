@@ -180,7 +180,6 @@ ______________________________________________________________________
 
 Full documentation is in [`docs/`](docs/README.md), covering installation, core concepts, API reference, user guides, and research methodology.
 
-
 Also you can check them in my [website](https://ibrah5em.duckdns.org/notes/GA-project-docs/README).
 
 ______________________________________________________________________
