@@ -1,25 +1,29 @@
 /* ══════════════════════════════════════════════════════════════
-   GA-Optimized Decision Trees — MkDocs Material custom theme
+   GA-Optimized Decision Trees — Dark theme
    ══════════════════════════════════════════════════════════════ */
 
-/* ── 1. Palette & colour tokens ─────────────────────────────── */
+/* ── 1. Palette — deep slate blues, no green ────────────────── */
 :root {
-  --md-primary-fg-color:        #00bfa5;
-  --md-primary-fg-color--light: #00e5cc;
-  --md-primary-fg-color--dark:  #00897b;
-  --md-accent-fg-color:         #00e5cc;
-
-  /* custom tokens */
-  --ga-glow:       rgba(0, 191, 165, 0.12);
-  --ga-glow-hover: rgba(0, 191, 165, 0.22);
-  --ga-border:     rgba(0, 191, 165, 0.25);
-  --ga-card-bg:    var(--md-code-bg-color);
-  --ga-radius:     10px;
-  --ga-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --md-primary-fg-color:        #7c8aff;
+  --md-primary-fg-color--light: #a0aaff;
+  --md-primary-fg-color--dark:  #5560cc;
+  --md-accent-fg-color:         #a0aaff;
 }
 
 [data-md-color-scheme="slate"] {
-  --ga-card-bg: hsla(230, 15%, 15%, 1);
+  --md-default-bg-color:        hsl(228, 16%, 10%);
+  --md-default-bg-color--light: hsl(228, 14%, 13%);
+  --md-code-bg-color:           hsl(228, 14%, 13%);
+}
+
+:root {
+  --ga-glow:       rgba(124, 138, 255, 0.08);
+  --ga-glow-hover: rgba(124, 138, 255, 0.16);
+  --ga-border:     rgba(124, 138, 255, 0.25);
+  --ga-card-bg:    hsl(228, 14%, 13%);
+  --ga-card-border:rgba(255, 255, 255, 0.08);
+  --ga-radius:     10px;
+  --ga-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
@@ -30,22 +34,33 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 191, 165, 0.18);
+  background: rgba(124, 138, 255, 0.2);
 }
 
 a {
   transition: color var(--ga-transition);
 }
 
-/* Slightly tighter nav font */
 .md-nav__link {
   font-size: 0.78rem;
 }
 
 
-/* ── 3. Hero banner ─────────────────────────────────────────── */
+/* ── 3. Hide "Made with Material for MkDocs" footer ─────────── */
+.md-footer-meta .md-footer-meta__inner {
+  display: none;
+}
+
+.md-footer-meta {
+  padding: 0;
+  min-height: 0;
+}
+
+
+/* ── 4. Hero banner — dark gradient ─────────────────────────── */
 .md-typeset .hero-banner {
-  background: linear-gradient(135deg, #00bfa5 0%, #0077b6 50%, #023e8a 100%);
+  background: linear-gradient(135deg, hsl(228, 30%, 16%) 0%, hsl(240, 22%, 22%) 50%, hsl(250, 28%, 18%) 100%);
+  border: 1px solid rgba(124, 138, 255, 0.15);
   border-radius: var(--ga-radius);
   padding: 3rem 2.5rem 2.5rem;
   margin-bottom: 2rem;
@@ -54,14 +69,13 @@ a {
   overflow: hidden;
 }
 
-/* subtle pattern overlay */
 .md-typeset .hero-banner::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.04) 0%, transparent 50%);
+    radial-gradient(circle at 15% 85%, rgba(124, 138, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 15%, rgba(160, 170, 255, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -74,30 +88,30 @@ a {
 }
 
 .md-typeset .hero-banner p {
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 1.1rem;
   margin-bottom: 0;
   position: relative;
 }
 
 .md-typeset .hero-banner strong {
-  color: #fff;
+  color: #c5cbff;
 }
 
 
-/* ── 4. Stat cards ──────────────────────────────────────────── */
+/* ── 5. Stat cards — nowrap fix ─────────────────────────────── */
 .md-typeset .stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin: 1.5rem 0;
 }
 
 .md-typeset .stat-card {
   background: var(--ga-card-bg);
-  border: 1px solid var(--md-default-fg-color--lightest);
+  border: 1px solid var(--ga-card-border);
   border-radius: var(--ga-radius);
-  padding: 1.1rem 1rem;
+  padding: 1.1rem 0.8rem;
   text-align: center;
   transition: border-color var(--ga-transition), box-shadow var(--ga-transition);
 }
@@ -108,74 +122,82 @@ a {
 }
 
 .md-typeset .stat-card .stat-num {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--md-primary-fg-color);
-  line-height: 1;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .md-typeset .stat-card .stat-desc {
-  font-size: 0.72rem;
-  color: var(--md-default-fg-color--light);
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
   letter-spacing: 0.6px;
   margin-top: 6px;
+  white-space: nowrap;
 }
 
 
-/* ── 5. Card grid (FIXED — uses .card wrapper) ──────────────── */
+/* ── 6. Documentation card grid ─────────────────────────────── */
 .md-typeset .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   margin: 1.5rem 0;
 }
 
 .md-typeset .card-grid .card {
   background: var(--ga-card-bg);
-  border: 1px solid var(--md-default-fg-color--lightest);
+  border: 1px solid var(--ga-card-border);
   border-radius: var(--ga-radius);
-  padding: 0;              /* padding lives on the <a> for full-card click area */
+  padding: 0;
+  min-height: 0;
   transition: border-color var(--ga-transition),
               transform    var(--ga-transition),
-              box-shadow   var(--ga-transition);
+              box-shadow   var(--ga-transition),
+              background   var(--ga-transition);
 }
 
 .md-typeset .card-grid .card:hover {
-  border-color: var(--md-primary-fg-color);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 191, 165, 0.13);
+  border-color: rgba(124, 138, 255, 0.3);
+  background: hsl(228, 14%, 15%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25),
+              0 0 0 1px rgba(124, 138, 255, 0.08);
 }
 
 .md-typeset .card-grid .card a {
-  display: block;
-  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
   text-decoration: none;
   color: inherit;
-  height: 100%;
   box-sizing: border-box;
 }
 
 .md-typeset .card-grid .card .card-icon {
-  font-size: 1.6rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+  line-height: 1;
 }
 
 .md-typeset .card-grid .card .card-title {
   font-weight: 700;
-  color: var(--md-default-fg-color);
-  margin-bottom: 0.3rem;
-  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.92);
+  margin-bottom: 0.2rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
 }
 
 .md-typeset .card-grid .card .card-desc {
-  font-size: 0.78rem;
-  color: var(--md-default-fg-color--light);
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.42);
   line-height: 1.45;
 }
 
 
-/* ── 6. Code blocks ─────────────────────────────────────────── */
+/* ── 7. Code blocks ─────────────────────────────────────────── */
 .md-typeset pre > code {
   border-radius: 8px;
   font-size: 0.82rem;
@@ -185,29 +207,26 @@ a {
   font-size: 0.86em;
 }
 
-/* Copy button nudge */
-.md-typeset .highlight .md-clipboard {
-  transition: color var(--ga-transition);
-}
 
-
-/* ── 7. Tables ──────────────────────────────────────────────── */
+/* ── 8. Tables ──────────────────────────────────────────────── */
 .md-typeset table:not([class]) {
   border-radius: var(--ga-radius);
-  overflow: hidden;                  /* rounds corners on the table */
-  border: 1px solid var(--md-default-fg-color--lightest);
+  overflow: hidden;
+  border: 1px solid var(--ga-card-border);
 }
 
 .md-typeset table:not([class]) th {
-  background-color: var(--md-primary-fg-color--dark);
-  color: white;
-  font-size: 0.82rem;
+  background-color: hsl(228, 16%, 16%);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .md-typeset table:not([class]) td {
   font-size: 0.85rem;
+  border-color: var(--ga-card-border);
 }
 
 .md-typeset table:not([class]) tbody tr {
@@ -219,7 +238,7 @@ a {
 }
 
 
-/* ── 8. Admonitions ─────────────────────────────────────────── */
+/* ── 9. Admonitions ─────────────────────────────────────────── */
 .md-typeset .admonition,
 .md-typeset details {
   border-radius: var(--ga-radius);
@@ -227,10 +246,9 @@ a {
   border-left-width: 4px;
 }
 
-/* custom "result" type */
 .md-typeset .admonition.result,
 .md-typeset details.result {
-  border-color: #00bfa5;
+  border-color: var(--md-primary-fg-color);
 }
 
 .md-typeset .admonition.result > .admonition-title,
@@ -240,13 +258,13 @@ a {
 
 .md-typeset .admonition.result > .admonition-title::before,
 .md-typeset details.result > summary::before {
-  background-color: #00bfa5;
+  background-color: var(--md-primary-fg-color);
   -webkit-mask-image: var(--md-admonition-icon--tip);
           mask-image: var(--md-admonition-icon--tip);
 }
 
 
-/* ── 9. Tabs (content tabs) ─────────────────────────────────── */
+/* ── 10. Tabs ───────────────────────────────────────────────── */
 .md-typeset .tabbed-labels > label {
   font-size: 0.82rem;
   font-weight: 600;
@@ -254,7 +272,7 @@ a {
 }
 
 
-/* ── 10. Badges ─────────────────────────────────────────────── */
+/* ── 11. Badges — dark palette ──────────────────────────────── */
 .md-typeset .badge {
   display: inline-block;
   font-size: 0.68rem;
@@ -266,26 +284,26 @@ a {
   margin-right: 4px;
 }
 
-.md-typeset .badge-teal {
-  background: rgba(0, 191, 165, 0.12);
-  color: #00bfa5;
-  border: 1px solid rgba(0, 191, 165, 0.35);
+.md-typeset .badge-slate {
+  background: rgba(124, 138, 255, 0.10);
+  color: #a0aaff;
+  border: 1px solid rgba(124, 138, 255, 0.25);
 }
 
 .md-typeset .badge-blue {
-  background: rgba(0, 119, 182, 0.12);
-  color: #4facfe;
-  border: 1px solid rgba(79, 172, 254, 0.35);
+  background: rgba(96, 165, 250, 0.10);
+  color: #93bbfd;
+  border: 1px solid rgba(96, 165, 250, 0.25);
 }
 
-.md-typeset .badge-amber {
-  background: rgba(255, 193, 7, 0.10);
-  color: #ffc107;
-  border: 1px solid rgba(255, 193, 7, 0.35);
+.md-typeset .badge-muted {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.50);
+  border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 
-/* ── 11. Blockquotes ────────────────────────────────────────── */
+/* ── 12. Blockquotes ────────────────────────────────────────── */
 .md-typeset blockquote {
   border-left: 3px solid var(--md-primary-fg-color);
   background: var(--ga-glow);
@@ -294,25 +312,18 @@ a {
 }
 
 
-/* ── 12. Horizontal rules ───────────────────────────────────── */
+/* ── 13. Horizontal rules ───────────────────────────────────── */
 .md-typeset hr {
   border: none;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    var(--md-default-fg-color--lightest) 20%,
-    var(--md-default-fg-color--lightest) 80%,
+    rgba(255, 255, 255, 0.06) 20%,
+    rgba(255, 255, 255, 0.06) 80%,
     transparent
   );
   margin: 2.5rem 0;
-}
-
-
-/* ── 13. Scroll-to-top indicator glow ───────────────────────── */
-.md-top {
-  background-color: var(--md-primary-fg-color);
-  color: white;
 }
 
 
@@ -322,12 +333,19 @@ a {
   -webkit-backdrop-filter: blur(10px);
 }
 
-.md-footer-meta {
-  background-color: rgba(0, 0, 0, 0.3);
+.md-footer {
+  background: hsl(228, 16%, 8%);
 }
 
 
-/* ── 15. Search highlight ───────────────────────────────────── */
+/* ── 15. Scroll-to-top ──────────────────────────────────────── */
+.md-top {
+  background-color: var(--md-primary-fg-color);
+  color: white;
+}
+
+
+/* ── 16. Search highlight ───────────────────────────────────── */
 .md-search-result mark {
   background: var(--ga-glow-hover);
   color: inherit;
@@ -336,24 +354,24 @@ a {
 }
 
 
-/* ── 16. Smooth page transitions ────────────────────────────── */
+/* ── 17. Page fade-in ───────────────────────────────────────── */
 .md-content {
-  animation: fadeUp 0.3s ease-out;
+  animation: fadeUp 0.25s ease-out;
 }
 
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 
-/* ── 17. Mobile adjustments ─────────────────────────────────── */
+/* ── 18. Mobile ─────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .md-typeset .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .md-typeset .hero-banner {
     padding: 2rem 1.5rem;
@@ -364,7 +382,7 @@ a {
   }
 
   .md-typeset .card-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .md-typeset .stats-row {
@@ -375,6 +393,10 @@ a {
 @media (max-width: 480px) {
   .md-typeset .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .md-typeset .stats-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .md-typeset .hero-banner h1 {
