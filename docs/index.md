@@ -91,53 +91,69 @@ ______________________________________________________________________
 
 <div class="card-grid" markdown>
 
-<a href="getting-started/installation/" markdown>
+<div class="card" markdown>
+<a href="getting-started/installation/">
 <div class="card-icon">⚙️</div>
 <div class="card-title">Installation</div>
 <div class="card-desc">All install methods, extras, and platform notes</div>
 </a>
+</div>
 
-<a href="getting-started/quickstart/" markdown>
+<div class="card" markdown>
+<a href="getting-started/quickstart/">
 <div class="card-icon">⚡</div>
 <div class="card-title">Quick Start</div>
 <div class="card-desc">Up and running in 5 minutes</div>
 </a>
+</div>
 
-<a href="core-concepts/architecture/" markdown>
+<div class="card" markdown>
+<a href="core-concepts/architecture/">
 <div class="card-icon">🏗️</div>
 <div class="card-title">Architecture</div>
 <div class="card-desc">System design and component overview</div>
 </a>
+</div>
 
-<a href="core-concepts/genetic-algorithm/" markdown>
+<div class="card" markdown>
+<a href="core-concepts/genetic-algorithm/">
 <div class="card-icon">🧬</div>
 <div class="card-title">Genetic Algorithm</div>
 <div class="card-desc">Selection, crossover, mutation internals</div>
 </a>
+</div>
 
-<a href="api-reference/ga-engine/" markdown>
+<div class="card" markdown>
+<a href="api-reference/ga-engine/">
 <div class="card-icon">📖</div>
 <div class="card-title">API Reference</div>
 <div class="card-desc">Full class and method documentation</div>
 </a>
+</div>
 
-<a href="research/results/" markdown>
+<div class="card" markdown>
+<a href="research/results/">
 <div class="card-icon">📊</div>
 <div class="card-title">Results</div>
 <div class="card-desc">Benchmark tables and statistical tests</div>
 </a>
+</div>
 
-<a href="examples/iris/" markdown>
+<div class="card" markdown>
+<a href="examples/iris/">
 <div class="card-icon">🌸</div>
 <div class="card-title">Examples</div>
 <div class="card-desc">Iris, medical, and credit scoring walkthroughs</div>
 </a>
+</div>
 
-<a href="faq/faq/" markdown>
+<div class="card" markdown>
+<a href="faq/faq/">
 <div class="card-icon">❓</div>
 <div class="card-title">FAQ</div>
 <div class="card-desc">Common questions and troubleshooting</div>
 </a>
+</div>
 
 </div>
 
