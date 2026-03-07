@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="10" fill="#00bfa5"/>
+  <!-- Tree structure -->
+  <circle cx="24" cy="10" r="4" fill="white"/>
+  <line x1="24" y1="14" x2="14" y2="22" stroke="white" stroke-width="2"/>
+  <line x1="24" y1="14" x2="34" y2="22" stroke="white" stroke-width="2"/>
+  <circle cx="14" cy="26" r="4" fill="white"/>
+  <circle cx="34" cy="26" r="4" fill="white"/>
+  <line x1="14" y1="30" x2="9" y2="38" stroke="white" stroke-width="2"/>
+  <line x1="14" y1="30" x2="19" y2="38" stroke="white" stroke-width="2"/>
+  <line x1="34" y1="30" x2="29" y2="38" stroke="white" stroke-width="2"/>
+  <line x1="34" y1="30" x2="39" y2="38" stroke="white" stroke-width="2"/>
+  <circle cx="9" cy="40" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="19" cy="40" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="29" cy="40" r="3" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="39" cy="40" r="3" fill="rgba(255,255,255,0.6)"/>
+</svg>

@@ -332,7 +332,7 @@ pip install -r requirements.txt
 ## Questions?
 
 1. See [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues)
-1. Read [Contributing Guide](../../CONTRIBUTING.md)
+1. Read [Contributing Guide](../CONTRIBUTING.md)
 
 ## Summary
 

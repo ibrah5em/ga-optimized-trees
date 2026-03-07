@@ -1,0 +1,133 @@
+site_name: GA-Optimized Decision Trees
+site_description: A genetic algorithm framework for evolving decision trees that balance accuracy and interpretability.
+site_author: Ibrahim
+site_url: https://ibrah5em.github.io/ga-optimized-trees/
+repo_name: ibrah5em/ga-optimized-trees
+repo_url: https://github.com/ibrah5em/ga-optimized-trees
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: teal
+    accent: teal
+  font:
+    text: Inter
+    code: JetBrains Mono
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ibrah5em/ga-optimized-trees
+  version:
+    provider: mike
+    default: stable
+
+extra_css:
+  - assets/extra.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Tutorial: getting-started/tutorial.md
+    - Configuration: getting-started/Configuration.md
+    - Setup Summary: getting-started/setup-summary.md
+  - Core Concepts:
+    - Architecture: core-concepts/architecture.md
+    - Genetic Algorithm: core-concepts/genetic-algorithm.md
+    - Tree Representation: core-concepts/tree-representation.md
+    - Fitness Functions: core-concepts/fitness-functions.md
+    - Interpretability: core-concepts/interpretability.md
+  - API Reference:
+    - Genotype: api-reference/genotype.md
+    - GA Engine: api-reference/ga-engine.md
+    - Fitness Calculator: api-reference/fitness.md
+    - Operators: api-reference/operators.md
+    - Evaluation Tools: api-reference/evaluation.md
+  - User Guides:
+    - Training Models: user-guides/training.md
+    - Running Experiments: user-guides/experiments.md
+    - Hyperparameter Tuning: user-guides/hyperparameter-tuning.md
+    - Pareto Optimization: user-guides/pareto-optimization.md
+    - Visualization: user-guides/visualization.md
+    - Model Export: user-guides/model-export.md
+    - Migration Guide: user-guides/migration-guide.md
+  - Advanced:
+    - Multi-Objective Optimization: advanced/multi-objective.md
+    - Custom Fitness Functions: advanced/custom-fitness.md
+    - Custom Operators: advanced/custom-operators.md
+    - Baseline Comparisons: advanced/baselines.md
+    - Statistical Testing: advanced/statistical-tests.md
+  - Data:
+    - Dataset Loader: data/dataset-loader.md
+  - Examples:
+    - Iris Classification: examples/iris.md
+    - Medical Diagnosis: examples/medical.md
+    - Credit Scoring: examples/credit.md
+  - Research:
+    - Methodology: research/methodology.md
+    - Results: research/results.md
+    - Benchmarks: research/benchmarks.md
+    - Publications: research/publications.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Code Style: development/code-style.md
+    - Testing: development/testing.md
+    - CI/CD: development/ci-cd.md
+    - Dataset Loader Tests: development/dataset-loader-test.md
+  - FAQ:
+    - FAQ: faq/faq.md
+    - Troubleshooting: faq/troubleshooting.md
+    - Performance Tips: faq/performance.md

@@ -482,7 +482,7 @@ See `scripts/run_pareto_optimization.py` for a complete example.
 
 ### How do I contribute?
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for:
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for:
 
 - Development setup
 - Code style guidelines
