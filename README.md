@@ -178,9 +178,9 @@ ______________________________________________________________________
 
 ## Documentation
 
-Full documentation is in [`docs/`](docs/README.md), covering installation, core concepts, API reference, user guides, and research methodology.
+Full documentation is in [`docs/`](docs/), covering installation, core concepts, API reference, user guides, and research methodology.
 
-Also you can check them in my [website](https://ibrah5em.duckdns.org/notes/GA-project-docs/README).
+Also available at **[ibrah5em.github.io/ga-optimized-trees](https://ibrah5em.github.io/ga-optimized-trees/)**.
 
 ______________________________________________________________________
 
