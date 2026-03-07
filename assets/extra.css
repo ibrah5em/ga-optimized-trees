@@ -1,0 +1,150 @@
+/* ── Custom overrides for GA-Optimized Decision Trees docs ── */
+
+:root {
+  --md-primary-fg-color: #00bfa5;
+  --md-primary-fg-color--light: #00e5cc;
+  --md-primary-fg-color--dark: #00897b;
+  --md-accent-fg-color: #00e5cc;
+}
+
+/* Hero banner on home page */
+.md-typeset .hero-banner {
+  background: linear-gradient(135deg, #00bfa5 0%, #0077b6 100%);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.md-typeset .hero-banner h1 {
+  color: white !important;
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.md-typeset .hero-banner p {
+  color: rgba(255,255,255,0.85);
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Stat cards row */
+.md-typeset .stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .stat-card {
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.md-typeset .stat-card .stat-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--md-primary-fg-color);
+  line-height: 1;
+}
+
+.md-typeset .stat-card .stat-desc {
+  font-size: 0.75rem;
+  color: var(--md-default-fg-color--light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Quick-start card grid */
+.md-typeset .card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .card-grid a {
+  display: block;
+  background: var(--md-code-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1.2rem;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.md-typeset .card-grid a:hover {
+  border-color: var(--md-primary-fg-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,191,165,0.15);
+}
+
+.md-typeset .card-grid a .card-icon {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.md-typeset .card-grid a .card-title {
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.md-typeset .card-grid a .card-desc {
+  font-size: 0.78rem;
+  color: var(--md-default-fg-color--light);
+  line-height: 1.4;
+}
+
+/* Badge pills */
+.md-typeset .badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-right: 4px;
+}
+
+.md-typeset .badge-teal  { background: rgba(0,191,165,0.15); color: #00bfa5; border: 1px solid rgba(0,191,165,0.4); }
+.md-typeset .badge-blue  { background: rgba(0,119,182,0.15); color: #4facfe; border: 1px solid rgba(79,172,254,0.4); }
+.md-typeset .badge-amber { background: rgba(255,193,7,0.12);  color: #ffc107; border: 1px solid rgba(255,193,7,0.4); }
+
+/* Slightly tighten the nav */
+.md-nav__link {
+  font-size: 0.78rem;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color--dark);
+  color: white;
+}
+
+/* Admonition extra: result */
+.md-typeset .admonition.result,
+.md-typeset details.result {
+  border-color: #00bfa5;
+}
+.md-typeset .admonition.result > .admonition-title,
+.md-typeset details.result > summary {
+  background-color: rgba(0,191,165,0.1);
+}
+.md-typeset .admonition.result > .admonition-title::before,
+.md-typeset details.result > summary::before {
+  background-color: #00bfa5;
+  -webkit-mask-image: var(--md-admonition-icon--tip);
+  mask-image: var(--md-admonition-icon--tip);
+}
+
+/* Footer tweak */
+.md-footer-meta {
+  background-color: rgba(0,0,0,0.3);
+}
