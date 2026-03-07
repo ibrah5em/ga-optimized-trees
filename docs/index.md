@@ -16,7 +16,7 @@ Achieve **46–82% smaller trees** with statistically equivalent accuracy — va
 <div class="stat-desc">Max size reduction</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">p>0.05</div>
+<div class="stat-num">p &gt; 0.05</div>
 <div class="stat-desc">Accuracy parity</div>
 </div>
 <div class="stat-card" markdown>
@@ -24,7 +24,7 @@ Achieve **46–82% smaller trees** with statistically equivalent accuracy — va
 <div class="stat-desc">Benchmark datasets</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">20-CV</div>
+<div class="stat-num">20‑CV</div>
 <div class="stat-desc">Fold validation</div>
 </div>
 </div>
@@ -184,9 +184,9 @@ ______________________________________________________________________
 
 ## 🔗 Links
 
-<span class="badge badge-teal">v1.0.0</span>
+<span class="badge badge-slate">v1.0.0</span>
 <span class="badge badge-blue">Python 3.8+</span>
-<span class="badge badge-amber">MIT License</span>
+<span class="badge badge-muted">MIT License</span>
 
 - **GitHub**: [ibrah5em/ga-optimized-trees](https://github.com/ibrah5em/ga-optimized-trees)
 - **Issues**: [github.com/ibrah5em/ga-optimized-trees/issues](https://github.com/ibrah5em/ga-optimized-trees/issues)

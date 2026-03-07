@@ -5,18 +5,21 @@ site_url: https://ibrah5em.github.io/ga-optimized-trees/
 repo_name: ibrah5em/ga-optimized-trees
 repo_url: https://github.com/ibrah5em/ga-optimized-trees
 edit_uri: edit/main/docs/
+copyright: "&copy; 2025 Ibrahim"
 
 theme:
   name: material
   palette:
     scheme: slate
-    primary: teal
-    accent: teal
+    primary: custom
+    accent: custom
   font:
     text: Inter
     code: JetBrains Mono
   logo: assets/logo.svg
   favicon: assets/logo.svg
+  icon:
+    repo: fontawesome/brands/github
   features:
     - navigation.tabs
     - navigation.tabs.sticky
@@ -25,6 +28,7 @@ theme:
     - navigation.path
     - navigation.top
     - navigation.footer
+    - navigation.indexes
     - search.highlight
     - search.share
     - search.suggest
@@ -32,6 +36,7 @@ theme:
     - content.code.annotate
     - content.tabs.link
     - toc.follow
+    - header.autohide
 
 extra:
   social:
@@ -40,6 +45,7 @@ extra:
   version:
     provider: mike
     default: stable
+  generator: false
 
 extra_css:
   - assets/extra.css
@@ -68,11 +74,14 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.mark
   - tables
   - attr_list
   - md_in_html
   - toc:
       permalink: true
+      toc_depth: 3
 
 docs_dir: docs
 
