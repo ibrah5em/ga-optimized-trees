@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="56" viewBox="0 0 220 56">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2137;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0" />
+      <stop offset="50%" style="stop-color:#00ff88;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#00ff88;stop-opacity:0" />
+      <animateTransform attributeName="gradientTransform" type="translate" values="-1 0; 1 0; -1 0" dur="3s" repeatCount="indefinite"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#00ff88" flood-opacity="0.4"/>
+    </filter>
+    <filter id="textglow">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#00ff88" flood-opacity="0.6"/>
+    </filter>
+    <clipPath id="round">
+      <rect width="220" height="56" rx="10" ry="10"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="220" height="56" rx="10" ry="10" fill="url(#bg)"/>
+  <!-- Shimmer overlay -->
+  <rect width="220" height="56" rx="10" ry="10" fill="url(#glow)"/>
+  <!-- Border -->
+  <rect width="220" height="56" rx="10" ry="10" fill="none" stroke="#00ff88" stroke-width="1" stroke-opacity="0.5"/>
+
+  <!-- Animated DNA / tree branch lines on left -->
+  <g clip-path="url(#round)">
+    <!-- Vertical spine -->
+    <line x1="22" y1="8" x2="22" y2="48" stroke="#00ff88" stroke-width="1.2" stroke-opacity="0.5"/>
+    <!-- Branches -->
+    <line x1="22" y1="16" x2="30" y2="11" stroke="#00ff88" stroke-width="1" stroke-opacity="0.7">
+      <animate attributeName="stroke-opacity" values="0.3;0.9;0.3" dur="2.1s" repeatCount="indefinite"/>
+    </line>
+    <line x1="22" y1="16" x2="12" y2="11" stroke="#00ff88" stroke-width="1" stroke-opacity="0.5">
+      <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="1.7s" begin="0.3s" repeatCount="indefinite"/>
+    </line>
+    <line x1="22" y1="28" x2="32" y2="22" stroke="#00ff88" stroke-width="1" stroke-opacity="0.6">
+      <animate attributeName="stroke-opacity" values="0.2;0.8;0.2" dur="2.4s" begin="0.6s" repeatCount="indefinite"/>
+    </line>
+    <line x1="22" y1="28" x2="10" y2="22" stroke="#00ff88" stroke-width="1" stroke-opacity="0.4">
+      <animate attributeName="stroke-opacity" values="0.4;1;0.4" dur="1.9s" begin="0.9s" repeatCount="indefinite"/>
+    </line>
+    <line x1="22" y1="40" x2="31" y2="34" stroke="#00ff88" stroke-width="1" stroke-opacity="0.6">
+      <animate attributeName="stroke-opacity" values="0.3;0.9;0.3" dur="2.2s" begin="0.4s" repeatCount="indefinite"/>
+    </line>
+    <line x1="22" y1="40" x2="13" y2="34" stroke="#00ff88" stroke-width="1" stroke-opacity="0.5">
+      <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" begin="0.7s" repeatCount="indefinite"/>
+    </line>
+    <!-- Nodes -->
+    <circle cx="22" cy="16" r="2" fill="#00ff88" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="22" cy="28" r="2" fill="#00ff88" opacity="0.9">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="22" cy="40" r="2" fill="#00ff88" opacity="0.9">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Divider -->
+  <line x1="46" y1="10" x2="46" y2="46" stroke="#00ff88" stroke-width="0.6" stroke-opacity="0.3"/>
+
+  <!-- Label -->
+  <text x="56" y="22" font-family="'Courier New', monospace" font-size="9" fill="#00ff88" opacity="0.7" letter-spacing="2" font-weight="bold">DOCS</text>
+
+  <!-- Main text -->
+  <text x="56" y="40" font-family="'Courier New', monospace" font-size="13" fill="#ffffff" font-weight="bold" letter-spacing="0.5" filter="url(#textglow)">ga-optimized-trees</text>
+
+  <!-- Pulsing dot -->
+  <circle cx="206" cy="14" r="3.5" fill="#00ff88">
+    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="3;4.5;3" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- "LIVE" micro text -->
+  <text x="197" y="28" font-family="'Courier New', monospace" font-size="6" fill="#00ff88" opacity="0.8" letter-spacing="1">LIVE</text>
+</svg>
