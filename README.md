@@ -6,7 +6,13 @@
 
 **A genetic algorithm framework for evolving decision trees that balance accuracy and interpretability.**
 
-Unlike greedy algorithms like CART that only optimize for accuracy, this multi-objective approach explores solutions across the accuracy–interpretability spectrum. Achieve **46–82% smaller trees** with **statistically equivalent accuracy** (validated with 20-fold CV, p > 0.05).
+Unlike greedy algorithms like CART that only optimize for accuracy, this multi-objective approach searches the accuracy–interpretability spectrum directly, so the operating point is something you choose rather than whatever a greedy split rule happens to produce.
+
+> **⚠️ Benchmark results under revision.** The accuracy and tree-size claims previously
+> shown here have been withdrawn. They were not reproducible from the code on `main`, and
+> newer runs already in this repository contradict them. The experimental protocol is
+> being rebuilt — see [`paper/CLAIMS.md`](paper/CLAIMS.md) for the per-claim audit and
+> [`paper/PLAN.md`](paper/PLAN.md) for what is being re-run.
 
 ______________________________________________________________________
 
@@ -76,23 +82,24 @@ ______________________________________________________________________
 
 ## Benchmark Results
 
-### Accuracy (20-fold CV)
+**Withdrawn pending re-run.** No benchmark numbers are published here at the moment.
 
-| Dataset       | GA Accuracy    | CART Accuracy  | p-value | Conclusion                |
-| ------------- | -------------- | -------------- | ------- | ------------------------- |
-| Iris          | 94.55 ± 8.07%  | 92.41 ± 10.43% | 0.186   | No significant difference |
-| Wine          | 88.19 ± 10.39% | 87.22 ± 10.70% | 0.683   | No significant difference |
-| Breast Cancer | 91.05 ± 5.60%  | 91.57 ± 3.92%  | 0.640   | No significant difference |
+The tables that used to occupy this section did not survive an audit against the code on
+`main`. Three problems, in order of severity:
 
-### Tree Size
+- The headline size reduction came from a CSV produced by code that was never merged, so it
+  cannot be regenerated from this repository at any commit.
+- The size comparison used **unpruned** CART as the baseline. Against cost-complexity-pruned
+  CART — the fair comparison — the reduction was never measured.
+- "Statistically equivalent accuracy (p > 0.05)" conflated failure to reject with
+  equivalence. No equivalence test was ever run, and on the most recent run two datasets
+  show significant accuracy *losses* after correction for multiple comparisons.
 
-| Dataset       | GA Nodes | CART Nodes | Reduction |
-| ------------- | -------- | ---------- | --------- |
-| Iris          | 7.4      | 16.4       | **55%**   |
-| Wine          | 10.7     | 20.7       | **48%**   |
-| Breast Cancer | 6.5      | 35.5       | **82%**   |
-
-All results use `configs/paper.yaml` with 20-fold cross-validation.
+`paper/CLAIMS.md` records each claim, its location, and its status.
+[`paper/PLAN.md`](paper/PLAN.md) describes the replacement protocol: nested
+cross-validation, tuned and budget-matched baselines, seeded runs, and tests appropriate to
+dependent folds. Hypotheses and kill criteria are fixed in advance in
+[`paper/PREREGISTRATION.md`](paper/PREREGISTRATION.md).
 
 ______________________________________________________________________
 
@@ -114,7 +121,7 @@ Experiments are driven by YAML config files in `configs/`:
 
 | Config                          | Use Case                                              |
 | ------------------------------- | ----------------------------------------------------- |
-| `paper.yaml`                    | Research config matching published results            |
+| `paper.yaml`                    | Larger population/generation budget for research runs |
 | `default.yaml`                  | General-purpose defaults                              |
 | `fast.yaml`                     | Quick experiments (small population, few generations) |
 | `balanced.yaml`                 | Equal accuracy/interpretability weight                |

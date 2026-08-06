@@ -1,7 +1,15 @@
 # =============================================================================
-# Paper Configuration - Exact parameters from research paper
-# "Evolving Interpretable Decision Trees via Multi-Objective Genetic Algorithms"
-# Target: 24-77% smaller trees with statistically equivalent accuracy
+# Paper Configuration - largest search budget of the shipped configs.
+#
+# No benchmark result is claimed for this config. The "24-77% smaller trees at
+# statistically equivalent accuracy" target that used to sit on this line was
+# never produced by any run - see paper/CLAIMS.md.
+#
+# Two caveats before using it for anything reportable:
+#   - classification_metric and early_stopping_rounds below are read from this
+#     file and then discarded by scripts/experiment.py; they do not take effect.
+#   - semantic_coherence is weighted 0.30. It is an unvalidated search-guidance
+#     term (std of feature depths), not a measure of interpretability.
 # =============================================================================
 
 # Genetic Algorithm Parameters

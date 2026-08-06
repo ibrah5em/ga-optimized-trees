@@ -26,21 +26,22 @@ experiment:   # Experiment settings
 
 The framework includes several standardized configuration files:
 
-| Config File                     | Purpose                 | Best For             | Key Features          |
-| ------------------------------- | ----------------------- | -------------------- | --------------------- |
-| **`paper.yaml`** ⭐             | Research paper settings | Replicating results  | 24-77% size reduction |
-| `fast.yaml`                     | Quick experiments       | Development, testing | 3-5× faster           |
-| `balanced.yaml`                 | Equal objectives        | General exploration  | 50/50 balance         |
-| `accuracy_focused.yaml`         | Max performance         | Production systems   | 85% accuracy weight   |
-| `interpretability_focused.yaml` | Max transparency        | Medical, legal       | 60% interp weight     |
-| `default.yaml`                  | Standard settings       | First-time users     | Good defaults         |
+| Config File                     | Purpose                | Best For             | Key Features        |
+| ------------------------------- | ---------------------- | -------------------- | ------------------- |
+| **`paper.yaml`** ⭐             | Larger research budget | Longer runs          | pop 80 × 40 gens    |
+| `fast.yaml`                     | Quick experiments      | Development, testing | 3-5× faster         |
+| `balanced.yaml`                 | Equal objectives       | General exploration  | 50/50 balance       |
+| `accuracy_focused.yaml`         | Max performance        | Production systems   | 85% accuracy weight |
+| `interpretability_focused.yaml` | Max transparency       | Medical, legal       | 60% interp weight   |
+| `default.yaml`                  | Standard settings      | First-time users     | Good defaults       |
 
-### 📄 **Paper Configuration (Recommended)**
+### 📄 **Paper Configuration**
 
-The `paper.yaml` configuration contains the **exact hyperparameters used in the research paper**:
+`paper.yaml` carries the largest search budget of the shipped configs. There is no published
+research paper behind it — the values were fixed by hand, not tuned:
 
 ```yaml
-# configs/paper.yaml - Research paper settings
+# configs/paper.yaml - largest search budget
 ga:
   population_size: 80
   n_generations: 40
@@ -66,12 +67,10 @@ tree:
   min_samples_leaf: 3
 ```
 
-**Results achieved:**
-
-- Iris: 55% size reduction
-- Wine: 48% size reduction
-- Breast Cancer: 82% size reduction
-- All with statistically equivalent accuracy (p > 0.05)
+> **⚠️ No results are claimed for this config.** Earlier versions of this page listed
+> per-dataset size reductions at equivalent accuracy. Those have been withdrawn — see
+> `paper/CLAIMS.md`. Note also that `semantic_coherence` is weighted 0.30 here; it is an
+> unvalidated search-guidance term, not a measure of interpretability.
 
 ## Quick Start Examples
 
@@ -143,13 +142,13 @@ fitness:
 
 ### By Use Case
 
-| Use Case                  | Configuration                   | Why                    |
-| ------------------------- | ------------------------------- | ---------------------- |
-| **Research replication**  | `paper.yaml`                    | Exact paper parameters |
-| **Quick testing**         | `fast.yaml`                     | Faster iterations      |
-| **Production deployment** | `accuracy_focused.yaml`         | Max performance        |
-| **Medical diagnosis**     | `interpretability_focused.yaml` | Transparency required  |
-| **General use**           | `balanced.yaml`                 | Good starting point    |
+| Use Case                  | Configuration                   | Why                   |
+| ------------------------- | ------------------------------- | --------------------- |
+| **Longest search runs**   | `paper.yaml`                    | Largest budget        |
+| **Quick testing**         | `fast.yaml`                     | Faster iterations     |
+| **Production deployment** | `accuracy_focused.yaml`         | Max performance       |
+| **Medical diagnosis**     | `interpretability_focused.yaml` | Transparency required |
+| **General use**           | `balanced.yaml`                 | Good starting point   |
 
 ### By Priority
 
@@ -263,11 +262,11 @@ experiment:
 ## Configuration Presets Summary
 
 ```bash
-# Paper configuration (recommended for research)
+# Paper configuration (largest search budget)
 configs/paper.yaml
-  - Exact research paper parameters
-  - 24-77% size reduction achieved
-  - Statistical equivalence proven
+  - 80 population, 40 generations
+  - Accuracy 0.68 / interpretability 0.32
+  - No benchmark results are claimed for it
 
 # Fast configuration (development)
 configs/fast.yaml

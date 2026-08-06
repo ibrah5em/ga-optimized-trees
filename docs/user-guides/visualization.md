@@ -230,12 +230,14 @@ Compare GA against baselines:
 ```python
 import seaborn as sns
 
-# Results from experiment
-results = {
-    "iris": {"GA": 94.55, "CART": 92.41, "RF": 95.33},
-    "wine": {"GA": 88.19, "CART": 87.22, "RF": 97.75},
-    "breast_cancer": {"GA": 91.05, "CART": 91.57, "RF": 95.08},
-}
+# Load from a committed results CSV rather than hardcoding numbers here -
+# every figure in this project must be regenerable from its source data.
+import pandas as pd
+
+df = pd.read_csv("results/tables/results-paper.csv")
+results = df.pivot(index="dataset", columns="model", values="test_acc").to_dict(
+    orient="index"
+)
 
 # Convert to DataFrame
 data = []
@@ -271,16 +273,21 @@ plt.tight_layout()
 plt.savefig("results/figures/accuracy_comparison.png", dpi=300)
 ```
 
-### 2. Tree Size Comparison (The Key Result!)
+### 2. Tree Size Comparison
 
-Highlight size reduction:
+Compare node counts. A caveat worth building into the figure: this comparison is only
+meaningful if both models face the same constraints — an untuned `DecisionTreeClassifier` is
+effectively unpruned and will always look large next to a size-penalised tree.
 
 ```python
-# Tree sizes
-ga_nodes = [7.4, 10.7, 6.5]
-cart_nodes = [16.4, 20.7, 35.5]
-datasets = ["Iris", "Wine", "Breast Cancer"]
-reductions = [55, 48, 82]
+# Read node counts from the results CSV; do not hardcode them.
+sizes = pd.read_csv("results/tables/results-paper.csv")
+datasets = sizes["dataset"].tolist()
+ga_nodes = sizes["ga_nodes"].tolist()
+cart_nodes = sizes["cart_nodes"].tolist()
+reductions = [
+    round(100 * (c - g) / c) if c else 0 for g, c in zip(ga_nodes, cart_nodes)
+]
 
 fig, ax = plt.subplots(figsize=(12, 7))
 
@@ -322,9 +329,7 @@ for i, (ga, cart, red) in enumerate(zip(ga_nodes, cart_nodes, reductions)):
 
 ax.set_ylabel("Number of Nodes", fontsize=12, fontweight="bold")
 ax.set_xlabel("Dataset", fontsize=12, fontweight="bold")
-ax.set_title(
-    "GA Achieves 46-82% Tree Size Reduction", fontsize=14, fontweight="bold", pad=15
-)
+ax.set_title("Tree Size: GA vs CART", fontsize=14, fontweight="bold", pad=15)
 ax.set_xticks(x)
 ax.set_xticklabels(datasets, fontsize=11)
 ax.legend(loc="upper left", fontsize=11)
@@ -340,13 +345,20 @@ plt.savefig("results/figures/tree_size_comparison.png", dpi=300)
 
 ### 3. Statistical Significance Visualization
 
-Show p-values and effect sizes:
+Show p-values and effect sizes.
+
+> **Two cautions before plotting p-values.** A bar chart of p-values from a paired t-test
+> across CV folds is not a valid summary — folds are not independent (Dietterich 1998). And
+> bars that fall short of α do not show equivalence; that needs an equivalence test against a
+> pre-specified margin. Label the figure for what the test actually says. See
+> [Statistical Testing](../advanced/statistical-tests.md).
 
 ```python
-# Statistical test results
-datasets = ["Iris", "Wine", "Breast Cancer"]
-p_values = [0.186, 0.683, 0.640]
-colors = ["#3498db", "#3498db", "#27ae60"]
+# Load from the committed stats CSV; never hardcode p-values into a figure script.
+stats_df = pd.read_csv("results/stats-paper.csv")
+datasets = stats_df["dataset"].tolist()
+p_values = stats_df["p_value"].tolist()
+colors = ["#3498db" if p >= 0.05 else "#e74c3c" for p in p_values]
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -367,9 +379,9 @@ ax.axvline(
 for i, (dataset, p) in enumerate(zip(datasets, p_values)):
     ax.text(p + 0.03, i, f"p = {p:.3f}", va="center", fontsize=11, fontweight="bold")
 
-ax.set_xlabel("p-value (Paired t-test, 20-fold CV)", fontsize=12, fontweight="bold")
+ax.set_xlabel("p-value", fontsize=12, fontweight="bold")
 ax.set_title(
-    "Statistical Equivalence to CART\n(All p > 0.05 = No Significant Difference)",
+    "GA vs CART accuracy\n(p < α indicates a difference; p ≥ α does not show equivalence)",
     fontsize=13,
     fontweight="bold",
     pad=15,

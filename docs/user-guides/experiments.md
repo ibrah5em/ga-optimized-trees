@@ -249,7 +249,8 @@ print(f"  p-value: {p_value:.4f}")
 print(f"  Cohen's d: {cohens_d:.4f}")
 
 if p_value > 0.05:
-    print(f"  Result: No significant difference (statistically equivalent)")
+    # Failure to reject, not equivalence - see docs/advanced/statistical-tests.md
+    print(f"  Result: No significant difference detected")
 else:
     winner = "GA" if ga_acc_mean > cart_acc_mean else "CART"
     print(f"  Result: {winner} is significantly better (p < 0.05)")

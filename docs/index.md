@@ -6,28 +6,33 @@
 
 **Evolving decision trees that balance accuracy and interpretability using multi-objective genetic algorithms.**
 
-Achieve **46–82% smaller trees** with statistically equivalent accuracy — validated with 20-fold cross-validation (p > 0.05 on all benchmarks).
+Search the accuracy–complexity spectrum directly and choose the operating point, instead of accepting whatever a greedy split rule produces.
 
 </div>
 
 <div class="stats-row" markdown>
 <div class="stat-card" markdown>
-<div class="stat-num">82%</div>
-<div class="stat-desc">Max size reduction</div>
+<div class="stat-num">NSGA‑II</div>
+<div class="stat-desc">Multi-objective search</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">p &gt; 0.05</div>
-<div class="stat-desc">Accuracy parity</div>
+<div class="stat-num">4</div>
+<div class="stat-desc">Mutation operators</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">3</div>
-<div class="stat-desc">Benchmark datasets</div>
+<div class="stat-num">25+</div>
+<div class="stat-desc">Loadable datasets</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">20‑CV</div>
-<div class="stat-desc">Fold validation</div>
+<div class="stat-num">3.8–3.12</div>
+<div class="stat-desc">Python support</div>
 </div>
 </div>
+
+> **⚠️ Benchmark results under revision.** Accuracy and tree-size claims previously shown
+> on this site have been withdrawn — they were not reproducible from the code on `main`, and
+> newer runs in the repository contradict them. The experimental protocol is being rebuilt.
+> See `paper/CLAIMS.md` for the per-claim audit and `paper/PLAN.md` for what is being re-run.
 
 ______________________________________________________________________
 
@@ -161,13 +166,15 @@ ______________________________________________________________________
 
 ## 📈 Benchmark Results
 
-| Dataset           | GA Accuracy    | CART Accuracy  | GA Nodes | CART Nodes | Size Reduction |
-| ----------------- | -------------- | -------------- | -------- | ---------- | -------------- |
-| **Iris**          | 94.55 ± 8.07%  | 92.41 ± 10.43% | 7.4      | 16.4       | **55%**        |
-| **Wine**          | 88.19 ± 10.39% | 87.22 ± 10.70% | 10.7     | 20.7       | **48%**        |
-| **Breast Cancer** | 91.05 ± 5.60%  | 91.57 ± 3.92%  | 6.5      | 35.5       | **82%**        |
+**Withdrawn pending re-run.** The table that stood here reported a size advantage measured
+against *unpruned* CART, and read "p > 0.05" as evidence of equivalence when no equivalence
+test had been run. Its headline numbers also traced back to a CSV produced by code that was
+never merged, so they cannot be regenerated from this repository.
 
-> All p-values > 0.05 — accuracy difference is not statistically significant.
+Nothing replaces it until the rebuilt protocol runs: nested cross-validation, tuned and
+budget-matched baselines, seeded runs, and statistics that account for dependent folds. See
+`paper/PLAN.md`, with hypotheses and kill criteria fixed in advance in
+`paper/PREREGISTRATION.md`.
 
 ______________________________________________________________________
 
