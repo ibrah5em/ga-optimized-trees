@@ -5,9 +5,12 @@
 # statistically equivalent accuracy" target that used to sit on this line was
 # never produced by any run - see paper/CLAIMS.md.
 #
-# Two caveats before using it for anything reportable:
-#   - classification_metric and early_stopping_rounds below are read from this
-#     file and then discarded by scripts/experiment.py; they do not take effect.
+# Notes before using it for anything reportable:
+#   - classification_metric now reaches FitnessCalculator, and the GA is seeded
+#     per fold. Both were silently dropped until 2026-08-06.
+#   - early_stopping_rounds is honoured if set, and absent means disabled. It is
+#     deliberately not set here: enabling it changes the search budget, which
+#     matters for the budget-matched random-search comparison (paper/PLAN.md).
 #   - semantic_coherence is weighted 0.30. It is an unvalidated search-guidance
 #     term (std of feature depths), not a measure of interpretability.
 # =============================================================================

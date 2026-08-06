@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import csv
+import json
 import time
 from datetime import datetime
 from pathlib import Path
@@ -29,6 +30,7 @@ from ga_trees.baselines import XGBoostBaseline
 from ga_trees.data.dataset_loader import DatasetLoader
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.reproducibility import build_seed_manifest, derive_fold_seed
 
 
 def load_config(config_path=None):
@@ -175,7 +177,17 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
     skf = StratifiedKFold(
         n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
     )
-    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "features": [], "time": []}
+    results = {
+        "test_acc": [],
+        "test_f1": [],
+        "nodes": [],
+        "depth": [],
+        "features": [],
+        "time": [],
+        "seeds": [],
+    }
+
+    base_seed = config["experiment"]["random_state"]
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         print(f"  Fold {fold}/{n_folds}...", end=" ", flush=True)
@@ -193,6 +205,12 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         n_classes = len(np.unique(y))
         feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)}
 
+        # Distinct per fold, but fixed across invocations. Reusing base_seed for
+        # every fold would make all folds repeat one search, because
+        # GAEngine.evolve seeds random/numpy globally.
+        fold_seed = derive_fold_seed(base_seed, dataset_name, fold, method="ga")
+        results["seeds"].append(fold_seed)
+
         # Use configuration
         ga_config = GAConfig(
             population_size=config["ga"]["population_size"],
@@ -202,6 +220,9 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             tournament_size=config["ga"]["tournament_size"],
             elitism_ratio=config["ga"]["elitism_ratio"],
             mutation_types=config["ga"]["mutation_types"],
+            random_state=fold_seed,
+            early_stopping_rounds=config["ga"].get("early_stopping_rounds"),
+            early_stopping_tol=config["ga"].get("early_stopping_tol", 1e-6),
         )
 
         initializer = TreeInitializer(
@@ -226,6 +247,8 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             accuracy_weight=acc_w,
             interpretability_weight=interp_w,
             interpretability_weights=fitness_config["interpretability_weights"],
+            classification_metric=fitness_config.get("classification_metric", "accuracy"),
+            regression_metric=fitness_config.get("regression_metric", "neg_mse"),
         )
 
         mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
@@ -524,8 +547,29 @@ def print_summary(all_results, config, config_name="default"):
     with open(config_file, "w") as f:
         yaml.dump(config, f, default_flow_style=False)
 
+    # Save the seeds actually used. Without this, "seeded" is an assertion rather
+    # than something a reader can check - see results/PROVENANCE.md.
+    base_seed = config["experiment"]["random_state"]
+    seeds_file = output_dir / f"seeds-{config_name}-{date_str}.json"
+    manifest = build_seed_manifest(
+        base_seed=base_seed,
+        dataset_names=list(all_results.keys()),
+        n_folds=config["experiment"]["cv_folds"],
+        methods=("ga",),
+    )
+    # The GA derives a per-fold seed; the sklearn baselines take base_seed
+    # directly, since their fits are deterministic given (data, random_state).
+    manifest["baseline_random_state"] = base_seed
+    manifest["recorded"] = {
+        dataset: {model: res["seeds"] for model, res in models.items() if res.get("seeds")}
+        for dataset, models in all_results.items()
+    }
+    with open(seeds_file, "w") as f:
+        json.dump(manifest, f, indent=2)
+
     print(f"\n✓ Results saved to: {results_file}")
     print(f"✓ Config saved to: {config_file}")
+    print(f"✓ Seeds saved to: {seeds_file}")
 
 
 def main():

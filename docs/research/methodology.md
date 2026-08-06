@@ -20,11 +20,17 @@ from OpenML CC-18, frozen before any run.
 
 - **20-fold stratified CV**, same folds for the GA and the baselines
 
-The shared folds are real, and paired comparison across them is the right intent. Two
-problems: there is no inner loop, so nothing is tuned and model selection happens on the same
-folds used for reporting; and the seed does not reach the search. `scripts/experiment.py`
-constructs `GAConfig` without `random_state`, so seed 42 reaches only the CV splitter — **GA
-runs are not reproducible**.
+The shared folds are real, and paired comparison across them is the right intent. The
+remaining problem is that there is no inner loop, so nothing is tuned and model selection
+happens on the same folds used for reporting.
+
+**Seeding was fixed on 2026-08-06.** Until then `scripts/experiment.py` built `GAConfig`
+without `random_state`, so seed 42 reached only the CV splitter and no GA run was
+reproducible. Each fold now gets a distinct seed derived deterministically from
+`(base_seed, dataset, method, fold)` via `ga_trees.reproducibility.derive_fold_seed`, and the
+seeds actually used are written to `results/seeds-{config}-{date}.json` beside every run.
+Per-fold derivation matters because `GAEngine.evolve` seeds `random` and `numpy.random`
+globally — one seed shared across folds would make every fold repeat the same search.
 
 ### Hyperparameters
 
@@ -40,12 +46,15 @@ interpretability_weight: 0.32
 max_depth: 6
 ```
 
-Nothing here is tuned; the values were fixed by hand. Two keys in the config file are read
-and then silently discarded — `classification_metric` never reaches `FitnessCalculator`, and
-`early_stopping_rounds` never reaches `GAConfig`. The tree constraints
-(`min_samples_split`, `min_samples_leaf`) are enforced only at initialization: neither
-crossover nor `expand_leaf` re-checks them against data, so evolved trees can violate the
-constraints the config advertises.
+Nothing here is tuned; the values were fixed by hand.
+
+`classification_metric` was read from the config and silently discarded until 2026-08-06; it
+now reaches `FitnessCalculator`, and an unrecognised value raises instead of falling back to
+accuracy. `early_stopping_rounds` is honoured when present and disabled when absent.
+
+Still outstanding: the tree constraints (`min_samples_split`, `min_samples_leaf`) are enforced
+only at initialization. Neither crossover nor `expand_leaf` re-checks them against data, so
+evolved trees can violate the constraints the config advertises.
 
 Fitness is **resubstitution accuracy**. Leaf predictions are fit on `X` and then scored on
 the same `X`, and the champion is selected on training fit. A validation split is supported
