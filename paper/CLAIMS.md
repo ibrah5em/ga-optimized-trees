@@ -1,0 +1,69 @@
+# Claims Ledger
+
+Every public claim, its status, and the evidence it rests on.
+Audited **2026-08-04** against `main` @ `5f77b56`.
+
+Status values: `SUPPORTED` · `STALE` · `UNSUPPORTED` · `FALSE`
+
+______________________________________________________________________
+
+## Accuracy claims
+
+| Claim                                             | Location                                                               | Status    | Evidence                                                                                                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "statistically equivalent accuracy (p > 0.05)"    | `README.md:9`                                                          | **FALSE** | `results/stats-paper-2026-02-27.csv`: digits p_adj=0.0153 (d=-1.03), banknote p_adj=0.00078 (d=-1.32) — both significant *losses* after Bonferroni |
+| Iris GA 94.55% vs CART 92.41%, p=0.186            | `README.md`, `docs/research/benchmarks.md`, `docs/research/results.md` | **STALE** | Newest run: GA 0.9259 vs CART 0.9580 (`result-paper-2026-02-27.csv`), p=0.0545                                                                     |
+| Wine GA 88.19% vs CART 87.22%, p=0.683            | same                                                                   | **STALE** | Newest run: GA 0.8646 vs CART 0.8722, p=0.816                                                                                                      |
+| Breast cancer GA 91.05% vs CART 91.57%, p=0.640   | same                                                                   | **STALE** | Newest run: GA 0.8979 vs CART 0.9140, p=0.308                                                                                                      |
+| "All p-values > 0.05" → "Statistical Equivalence" | `docs/research/benchmarks.md`                                          | **FALSE** | Failure to reject ≠ equivalence. No equivalence test was ever run. Two p-values are now \< 0.05 anyway.                                            |
+
+**Overall:** on the newest 8-dataset run the GA loses to depth-matched CART on **7 of 8**
+datasets (only `heart` wins: 0.7833 vs 0.7417), and loses to unconstrained CART on 7 of 8.
+
+______________________________________________________________________
+
+## Size claims
+
+| Claim                              | Location                    | Status          | Note                                                                                             |
+| ---------------------------------- | --------------------------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| "46–82% smaller trees"             | `README.md:9`               | **STALE**       | Numbers come from `results/tables/paper-results.csv`, produced by code not on `main`             |
+| "Target: 24-77% smaller trees"     | `configs/paper.yaml` header | **UNSUPPORTED** | No run produces this range                                                                       |
+| Size reduction figures per dataset | `docs/research/results.md`  | **STALE**       | Baseline is *unpruned* CART, not cost-complexity-pruned CART. The fair comparison was never run. |
+
+______________________________________________________________________
+
+## Methodology claims
+
+| Claim                                                                     | Location                              | Status          | Reality                                                                                                                                            |
+| ------------------------------------------------------------------------- | ------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Random seed: 42 (reproducibility)"                                       | `docs/research/methodology.md:15`     | **FALSE**       | `scripts/experiment.py:197` constructs `GAConfig` **without** `random_state`. The seed reaches only the CV splitter. GA runs are not reproducible. |
+| "20-fold stratified CV… same folds for GA and baselines (paired testing)" | `docs/research/methodology.md`        | **SUPPORTED**   | Folds are shared, but the paired t-test across them is invalid (Dietterich 1998)                                                                   |
+| `classification_metric: accuracy`                                         | `configs/paper.yaml`                  | **FALSE**       | Never passed to `FitnessCalculator` at `scripts/experiment.py:224` — silently ignored                                                              |
+| `early_stopping_rounds` in configs                                        | all `configs/*.yaml`                  | **FALSE**       | Never passed to `GAConfig` at `scripts/experiment.py:197` — silently ignored                                                                       |
+| Tree constraints `min_samples_split=8, min_samples_leaf=3`                | `configs/paper.yaml`                  | **FALSE**       | Enforced only at initialization. `expand_leaf` (`engine.py:357`) and crossover never re-check against data, so evolved trees can violate them.     |
+| CART baseline = `DecisionTreeClassifier(max_depth=6, random_state=42)`    | `docs/research/methodology.md:34`     | **SUPPORTED**   | …and that's the problem — untuned, no `ccp_alpha`, no matching `min_samples_*`                                                                     |
+| "CART (unconstrained)" results                                            | `results/result-paper-2026-02-27.csv` | **UNSUPPORTED** | No function on `main` produces this row                                                                                                            |
+
+______________________________________________________________________
+
+## Fitness claim
+
+| Claim                                                            | Location                   | Status                      | Reality                                                                                                                                                                                                                               |
+| ---------------------------------------------------------------- | -------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LDD-3 "Optional validation set for generalization-aware fitness" | `fitness/calculator.py:12` | **UNSUPPORTED in practice** | `X_val`/`y_val` exist but `scripts/experiment.py` never passes them. Leaves are fit on `X` (line 417) and scored on the same `X` (line 425). Fitness is **resubstitution accuracy**; `GAEngine` selects the champion on training fit. |
+
+______________________________________________________________________
+
+## Interpretability claims
+
+| Claim                                       | Location                                              | Status                       | Note                                                                                                                                    |
+| ------------------------------------------- | ----------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Composite score measures "interpretability" | `README.md`, `docs/core-concepts/interpretability.md` | **UNSUPPORTED**              | No grounding in literature, no human study. `semantic_coherence` (std of feature depths) is invented and weighted 0.30 in `paper.yaml`. |
+| `feature_coherence` rewards fewer features  | `fitness/calculator.py:263`                           | **SUPPORTED but confounded** | `1 − n_used/n_total` scales with dataset dimensionality — 30-feature datasets get a free high score                                     |
+
+______________________________________________________________________
+
+## Action
+
+All `FALSE` and `STALE` rows must be removed from public docs in Phase 0. See
+`paper/PLAN.md`.
