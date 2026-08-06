@@ -84,20 +84,18 @@ models/*
 !models/__init__.py
 
 
-# Results - ignore most, keep figures
-results/*.json
-results/*.csv
-results/*.yaml
-results/*.pkl
-results/benchmark/*.yaml
-results/benchmark/*.csv
-
-
-# figures for README
-!results/figures/*.png
-!results/.gitkeep
-!results/benchmarks/.gitkeep
-!results/optimization/.gitkeep
+# Results - nothing here is tracked. See results/PROVENANCE.md for the rule:
+# an artifact may be committed only if a command on main regenerates it, with
+# its config and seed committed alongside.
+#
+# The old rules ignored results/*.csv, which does not match subdirectories - that
+# is how results/tables/paper-results.csv became tracked and fed a public claim
+# nothing could reproduce. Figures were whitelisted "for README" and were
+# generated from hardcoded literals. Both holes are closed; keep them closed.
+results/**
+!results/**/
+!results/PROVENANCE.md
+!results/**/.gitkeep
 
 # MLFlow
 mlruns/

@@ -1,0 +1,36 @@
+experiment:
+  cv_folds: 5
+  datasets:
+  - iris
+  - wine
+  - breast_cancer
+  random_state: 42
+fitness:
+  classification_metric: accuracy
+  interpretability_weights:
+    feature_coherence: 0.2
+    node_complexity: 0.5
+    semantic_coherence: 0.1
+    tree_balance: 0.2
+  mode: weighted_sum
+  regression_metric: neg_mse
+  weights:
+    accuracy: 0.8
+    interpretability: 0.2
+ga:
+  crossover_prob: 0.7
+  early_stopping_rounds: 20
+  elitism_ratio: 0.1
+  mutation_prob: 0.2
+  mutation_types:
+    expand_leaf: 0.1
+    feature_replacement: 0.3
+    prune_subtree: 0.2
+    threshold_perturbation: 0.4
+  n_generations: 40
+  population_size: 80
+  tournament_size: 3
+tree:
+  max_depth: 6
+  min_samples_leaf: 5
+  min_samples_split: 10
