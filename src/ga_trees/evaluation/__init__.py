@@ -5,6 +5,7 @@ Expose evaluation and analysis classes for easy import.
 
 from .explainability import TreeExplainer
 from .feature_importance import FeatureImportanceAnalyzer
+from .hypervolume import Frontier, compare_frontiers, frontier, frontier_from_trees, hypervolume
 from .metrics import MetricsCalculator
 from .statistics import (
     compare_across_datasets,
@@ -29,4 +30,9 @@ __all__ = [
     "equivalence_test",
     "friedman_nemenyi",
     "per_dataset_means",
+    "Frontier",
+    "frontier",
+    "frontier_from_trees",
+    "hypervolume",
+    "compare_frontiers",
 ]
