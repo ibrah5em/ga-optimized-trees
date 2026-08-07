@@ -36,10 +36,13 @@ tree:
   min_samples_split: 8
   min_samples_leaf: 3
   growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
 
 # Fitness Function
 fitness:
   mode: weighted_sum
+  validation_fraction: 0.2  # held out from the fitting data to score fitness on;
+                            # 0.0 restores resubstitution fitness
   classification_metric: accuracy    # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
   weights:
     accuracy: 0.68

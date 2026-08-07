@@ -22,9 +22,12 @@ tree:
   min_samples_split: 10
   min_samples_leaf: 5
   growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
 
 fitness:
   mode: weighted_sum
+  validation_fraction: 0.2  # held out from the fitting data to score fitness on;
+                            # 0.0 restores resubstitution fitness
   weights:
     accuracy: 0.65
     interpretability: 0.35

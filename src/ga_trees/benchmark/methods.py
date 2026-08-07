@@ -8,10 +8,11 @@ the evolutionary machinery contributes nothing.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.tree import DecisionTreeClassifier
 
 from ga_trees.benchmark.protocol import (
@@ -22,6 +23,7 @@ from ga_trees.benchmark.protocol import (
 )
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.split_points import MIDPOINT_STRATEGY
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,12 @@ DEFAULT_DEPTH_GRID = (3, 4, 5, 6, 8)
 #: Cap on distinct ccp_alpha values taken from the pruning path. The full path
 #: has one entry per merge and is far too long to tune over on large datasets.
 MAX_CCP_ALPHAS = 12
+
+#: Fraction of the fitting data held out to score fitness on. 0.0 reproduces the
+#: pre-Phase-2 resubstitution fitness and is the code default so that library
+#: users and the existing tests are not silently switched onto a different
+#: objective; the shipped configs set it explicitly.
+DEFAULT_VALIDATION_FRACTION = 0.0
 
 
 class _CountingFitness:
@@ -46,13 +54,60 @@ class _CountingFitness:
         self._fitness_fn = fitness_fn
         self.count = 0
 
-    def __call__(self, tree, X, y):
+    def __call__(self, tree, X, y, *validation):
         self.count += 1
-        return self._fitness_fn(tree, X, y)
+        return self._fitness_fn(tree, X, y, *validation)
 
 
 def _feature_ranges(X: np.ndarray) -> Dict[int, tuple]:
     return {j: (float(X[:, j].min()), float(X[:, j].max())) for j in range(X.shape[1])}
+
+
+def holdout_split(
+    X: np.ndarray, y: np.ndarray, fraction: float, seed: int
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray], Optional[np.ndarray]]:
+    """Carve a GA-validation split off the fitting data.
+
+    Fitness was resubstitution: :meth:`FitnessCalculator.calculate_fitness` fits
+    leaf predictions on the rows it then scores, so a tree that memorises the
+    fitting set scores perfectly on it. The search therefore ranked individuals
+    by how well they overfit, which is the opposite of what the outer fold
+    measures.
+
+    The split is stratified and drawn once per fit rather than per generation:
+    a moving target would invalidate the cached fitness that elites carry across
+    generations, and would add selection noise on top of the signal.
+
+    Returns
+    -------
+    tuple
+        ``(X_train, y_train, X_val, y_val)``. The validation pair is
+        ``(None, None)`` when no split was requested or the data is too small to
+        stratify one, in which case fitness falls back to resubstitution.
+    """
+    if fraction <= 0.0:
+        return X, y, None, None
+    if not 0.0 < fraction < 1.0:
+        raise ValueError(f"validation_fraction must be in [0, 1), got {fraction}.")
+
+    _, counts = np.unique(y, return_counts=True)
+    n_classes = len(counts)
+    n_val = int(round(len(y) * fraction))
+
+    # StratifiedShuffleSplit needs at least one sample per class on both sides.
+    if counts.min() < 2 or n_val < n_classes or (len(y) - n_val) < n_classes:
+        logger.warning(
+            "Cannot hold out %.0f%% of %d samples across %d classes; "
+            "falling back to resubstitution fitness for this fit.",
+            fraction * 100,
+            len(y),
+            n_classes,
+        )
+        return X, y, None, None
+
+    splitter = StratifiedShuffleSplit(n_splits=1, test_size=fraction, random_state=seed)
+    train_idx, val_idx = next(splitter.split(X, y))
+    return X[train_idx], y[train_idx], X[val_idx], y[val_idx]
 
 
 def ga_evaluation_budget(ga_config: Dict[str, Any]) -> int:
@@ -75,6 +130,83 @@ def ga_evaluation_budget(ga_config: Dict[str, Any]) -> int:
     n_generations = int(ga_config["n_generations"])
     n_elite = int(float(ga_config.get("elitism_ratio", 0.0)) * population_size)
     return population_size + n_generations * (population_size - n_elite)
+
+
+class _SearchContext:
+    """The tree space, fitness and data split shared by the GA and random search.
+
+    K1 asks whether the evolutionary machinery contributes anything over random
+    sampling of the same space. Any asymmetry between the two — a different
+    candidate distribution, a different fitness, a different validation split —
+    would surface as an algorithmic effect. Building both from this one object
+    makes that impossible by construction instead of by review.
+    """
+
+    def __init__(self, initializer, fitness, X_train, y_train, X_val, y_val):
+        self.initializer = initializer
+        self.fitness = fitness
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_val = X_val
+        self.y_val = y_val
+
+    @property
+    def uses_validation(self) -> bool:
+        return self.X_val is not None and self.y_val is not None
+
+    def score(self, tree) -> float:
+        """Fitness of *tree*: leaves fitted on the train split, scored on val."""
+        if self.uses_validation:
+            return self.fitness(tree, self.X_train, self.y_train, self.X_val, self.y_val)
+        return self.fitness(tree, self.X_train, self.y_train)
+
+
+def _build_search_context(
+    tree_config: Dict[str, Any],
+    fitness_config: Dict[str, Any],
+    X: np.ndarray,
+    y: np.ndarray,
+    params: Dict[str, Any],
+    seed: int,
+) -> _SearchContext:
+    """Assemble the initializer, fitness and data split for a searching method."""
+    accuracy_weight = params.get(
+        "accuracy_weight", fitness_config.get("weights", {}).get("accuracy", 0.7)
+    )
+    max_depth = params.get("max_depth", tree_config["max_depth"])
+
+    X_train, y_train, X_val, y_val = holdout_split(
+        X,
+        y,
+        fraction=float(fitness_config.get("validation_fraction", DEFAULT_VALIDATION_FRACTION)),
+        seed=seed,
+    )
+
+    initializer = TreeInitializer(
+        n_features=X.shape[1],
+        n_classes=len(np.unique(y)),
+        max_depth=max_depth,
+        min_samples_split=tree_config["min_samples_split"],
+        min_samples_leaf=tree_config["min_samples_leaf"],
+        growth_stop_prob=tree_config.get("growth_stop_prob", 0.3),
+        split_strategy=tree_config.get("split_strategy", MIDPOINT_STRATEGY),
+    )
+    calculator = FitnessCalculator(
+        mode="weighted_sum",
+        accuracy_weight=accuracy_weight,
+        interpretability_weight=1.0 - accuracy_weight,
+        interpretability_weights=fitness_config.get("interpretability_weights"),
+        classification_metric=fitness_config.get("classification_metric", "accuracy"),
+    )
+
+    return _SearchContext(
+        initializer=initializer,
+        fitness=_CountingFitness(calculator.calculate_fitness),
+        X_train=X_train,
+        y_train=y_train,
+        X_val=X_val,
+        y_val=y_val,
+    )
 
 
 class GATreeMethod(BenchmarkMethod):
@@ -124,30 +256,7 @@ class GATreeMethod(BenchmarkMethod):
         return ga_evaluation_budget(self.ga_config)
 
     def fit(self, X: np.ndarray, y: np.ndarray, params: Dict[str, Any], seed: int) -> FittedModel:
-        accuracy_weight = params.get(
-            "accuracy_weight", self.fitness_config.get("weights", {}).get("accuracy", 0.7)
-        )
-        max_depth = params.get("max_depth", self.tree_config["max_depth"])
-
-        n_features = X.shape[1]
-        n_classes = len(np.unique(y))
-
-        initializer = TreeInitializer(
-            n_features=n_features,
-            n_classes=n_classes,
-            max_depth=max_depth,
-            min_samples_split=self.tree_config["min_samples_split"],
-            min_samples_leaf=self.tree_config["min_samples_leaf"],
-            growth_stop_prob=self.tree_config.get("growth_stop_prob", 0.3),
-        )
-        calculator = FitnessCalculator(
-            mode="weighted_sum",
-            accuracy_weight=accuracy_weight,
-            interpretability_weight=1.0 - accuracy_weight,
-            interpretability_weights=self.fitness_config.get("interpretability_weights"),
-            classification_metric=self.fitness_config.get("classification_metric", "accuracy"),
-        )
-        counting = _CountingFitness(calculator.calculate_fitness)
+        context = _build_search_context(self.tree_config, self.fitness_config, X, y, params, seed)
 
         config = GAConfig(
             population_size=self.ga_config["population_size"],
@@ -163,12 +272,30 @@ class GATreeMethod(BenchmarkMethod):
         )
         engine = GAEngine(
             config=config,
-            initializer=initializer,
-            fitness_function=counting,
-            mutation=Mutation(n_features=n_features, feature_ranges=_feature_ranges(X)),
+            initializer=context.initializer,
+            fitness_function=context.fitness,
+            mutation=Mutation(
+                n_features=X.shape[1],
+                feature_ranges=_feature_ranges(context.X_train),
+                # The GA-train split only: drawing thresholds from values in the
+                # validation split would leak it into the search it is meant to
+                # hold out.
+                X=context.X_train,
+                min_samples_leaf=self.tree_config["min_samples_leaf"],
+                split_strategy=self.tree_config.get("split_strategy", MIDPOINT_STRATEGY),
+            ),
         )
-        best = engine.evolve(X, y, verbose=False)
+        best = engine.evolve(
+            context.X_train,
+            context.y_train,
+            verbose=False,
+            X_val=context.X_val,
+            y_val=context.y_val,
+        )
 
+        # Structure was selected on the validation split; refitting the leaves on
+        # the whole fold's training data is the standard follow-up and costs
+        # nothing in validity, since no structural choice is made here.
         predictor = TreePredictor()
         predictor.fit_leaf_predictions(best, X, y)
         measures = ga_tree_complexity(best, X)
@@ -180,7 +307,7 @@ class GATreeMethod(BenchmarkMethod):
             max_depth=measures["max_depth"],
             n_features_used=measures["n_features_used"],
             mean_path_length=measures["mean_path_length"],
-            n_evaluations=counting.count,
+            n_evaluations=context.fitness.count,
         )
 
 
@@ -229,27 +356,7 @@ class RandomTreeSearch(BenchmarkMethod):
     def fit(self, X: np.ndarray, y: np.ndarray, params: Dict[str, Any], seed: int) -> FittedModel:
         import random as _random
 
-        accuracy_weight = params.get(
-            "accuracy_weight", self.fitness_config.get("weights", {}).get("accuracy", 0.7)
-        )
-        max_depth = params.get("max_depth", self.tree_config["max_depth"])
-
-        initializer = TreeInitializer(
-            n_features=X.shape[1],
-            n_classes=len(np.unique(y)),
-            max_depth=max_depth,
-            min_samples_split=self.tree_config["min_samples_split"],
-            min_samples_leaf=self.tree_config["min_samples_leaf"],
-            growth_stop_prob=self.tree_config.get("growth_stop_prob", 0.3),
-        )
-        calculator = FitnessCalculator(
-            mode="weighted_sum",
-            accuracy_weight=accuracy_weight,
-            interpretability_weight=1.0 - accuracy_weight,
-            interpretability_weights=self.fitness_config.get("interpretability_weights"),
-            classification_metric=self.fitness_config.get("classification_metric", "accuracy"),
-        )
-        counting = _CountingFitness(calculator.calculate_fitness)
+        context = _build_search_context(self.tree_config, self.fitness_config, X, y, params, seed)
 
         _random.seed(seed)
         np.random.seed(seed)
@@ -258,12 +365,13 @@ class RandomTreeSearch(BenchmarkMethod):
         best_tree = None
         best_fitness = -np.inf
         for _ in range(budget):
-            candidate = initializer.create_random_tree(X, y)
-            fitness = counting(candidate, X, y)
+            candidate = context.initializer.create_random_tree(context.X_train, context.y_train)
+            fitness = context.score(candidate)
             if fitness > best_fitness:
                 best_fitness = fitness
                 best_tree = candidate
 
+        # Same refit-on-everything step the GA gets, for the same reason.
         predictor = TreePredictor()
         predictor.fit_leaf_predictions(best_tree, X, y)
         measures = ga_tree_complexity(best_tree, X)
@@ -275,7 +383,7 @@ class RandomTreeSearch(BenchmarkMethod):
             max_depth=measures["max_depth"],
             n_features_used=measures["n_features_used"],
             mean_path_length=measures["mean_path_length"],
-            n_evaluations=counting.count,
+            n_evaluations=context.fitness.count,
         )
 
 
