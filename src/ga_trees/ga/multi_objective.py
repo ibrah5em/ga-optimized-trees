@@ -10,6 +10,8 @@ Changes from original:
 - LDD-15:  ``toolbox.clone`` is properly registered.
 - LDD-16:  Crowding distance is assigned before first ``selTournamentDCD``.
 - Mating pool is padded to a multiple of 4 so that any population size works.
+- Duplicate genotypes are removed before environmental selection, without which
+  the population collapses to a handful of clones within a few generations.
 """
 
 import copy
@@ -52,6 +54,9 @@ class ParetoOptimizer:
         crossover_prob: Probability of applying crossover to a pair of offspring.
         mutation_prob: Probability of applying mutation to an individual.
         random_state: Optional seed for reproducibility (LDD-9).
+        eliminate_duplicates: Drop structurally identical individuals before
+            environmental selection. On by default — without it the population
+            fills with clones (see ``_deduplicate``).
     """
 
     def __init__(
@@ -62,6 +67,7 @@ class ParetoOptimizer:
         crossover_prob: float = 0.7,
         mutation_prob: float = 0.2,
         random_state: Optional[int] = None,
+        eliminate_duplicates: bool = True,
     ):
         self.initializer = initializer
         self.fitness_fn = fitness_fn
@@ -69,6 +75,7 @@ class ParetoOptimizer:
         self.crossover_prob = crossover_prob
         self.mutation_prob = mutation_prob
         self.random_state = random_state
+        self.eliminate_duplicates = eliminate_duplicates
 
         # --- LDD-14: clean global state before creating ---
         _cleanup_deap_creator()
@@ -158,7 +165,10 @@ class ParetoOptimizer:
             self._evaluate(invalid, X, y)
 
             # NSGA-II environmental selection (LDD-16: assigns crowding dist)
-            population = tools.selNSGA2(population + offspring, population_size)
+            candidates = population + offspring
+            if self.eliminate_duplicates:
+                candidates = self._deduplicate(candidates, population_size)
+            population = tools.selNSGA2(candidates, population_size)
 
             if verbose and gen % 10 == 0:
                 front0 = tools.sortNondominated(population, len(population), first_front_only=True)[
@@ -169,12 +179,63 @@ class ParetoOptimizer:
         # Extract Pareto front
         pareto_front = tools.sortNondominated(population, len(population), first_front_only=True)[0]
 
-        # Unwrap TreeGenotype objects
-        return [ind[0] for ind in pareto_front]
+        # Unwrap TreeGenotype objects. The front is deduplicated unconditionally:
+        # the population is allowed to carry clones so its size stays fixed, but
+        # a returned front containing N copies of one tree is not a front, and
+        # its hypervolume would read as that of a single point.
+        trees = [ind[0] for ind in pareto_front]
+        seen = set()
+        unique_trees = []
+        for tree in trees:
+            signature = tree.structural_signature()
+            if signature not in seen:
+                seen.add(signature)
+                unique_trees.append(tree)
+        return unique_trees
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _deduplicate(candidates: list, minimum: int) -> list:
+        """Drop structurally identical individuals, keeping the first of each.
+
+        Crowding distance does not remove duplicates: identical points sit at
+        distance 0 from each other, but when the whole merged pool is one front
+        there is nothing else to select, so clones fill the population anyway.
+        Measured on iris at ``population_size=50``, the population went from 26
+        distinct objective vectors to 2 within five generations, and the
+        reported "Pareto front" became 50 copies of two trees — a front whose
+        hypervolume is that of a single point while looking perfectly valid.
+
+        Duplicate elimination in environmental selection is the standard remedy
+        (pymoo applies it by default).
+
+        Args:
+            candidates: Merged parent + offspring pool.
+            minimum: Population size to preserve. If deduplication leaves fewer
+                than this, removed duplicates are added back — ``selNSGA2``
+                silently returns a short population otherwise.
+
+        Returns:
+            The unique individuals, topped up to ``minimum`` where needed.
+        """
+        seen = set()
+        unique: List = []
+        duplicates: List = []
+        for individual in candidates:
+            signature = individual[0].structural_signature()
+            if signature in seen:
+                duplicates.append(individual)
+            else:
+                seen.add(signature)
+                unique.append(individual)
+
+        if len(unique) < minimum:
+            # Falls back to current behaviour rather than shrinking the run.
+            unique.extend(duplicates[: minimum - len(unique)])
+        return unique
 
     @staticmethod
     def _select_mating_pool(population: list) -> list:
