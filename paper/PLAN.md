@@ -95,33 +95,56 @@ Correctness fixes — done on `paper/phase-0` (2026-08-07):
   as unevaluated, ranking it below negative-fitness individuals in elitism and tournaments
   and dropping it from the generation statistics. Replaced by `_fitness_key`, where only
   `None` means unevaluated.
+
 - [x] `engine.py` — the hardcoded `random.random() < 0.3` growth stop is now
   `TreeInitializer(growth_stop_prob=...)`, validated to `[0, 1)` and wired to
   `tree.growth_stop_prob` in every config. **Still to do: sweep it** — it is a free
   parameter that has never been tuned, and it sets how bushy the seed population is.
+
 - [x] `multi_objective.py` — `selTournamentDCD` rejects `k == len(pop)` unless it divides by
   4, and `configs/fast.yaml` ships `population_size: 50`. The mating pool is now padded to a
   multiple of 4 and trimmed back to `n`.
+
 - [x] `multi_objective.py` — `tools.assignCrowdingDist` does not exist in DEAP 1.4 (it lives
   in `deap.tools.emo`), so the LDD-16 line raised `AttributeError` on every real run. The
   unit tests hid this by patching the missing symbol in with `create=True`, and only ever
   used population sizes divisible by 4.
 
-**Open — the Pareto front collapses.** First un-stubbed `ParetoOptimizer` run (iris,
-`population_size=50`, `n_generations=5`, `random_state=42`, real `FitnessCalculator` in
-pareto mode) returned all 50 individuals on front 0 with *identical* objectives
-`(0.667, 0.906)`. Generation 0 is not the cause: it has 26 distinct objective pairs across
-50 individuals, though 22 of those are single-leaf stumps at `(0.333, 0.844)` — an artifact
-of the 0.3 growth stop, which is another reason to sweep it. So the collapse happens during
-evolution, in selection/variation, over very few generations.
+- [x] **Pareto front collapse — diagnosed and fixed** (2026-08-07). The first un-stubbed
+  run returned all 50 individuals on front 0 with identical objectives. Cause: **NSGA-II
+  has no duplicate elimination.** Crowding distance does not remove clones — identical
+  points sit at distance 0 from each other, and once the merged pool is one big front there
+  is nothing else to select, so clones fill the population. Instrumented on iris, distinct
+  objective vectors fell 26 → 2 within five generations and never recovered.
 
-**Diagnose this before computing any hypervolume.** The target claim of this plan is
-frontier dominance by hypervolume, and a "front" of 50 identical points has the hypervolume
-of one point while still presenting as a valid frontier — the failure is silent and would
-land in the paper. Worth checking: per-generation count of distinct objective pairs;
-whether `selNSGA2(population + offspring, k)` is filling the next population with duplicate
-elites; and whether crossover between near-identical parents does any real work. Fixing
-this is a prerequisite for item 6 above, not a follow-up to it.
+  `TreeGenotype.structural_signature()` gives a hashable fingerprint of tree shape, splits
+  and predictions; `ParetoOptimizer._deduplicate` drops repeats before environmental
+  selection (`eliminate_duplicates=True` by default, as in pymoo). The returned front is
+  deduplicated unconditionally — the population may carry clones so its size stays fixed,
+  but a front of N copies is not a front.
+
+  Measured over 20 generations at `population_size=50`:
+
+  | Dataset | Distinct front points (before → after) | Best accuracy (before → after) |
+  | ------- | -------------------------------------- | ------------------------------ |
+  | iris    | 2 → 3                                  | 0.9467 → 0.9600                |
+  | wine    | 2 → 7                                  | 0.9045 → 0.9270                |
+
+  Wine now traces a monotone accuracy/interpretability trade-off across 7 points, which is
+  the shape H1 needs.
+
+**Still open on the Pareto path, before any hypervolume number:**
+
+- **Front size is not the number of distinct objective points.** Post-fix iris returns 27
+  structurally distinct trees at only 3 objective points. Hypervolume must be computed on
+  distinct objective vectors; reporting "front size" would overstate the result ~9×.
+- **The front still thins over time** — iris front-0 distinct points drift 5 → 2 across 15
+  generations even with deduplication. Deduplication stops the catastrophic collapse; it
+  does not by itself maintain spread. Random immigrants on the top-up path are the obvious
+  next lever and were deliberately not added here, since they change search behaviour and
+  need their own ablation row.
+- Objectives are still `(accuracy, composite interpretability)` on **resubstitution** data.
+  Item 6 above (switch to validation accuracy and node count) still stands.
 
 **Exit criterion:** ablation table shows each change's isolated contribution to
 hypervolume and held-out accuracy.
