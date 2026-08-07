@@ -14,7 +14,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from deap import base, creator
+from deap import base, creator, tools
+from deap.tools.emo import assignCrowdingDist
 
 from ga_trees.ga.engine import Mutation, TreeInitializer
 from ga_trees.ga.multi_objective import ParetoOptimizer, _cleanup_deap_creator
@@ -274,48 +275,31 @@ class TestEvaluate:
 # ---------------------------------------------------------------------------
 
 
-def _assign_crowding_dist_stub(front):
-    """Stub for tools.assignCrowdingDist: sets crowding_dist=0.0 on each individual."""
-    for ind in front:
-        ind.fitness.crowding_dist = 0.0
-
-
-def _patch_deap_tools():
-    """Context manager that patches tools.assignCrowdingDist (missing in DEAP 1.4)."""
-    from deap import tools
-
-    return patch.object(tools, "assignCrowdingDist", _assign_crowding_dist_stub, create=True)
-
-
 class TestEvolveParetoFront:
     """Tests for ParetoOptimizer.evolve_pareto_front."""
 
     def test_returns_list(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert isinstance(result, list)
 
     def test_returns_nonempty_result(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert len(result) > 0
 
     def test_result_contains_tree_genotypes(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         for tree in result:
             assert isinstance(tree, TreeGenotype)
 
     def test_verbose_gen_0_hits_print_branch(self, pareto_optimizer, small_iris):
         """verbose=True and 11 generations ensures gen%10==0 branch is hit."""
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(
-                X, y, population_size=8, n_generations=11, verbose=True
-            )
+        result = pareto_optimizer.evolve_pareto_front(
+            X, y, population_size=8, n_generations=11, verbose=True
+        )
         assert len(result) > 0
 
     def test_random_state_reproducibility(self, small_iris, simple_fitness_fn):
@@ -325,12 +309,49 @@ class TestEvolveParetoFront:
         )
         opt1 = ParetoOptimizer(initializer, simple_fitness_fn, lambda t: t, random_state=0)
         opt2 = ParetoOptimizer(initializer, simple_fitness_fn, lambda t: t, random_state=0)
-        # population_size must be divisible by 4 for selTournamentDCD
-        with _patch_deap_tools():
-            r1 = opt1.evolve_pareto_front(X, y, population_size=8, n_generations=2)
-        with _patch_deap_tools():
-            r2 = opt2.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        r1 = opt1.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        r2 = opt2.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert len(r1) == len(r2)
+
+    @pytest.mark.parametrize("population_size", [5, 6, 7, 50])
+    def test_population_size_not_divisible_by_four(
+        self, pareto_optimizer, small_iris, population_size
+    ):
+        """selTournamentDCD rejects k == len(pop) unless divisible by 4.
+
+        configs/fast.yaml ships population_size=50, so this used to be a hard
+        crash for a shipped config.
+        """
+        X, y = small_iris
+        result = pareto_optimizer.evolve_pareto_front(
+            X, y, population_size=population_size, n_generations=2
+        )
+        assert len(result) > 0
+
+    def test_tiny_population_below_pad_width(self, pareto_optimizer, small_iris):
+        """Populations smaller than the pad width (4) still evolve."""
+        X, y = small_iris
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=2, n_generations=2)
+        assert len(result) > 0
+
+    def test_mating_pool_keeps_population_size(self, pareto_optimizer, small_iris):
+        """Padding must not leak extra individuals into the offspring list."""
+        X, y = small_iris
+        population = pareto_optimizer._create_population(X, y, 10)
+        pareto_optimizer._evaluate(population, X, y)
+        for front in tools.sortNondominated(population, len(population)):
+            assignCrowdingDist(front)
+        assert len(pareto_optimizer._select_mating_pool(population)) == 10
+
+    def test_zero_population_size_raises(self, pareto_optimizer, small_iris):
+        X, y = small_iris
+        with pytest.raises(ValueError, match="population_size"):
+            pareto_optimizer.evolve_pareto_front(X, y, population_size=0, n_generations=2)
+
+    def test_zero_generations_raises(self, pareto_optimizer, small_iris):
+        X, y = small_iris
+        with pytest.raises(ValueError, match="n_generations"):
+            pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=0)
 
 
 # ---------------------------------------------------------------------------

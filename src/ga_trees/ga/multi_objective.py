@@ -9,6 +9,7 @@ Changes from original:
 - LDD-14:  DEAP ``creator`` global state is cleaned up before re-creation.
 - LDD-15:  ``toolbox.clone`` is properly registered.
 - LDD-16:  Crowding distance is assigned before first ``selTournamentDCD``.
+- Mating pool is padded to a multiple of 4 so that any population size works.
 """
 
 import copy
@@ -17,6 +18,11 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 from deap import base, creator, tools
+
+# DEAP does not re-export assignCrowdingDist at the ``tools`` level, so
+# ``tools.assignCrowdingDist`` raises AttributeError at runtime — import it
+# from the module that actually defines it.
+from deap.tools.emo import assignCrowdingDist
 
 from ga_trees.ga.improved_crossover import safe_subtree_crossover
 from ga_trees.genotype.tree_genotype import TreeGenotype
@@ -97,7 +103,15 @@ class ParetoOptimizer:
 
         Returns:
             List of Pareto-optimal ``TreeGenotype`` instances.
+
+        Raises:
+            ValueError: If ``population_size`` or ``n_generations`` is not positive.
         """
+        if population_size <= 0:
+            raise ValueError(f"population_size must be > 0, got {population_size}.")
+        if n_generations <= 0:
+            raise ValueError(f"n_generations must be > 0, got {n_generations}.")
+
         # --- LDD-9: reproducibility ---
         if self.random_state is not None:
             random.seed(self.random_state)
@@ -112,12 +126,12 @@ class ParetoOptimizer:
         # --- LDD-16: assign crowding distance before first DCD selection ---
         fronts = tools.sortNondominated(population, len(population))
         for front in fronts:
-            tools.assignCrowdingDist(front)
+            assignCrowdingDist(front)
 
         # Evolution loop
         for gen in range(n_generations):
             # Select offspring via tournament with crowding-distance comparison
-            offspring = tools.selTournamentDCD(population, len(population))
+            offspring = self._select_mating_pool(population)
             offspring = [self.toolbox.clone(ind) for ind in offspring]
 
             # --- LDD-2: real crossover ---
@@ -161,6 +175,21 @@ class ParetoOptimizer:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _select_mating_pool(population: list) -> list:
+        """Binary DCD tournament that tolerates any population size.
+
+        ``selTournamentDCD`` rejects ``k == len(population)`` unless it divides
+        by 4, so every population size that is not a multiple of 4 (e.g. the 50
+        in ``configs/fast.yaml``) crashed the run. Pad the pool with extra draws
+        from the same population, select, then trim back to the original size —
+        DEAP shuffles the pool internally, so trimming the tail is unbiased.
+        """
+        n = len(population)
+        pool = list(population)
+        pool.extend(random.choice(population) for _ in range((-n) % 4))
+        return tools.selTournamentDCD(pool, len(pool))[:n]
 
     def _create_population(self, X: np.ndarray, y: np.ndarray, size: int) -> list:
         """Create initial DEAP-wrapped population."""
