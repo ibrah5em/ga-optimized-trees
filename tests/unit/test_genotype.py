@@ -342,3 +342,90 @@ class TestValidateErrorPaths:
         valid, errors = tree.validate()
         assert not valid
         assert any("prediction" in e.lower() for e in errors)
+
+
+class TestStructuralSignature:
+    """Test TreeGenotype.structural_signature — the duplicate-detection key."""
+
+    def _tree(self, feature=0, threshold=0.5, left_pred=0, right_pred=1):
+        left = create_leaf_node(left_pred, 1)
+        right = create_leaf_node(right_pred, 1)
+        root = create_internal_node(feature, threshold, left, right, 0)
+        return TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+
+    def test_identical_trees_share_a_signature(self):
+        assert self._tree().structural_signature() == self._tree().structural_signature()
+
+    def test_copy_keeps_the_signature(self):
+        tree = self._tree()
+        assert tree.copy().structural_signature() == tree.structural_signature()
+
+    def test_different_threshold_differs(self):
+        assert self._tree(threshold=0.5).structural_signature() != (
+            self._tree(threshold=0.6).structural_signature()
+        )
+
+    def test_different_feature_differs(self):
+        assert self._tree(feature=0).structural_signature() != (
+            self._tree(feature=1).structural_signature()
+        )
+
+    def test_different_leaf_prediction_differs(self):
+        assert self._tree(right_pred=1).structural_signature() != (
+            self._tree(right_pred=0).structural_signature()
+        )
+
+    def test_swapped_children_differ(self):
+        """Left and right are not interchangeable — the split reverses."""
+        assert self._tree(left_pred=0, right_pred=1).structural_signature() != (
+            self._tree(left_pred=1, right_pred=0).structural_signature()
+        )
+
+    def test_leaf_only_tree_differs_from_split(self):
+        leaf_only = TreeGenotype(root=create_leaf_node(0, 0), n_features=4, n_classes=2)
+        assert leaf_only.structural_signature() != self._tree().structural_signature()
+
+    def test_signature_is_hashable(self):
+        """Must work as a set member — that is the whole point of it."""
+        assert len({self._tree().structural_signature() for _ in range(3)}) == 1
+
+    def test_node_ids_do_not_affect_signature(self):
+        tree = self._tree()
+        before = tree.structural_signature()
+        for node in tree.get_all_nodes():
+            node.node_id += 100
+        assert tree.structural_signature() == before
+
+    def test_depth_labels_do_not_affect_signature(self):
+        tree = self._tree()
+        before = tree.structural_signature()
+        for node in tree.get_all_nodes():
+            node.depth += 7
+        assert tree.structural_signature() == before
+
+    def test_float_noise_below_rounding_is_ignored(self):
+        """Crossover moves thresholds through float arithmetic; ulp noise is not a difference."""
+        a = self._tree(threshold=0.5)
+        b = self._tree(threshold=0.5 + 1e-15)
+        assert a.structural_signature() == b.structural_signature()
+
+    def test_rounding_precision_is_configurable(self):
+        a = self._tree(threshold=0.50)
+        b = self._tree(threshold=0.51)
+        assert a.structural_signature(threshold_decimals=1) == b.structural_signature(
+            threshold_decimals=1
+        )
+        assert a.structural_signature() != b.structural_signature()
+
+    def test_array_leaf_prediction_is_hashable(self):
+        import numpy as np
+
+        root = create_leaf_node(np.array([0.3, 0.7]), 0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2)
+        assert len({tree.structural_signature()}) == 1
+
+    def test_missing_child_is_encoded(self):
+        """A half-built internal node must not collide with a complete one."""
+        tree = self._tree()
+        tree.root.right_child = None
+        assert tree.structural_signature() != self._tree().structural_signature()
