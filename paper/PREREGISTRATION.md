@@ -69,12 +69,104 @@ ______________________________________________________________________
 Any deviation from the above must be recorded here with a date and a reason, before the
 affected result is used.
 
-| Date | Deviation | Reason |
-| ---- | --------- | ------ |
-| —    | —         | —      |
+| Date       | Deviation                                                                                                                                                     | Reason                                                                                                                                                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-07 | Split thresholds now drawn from observed midpoints of the samples reaching each node (`tree.split_strategy: midpoint`), for **both** the GA and random search | The previous `uniform(feature_min, feature_max)` draw is not the candidate set CART searches. Recorded because it changes the shared tree space both budget-matched methods sample from. See the note below — it moves K1 *against* the GA.       |
+| 2026-08-07 | Fitness scored on a 20% stratified holdout of the fitting data (`fitness.validation_fraction: 0.2`), for **both** the GA and random search                    | Fitness was resubstitution: leaf predictions were fitted on the rows they were then scored on, so selection rewarded memorisation. Applied identically to both methods so the budget-matched comparison is unaffected.                            |
+| 2026-08-07 | Random-search budget read as `pop + gens × (pop − n_elite)` rather than the `population_size × n_generations` fixed above                                     | The stated product is not what a GA run costs — elites carry their fitness across generations. Budget-matching to the product under-funded random search by ~9%, biasing K1 toward the GA. `verify_budget_match` reports realised counts per run. |
+
+**Note on the first deviation, recorded before the run.** A 2×2 ablation over three
+screening datasets (`banknote`, `wdbc`, `tic_tac_toe`, tuned, 3 outer folds) found that
+data-driven thresholds raise *random search's* accuracy by +0.0122 while moving the GA's
+by −0.0028, shrinking the GA-minus-random-search gap by −0.0150. The mechanism is that the
+GA could already reach good thresholds through `threshold_perturbation` over generations,
+whereas random search draws every candidate independently and could not. Fixing the
+initializer removed the **baseline's** handicap.
+
+This is the opposite of the reasoning that motivated the change, and it makes K1 harder to
+pass. It is adopted anyway, because the pre-registration is silent on threshold sampling
+and the conservative reading of a silent pre-registration is the setting that makes the
+kill criterion harder, not easier. Three screening datasets cannot reach significance and
+this note claims no result; it records that the choice was made with its direction known.
 
 ______________________________________________________________________
 
 ## Outcome
 
-*(To be appended after the Phase 3 re-run. Leave blank until then.)*
+### Headline — frontier run, 2026-08-07
+
+`python scripts/frontier_benchmark.py --config configs/paper.yaml --n-jobs 5`
+20 pre-registered CC-18 datasets × 10-fold × 3 repeats = 600 folds per method, 2400 rows.
+Artifacts committed at `paper/evidence/frontier-2026-08-07/` (`results/` is gitignored).
+Budget match: **0 of 600 folds** unequal (2545.5 mean evaluations for both searchers).
+
+**K1 — NOT triggered. The evolutionary machinery contributes.**
+
+| Comparison (Wilcoxon across 20 datasets, Holm-corrected) | Mean Δ hypervolume | p      | p_holm     | d_z    |
+| -------------------------------------------------------- | ------------------ | ------ | ---------- | ------ |
+| GA vs **Random Search**                                  | **+0.6616**        | 0.0107 | **0.0321** | +0.501 |
+| GA vs GA (archived)                                      | +0.1156            | 0.1429 | 0.2858     | +0.153 |
+| GA vs CART (ccp path)                                    | −4.2076            | 0.3683 | 0.3683     | −0.361 |
+
+The GA's frontier hypervolume exceeds budget-matched random search's on **15 of 20**
+datasets, significantly, at a medium effect size. This is the pre-registered K1 test and it
+clears. Note that the four-method Friedman omnibus is *not* significant (p = 0.2018, ranks
+GA 2.15 \< CART 2.25 \< GA-archived 2.70 \< random search 2.90), so the Nemenyi post-hoc is
+not licensed. There is no contradiction — K1 is defined on the pairwise signed-rank test,
+and an omnibus over four methods, two of which are near-duplicate GA variants, has less
+power. Both are reported.
+
+**The archived-GA control cleared.** NSGA-II's natural answer is its final population's
+front while random search can only deliver an archive, so the GA was also run returning its
+non-dominated archive over every candidate scored. The two are statistically
+indistinguishable (+0.116, p_holm = 0.286), so K1 is not an artefact of that bookkeeping
+difference. The control was specified in the module docstring before the first run.
+
+**K2 — TRIGGERED. H1 is rejected.**
+
+The GA has the larger hypervolume than CART's cost-complexity pruning path on **45%** of
+datasets, below the 60% threshold, and its mean difference is −4.21. Per the binding text:
+*"Do not weaken it to 'competitive on some datasets.'"*
+
+**The frontier-dominance claim in `paper/PLAN.md` is dead and must be replaced, not
+softened.** What survives is the mechanism result: over the same tree space and an exactly
+matched evaluation budget, evolution beats random sampling. That is H3, and it is a
+narrower claim than the one this project set out to make.
+
+**K3 / H2 — pending** the point-estimate run (`scripts/benchmark.py`), still executing.
+
+______________________________________________________________________
+
+### Audit trail — two errors found in the harness, both recorded
+
+A kill criterion firing is the moment a project is most tempted to go looking for a bug and
+least trustworthy when it finds one. Both of the following were found by reading the
+implementation against this document, and both are recorded with the direction they moved
+the result.
+
+**1. Selection on the test fold, in random search's favour — first run discarded.**
+The first execution reported **K1 TRIGGERED**, random search ahead by −1.585 hypervolume
+(p_holm \< 0.0001, 19 of 20 datasets). Invalid. `RandomSearchFrontier` returned all ~2,545
+candidates it sampled and let the dominance filter run on their *test* scores — the maximum
+over thousands of test evaluations, which nothing can deliver, because choosing among those
+candidates requires the test labels. Random search was handing over 2,545 models against
+the GA's 10. Both searchers now archive on training/validation objectives and deliver only
+that: 10.2 (GA) against 5.6 (random search). Output preserved at
+`paper/evidence/frontier-2026-08-07/folds-INVALID-selection-on-test.csv`.
+
+**2. Reference point taken per fold instead of per dataset — in the GA's favour.**
+The "Fixed in advance" table specifies "nodes = max over all methods on that **dataset**";
+`run_frontier_cv` was computing one per (dataset, fold). Raising the reference adds
+`max_accuracy × Δreference` to a method's area, so a smaller box favours whichever method
+has the lower peak accuracy — the GA. Effect on the conclusions:
+
+| Comparison            | per-fold (wrong)          | per-dataset (as pre-registered)           |
+| --------------------- | ------------------------- | ----------------------------------------- |
+| GA vs Random Search   | +0.599, p_holm 0.0021     | +0.662, p_holm 0.0321 — still significant |
+| GA vs CART (ccp path) | −1.814 (ns)               | −4.208 (ns)                               |
+| **K2 dominance rate** | **70%** — above threshold | **45%** — **below threshold**             |
+
+K1's conclusion is unchanged; **K2's is reversed**. Output from the per-fold version is
+preserved at `paper/evidence/frontier-2026-08-07/folds-SUPERSEDED-per-fold-reference.csv`. `run_frontier_cv` now
+computes the reference in a second pass over the whole dataset, pinned by
+`test_one_reference_for_the_whole_dataset`.
