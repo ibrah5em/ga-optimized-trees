@@ -100,7 +100,12 @@ def run_multiple_configs(X_train, y_train, X_test, y_test, base_config, n_config
             interpretability_weights=base_config["fitness"]["interpretability_weights"],
         )
 
-        mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+        mutation = Mutation(
+            n_features=n_features,
+            feature_ranges=feature_ranges,
+            X=X_train,
+            min_samples_leaf=tree_config["min_samples_leaf"],
+        )
 
         # Train
         ga_engine = GAEngine(ga_config, initializer, fitness_calc.calculate_fitness, mutation)

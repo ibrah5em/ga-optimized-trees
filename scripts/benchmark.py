@@ -113,6 +113,17 @@ def main():
         "--dry-run", action="store_true", help="Report the fit count and exit without running"
     )
     parser.add_argument("--output-dir", default="results/nested", help="Where to write artifacts")
+    parser.add_argument(
+        "--n-jobs",
+        type=int,
+        default=1,
+        help=(
+            "Datasets to process in parallel. Parallelism is across datasets only: "
+            "seeds come from derive_fold_seed(base, dataset, fold, method), so results are "
+            "identical to a serial run. Uses processes, never threads — GAConfig.random_state "
+            "seeds the global RNG, which threads would share."
+        ),
+    )
     args = parser.parse_args()
 
     with open(args.config) as handle:
@@ -152,23 +163,37 @@ def main():
     stamp = datetime.now().strftime("%Y-%m-%d")
     config_name = Path(args.config).stem
 
-    all_results = []
-    for name in datasets:
-        print(f"\n{'-' * 70}\n{name}\n{'-' * 70}")
+    def run_one(name):
+        """Full nested CV for one dataset. Self-contained so it can be forked."""
         X, y = load_dataset(name)
-        all_results.extend(
-            run_nested_cv(
-                X,
-                y,
-                methods,
-                dataset_name=name,
-                base_seed=config["experiment"]["random_state"],
-                outer_splits=args.outer_splits,
-                outer_repeats=args.outer_repeats,
-                inner_splits=args.inner_splits,
-                progress=print,
-            )
+        return run_nested_cv(
+            X,
+            y,
+            methods,
+            dataset_name=name,
+            base_seed=config["experiment"]["random_state"],
+            outer_splits=args.outer_splits,
+            outer_repeats=args.outer_repeats,
+            inner_splits=args.inner_splits,
+            progress=print if args.n_jobs == 1 else None,
         )
+
+    all_results = []
+    if args.n_jobs == 1:
+        for name in datasets:
+            print(f"\n{'-' * 70}\n{name}\n{'-' * 70}")
+            all_results.extend(run_one(name))
+    else:
+        from joblib import Parallel, delayed
+
+        print(f"\nRunning {len(datasets)} datasets across {args.n_jobs} processes.")
+        print("Per-fold progress is suppressed; output would interleave unreadably.\n")
+        # Datasets are independent and every seed is derived from the dataset
+        # name, so this reorders work without changing any result.
+        for chunk in Parallel(n_jobs=args.n_jobs, verbose=10)(
+            delayed(run_one)(name) for name in datasets
+        ):
+            all_results.extend(chunk)
 
     rows = [r.as_row() for r in all_results]
     folds_file = output_dir / f"folds-{config_name}-{stamp}.csv"

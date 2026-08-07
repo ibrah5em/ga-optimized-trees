@@ -360,7 +360,12 @@ Examples:
         interpretability_weights=interp_weights,
     )
 
-    mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+    mutation = Mutation(
+        n_features=n_features,
+        feature_ranges=feature_ranges,
+        X=X_train,
+        min_samples_leaf=args.min_samples_leaf,
+    )
 
     # Create GA engine
     ga_engine = GAEngine(

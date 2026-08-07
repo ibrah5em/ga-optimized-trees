@@ -45,6 +45,7 @@ from ga_trees.ga.engine import (
     Mutation,
     TreeInitializer,
 )
+from ga_trees.ga.split_points import MIDPOINT_STRATEGY
 from ga_trees.reproducibility import build_seed_manifest, derive_fold_seed
 
 
@@ -247,6 +248,7 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             min_samples_split=config["tree"]["min_samples_split"],
             min_samples_leaf=config["tree"]["min_samples_leaf"],
             growth_stop_prob=config["tree"].get("growth_stop_prob", DEFAULT_GROWTH_STOP_PROB),
+            split_strategy=config["tree"].get("split_strategy", MIDPOINT_STRATEGY),
         )
 
         # Fitness configuration
@@ -267,7 +269,13 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             regression_metric=fitness_config.get("regression_metric", "neg_mse"),
         )
 
-        mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+        mutation = Mutation(
+            n_features=n_features,
+            feature_ranges=feature_ranges,
+            X=X_train,
+            min_samples_leaf=config["tree"]["min_samples_leaf"],
+            split_strategy=config["tree"].get("split_strategy", MIDPOINT_STRATEGY),
+        )
 
         # Train
         start = time.time()
