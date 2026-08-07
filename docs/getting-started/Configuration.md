@@ -65,6 +65,7 @@ tree:
   max_depth: 6
   min_samples_split: 8
   min_samples_leaf: 3
+  growth_stop_prob: 0.3
 ```
 
 > **⚠️ No results are claimed for this config.** Earlier versions of this page listed
@@ -115,6 +116,7 @@ tree:
   max_depth: 6                 # Maximum tree depth (3-10)
   min_samples_split: 8         # Min samples to split (2-20)
   min_samples_leaf: 3          # Min samples in leaf (1-10)
+  growth_stop_prob: 0.3        # P(stop growing) per node when seeding (0-1)
 ```
 
 ### Fitness Weights

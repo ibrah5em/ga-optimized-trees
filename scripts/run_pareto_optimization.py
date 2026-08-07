@@ -12,7 +12,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
-from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.engine import (
+    DEFAULT_GROWTH_STOP_PROB,
+    GAConfig,
+    GAEngine,
+    Mutation,
+    TreeInitializer,
+)
 
 
 def load_config(config_path="configs/paper.yaml"):
@@ -83,6 +89,7 @@ def run_multiple_configs(X_train, y_train, X_test, y_test, base_config, n_config
             max_depth=tree_config["max_depth"],
             min_samples_split=tree_config["min_samples_split"],
             min_samples_leaf=tree_config["min_samples_leaf"],
+            growth_stop_prob=tree_config.get("growth_stop_prob", DEFAULT_GROWTH_STOP_PROB),
         )
 
         # Use your interpretability sub-weights, vary main weights only

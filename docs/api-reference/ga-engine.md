@@ -55,6 +55,7 @@ TreeInitializer(
     min_samples_split,
     min_samples_leaf,
     task_type="classification",
+    growth_stop_prob=0.3,
 )
 ```
 
@@ -66,6 +67,9 @@ TreeInitializer(
 - `min_samples_split` (int): Minimum samples to split
 - `min_samples_leaf` (int): Minimum samples in leaf
 - `task_type` (str): 'classification' or 'regression'
+- `growth_stop_prob` (float): Per-node probability of stopping growth when seeding the
+  population, in \[0, 1). Lower values seed bushier trees; defaults to
+  `DEFAULT_GROWTH_STOP_PROB` (0.3)
 
 #### Methods
 

@@ -35,6 +35,7 @@ tree:
   max_depth: 6
   min_samples_split: 8
   min_samples_leaf: 3
+  growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
 
 # Fitness Function
 fitness:

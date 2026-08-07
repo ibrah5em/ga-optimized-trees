@@ -26,6 +26,23 @@ from ga_trees.genotype.tree_genotype import (
 
 logger = logging.getLogger(__name__)
 
+#: Per-node probability that :class:`TreeInitializer` stops growing and emits a
+#: leaf, independent of the depth/sample stopping criteria. It controls how
+#: bushy the *initial* population is: 0.0 grows every branch to its structural
+#: limit, higher values bias the population toward stumps.
+DEFAULT_GROWTH_STOP_PROB = 0.3
+
+
+def _fitness_key(tree: TreeGenotype) -> float:
+    """Comparison key that ranks unevaluated individuals last.
+
+    A truthiness test (``t.fitness_ if t.fitness_ else -inf``) buckets a
+    legitimate fitness of exactly 0.0 with the unevaluated ones, which drops
+    those individuals out of elitism, tournaments and the generation
+    statistics. Only ``None`` means "not evaluated yet".
+    """
+    return tree.fitness_ if tree.fitness_ is not None else -np.inf
+
 
 @dataclass
 class GAConfig:
@@ -78,7 +95,18 @@ class GAConfig:
 
 
 class TreeInitializer:
-    """Initialize random decision trees."""
+    """Initialize random decision trees.
+
+    Args:
+        n_features: Number of input features.
+        n_classes: Number of target classes (classification only).
+        max_depth: Maximum depth of a generated tree.
+        min_samples_split: Minimum samples required to split a node.
+        min_samples_leaf: Minimum samples required in each child of a split.
+        task_type: ``"classification"`` or ``"regression"``.
+        growth_stop_prob: Per-node probability of stopping growth early, in
+            [0, 1). Defaults to :data:`DEFAULT_GROWTH_STOP_PROB`.
+    """
 
     def __init__(
         self,
@@ -88,13 +116,18 @@ class TreeInitializer:
         min_samples_split: int,
         min_samples_leaf: int,
         task_type: str = "classification",
+        growth_stop_prob: float = DEFAULT_GROWTH_STOP_PROB,
     ):
+        if not (0.0 <= growth_stop_prob < 1.0):
+            raise ValueError(f"growth_stop_prob must be in [0, 1), got {growth_stop_prob}.")
+
         self.n_features = n_features
         self.n_classes = n_classes
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.task_type = task_type
+        self.growth_stop_prob = growth_stop_prob
 
     def create_random_tree(self, X: np.ndarray, y: np.ndarray) -> TreeGenotype:
         """Create a random valid tree."""
@@ -118,7 +151,7 @@ class TreeInitializer:
             depth >= self.max_depth
             or n_samples < self.min_samples_split
             or len(np.unique(y)) == 1
-            or random.random() < 0.3  # Random early stopping
+            or random.random() < self.growth_stop_prob
         )
 
         if should_stop:
@@ -176,16 +209,14 @@ class Selection:
         selected = []
         for _ in range(n_select):
             tournament = random.sample(population, tournament_size)
-            winner = max(tournament, key=lambda t: t.fitness_ if t.fitness_ else -np.inf)
+            winner = max(tournament, key=_fitness_key)
             selected.append(winner.copy())
         return selected
 
     @staticmethod
     def elitism_selection(population: List[TreeGenotype], n_elite: int) -> List[TreeGenotype]:
         """Select top n individuals."""
-        sorted_pop = sorted(
-            population, key=lambda t: t.fitness_ if t.fitness_ else -np.inf, reverse=True
-        )
+        sorted_pop = sorted(population, key=_fitness_key, reverse=True)
         return [ind.copy() for ind in sorted_pop[:n_elite]]
 
 
@@ -438,7 +469,7 @@ class GAEngine:
 
         for generation in range(self.config.n_generations):
             # Track statistics
-            fitnesses = [ind.fitness_ for ind in self.population if ind.fitness_]
+            fitnesses = [ind.fitness_ for ind in self.population if ind.fitness_ is not None]
             if fitnesses:
                 best_fitness = max(fitnesses)
                 avg_fitness = np.mean(fitnesses)
@@ -446,10 +477,9 @@ class GAEngine:
                 self.history["avg_fitness"].append(avg_fitness)
 
                 # Update best individual
-                best_ind = max(self.population, key=lambda t: t.fitness_ if t.fitness_ else -np.inf)
-                if (
-                    self.best_individual is None
-                    or best_ind.fitness_ > self.best_individual.fitness_
+                best_ind = max(self.population, key=_fitness_key)
+                if self.best_individual is None or _fitness_key(best_ind) > _fitness_key(
+                    self.best_individual
                 ):
                     self.best_individual = best_ind.copy()
 
