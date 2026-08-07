@@ -53,14 +53,19 @@ won or lost.
   - CART unconstrained (re-implement properly — the archived rows came from lost code)
 - [ ] **Seed everything.** `random_state` into `GAConfig` (currently dropped at
   `scripts/experiment.py:197`), deterministic per-fold seeds, `seeds.json` artifact.
-- [ ] **Statistics done properly:**
-  - Wilcoxon signed-rank across *datasets*; Friedman + Nemenyi with critical-difference
-    diagrams (Demšar 2006)
-  - Equivalence via **TOST** with a pre-registered 2% absolute-accuracy margin, or the
-    Bayesian correlated t-test (Benavoli et al. 2017) with a ROPE
-  - Retire `ttest_rel` across CV folds (`scripts/experiment.py:456`) — folds share
-    training data, violates independence (Dietterich 1998)
-  - `np.std(..., ddof=1)` throughout
+- [x] **Statistics done properly** — `src/ga_trees/evaluation/statistics.py`, wired into
+  `scripts/experiment.py` via `run_statistical_analysis()` (2026-08-07):
+  - Wilcoxon signed-rank across *datasets*, Holm-corrected; Friedman + Nemenyi critical
+    difference (Demšar 2006). The CD **diagram** is still to draw — the number is computed.
+  - Equivalence via **TOST** at the pre-registered 2% absolute-accuracy margin. The
+    Bayesian correlated t-test with a ROPE (Benavoli et al. 2017) is not implemented; TOST
+    is what H2 is written against.
+  - `ttest_rel` across CV folds is gone, along with every significance star it printed.
+    Per-dataset differences are still shown, labelled descriptive, with no p-value.
+  - `ddof=1` throughout, via `summarize()`.
+  - Comparisons below `MIN_DATASETS_FOR_INFERENCE` (6) report `significant=False`
+    regardless of p, because a signed-rank test on fewer datasets cannot reach α=0.05.
+    The default 3-dataset config can no longer produce a significant result — by design.
 - [ ] **Scale to ~20 datasets** from OpenML CC-18. iris/wine/breast_cancer are saturated.
 - [ ] **Wire the config properly.** `classification_metric` and `early_stopping_rounds`
   are read from YAML and silently dropped (`experiment.py:197,224`) — `paper.yaml`
@@ -84,12 +89,39 @@ One branch per item, each with an ablation entry. The ablation table is a paper 
 | 5   | **Memetic local search** — cheap threshold hill-climb on the elite fraction each generation                                                           | `engine.py` `evolve`                                                 |
 | 6   | **Fix Pareto objectives** to (validation accuracy, −node_count); report hypervolume + attainment surfaces vs CART's `ccp_alpha` path                  | `ga/multi_objective.py:186`                                          |
 
-Correctness fixes to fold in:
+Correctness fixes — done on `paper/phase-0` (2026-08-07):
 
-- `engine.py:179,187,441,449` — `t.fitness_ if t.fitness_ else -inf` treats a fitness of
-  exactly `0.0` as `-inf`
-- `engine.py:121` — hardcoded `random.random() < 0.3` growth stop; document and sweep it
-- `multi_objective.py:120` — `selTournamentDCD` asserts `len(pop) % 4 == 0`; pop=50 breaks
+- [x] `engine.py` — `t.fitness_ if t.fitness_ else -inf` treated a fitness of exactly `0.0`
+  as unevaluated, ranking it below negative-fitness individuals in elitism and tournaments
+  and dropping it from the generation statistics. Replaced by `_fitness_key`, where only
+  `None` means unevaluated.
+- [x] `engine.py` — the hardcoded `random.random() < 0.3` growth stop is now
+  `TreeInitializer(growth_stop_prob=...)`, validated to `[0, 1)` and wired to
+  `tree.growth_stop_prob` in every config. **Still to do: sweep it** — it is a free
+  parameter that has never been tuned, and it sets how bushy the seed population is.
+- [x] `multi_objective.py` — `selTournamentDCD` rejects `k == len(pop)` unless it divides by
+  4, and `configs/fast.yaml` ships `population_size: 50`. The mating pool is now padded to a
+  multiple of 4 and trimmed back to `n`.
+- [x] `multi_objective.py` — `tools.assignCrowdingDist` does not exist in DEAP 1.4 (it lives
+  in `deap.tools.emo`), so the LDD-16 line raised `AttributeError` on every real run. The
+  unit tests hid this by patching the missing symbol in with `create=True`, and only ever
+  used population sizes divisible by 4.
+
+**Open — the Pareto front collapses.** First un-stubbed `ParetoOptimizer` run (iris,
+`population_size=50`, `n_generations=5`, `random_state=42`, real `FitnessCalculator` in
+pareto mode) returned all 50 individuals on front 0 with *identical* objectives
+`(0.667, 0.906)`. Generation 0 is not the cause: it has 26 distinct objective pairs across
+50 individuals, though 22 of those are single-leaf stumps at `(0.333, 0.844)` — an artifact
+of the 0.3 growth stop, which is another reason to sweep it. So the collapse happens during
+evolution, in selection/variation, over very few generations.
+
+**Diagnose this before computing any hypervolume.** The target claim of this plan is
+frontier dominance by hypervolume, and a "front" of 50 identical points has the hypervolume
+of one point while still presenting as a valid frontier — the failure is silent and would
+land in the paper. Worth checking: per-generation count of distinct objective pairs;
+whether `selNSGA2(population + offspring, k)` is filling the next population with duplicate
+elites; and whether crossover between near-identical parents does any real work. Fixing
+this is a prerequisite for item 6 above, not a follow-up to it.
 
 **Exit criterion:** ablation table shows each change's isolated contribution to
 hypervolume and held-out accuracy.

@@ -46,7 +46,8 @@ python scripts/experiment.py --config configs/paper.yaml
    - GA-Optimized Trees
    - CART baseline
    - Random Forest baseline
-1. Computes statistical tests (t-tests, Cohen's d)
+1. Compares methods **across datasets** — Wilcoxon signed-rank (Holm-corrected), TOST
+   equivalence against the pre-registered 2% margin, Friedman + Nemenyi
 1. Saves results to CSV and YAML
 
 **Expected runtime:**
@@ -219,11 +220,12 @@ print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
 print("=" * 60)
 
-# Compute means and stds
+# Compute means and stds. ddof=1: a CV estimate is a sample, and the
+# population form understates its spread.
 ga_acc_mean = np.mean(ga_results["test_acc"])
-ga_acc_std = np.std(ga_results["test_acc"])
+ga_acc_std = np.std(ga_results["test_acc"], ddof=1)
 cart_acc_mean = np.mean(cart_results["test_acc"])
-cart_acc_std = np.std(cart_results["test_acc"])
+cart_acc_std = np.std(cart_results["test_acc"], ddof=1)
 
 print(f"\nGA Accuracy: {ga_acc_mean:.4f} ± {ga_acc_std:.4f}")
 print(f"CART Accuracy: {cart_acc_mean:.4f} ± {cart_acc_std:.4f}")
@@ -236,24 +238,32 @@ print(f"\nGA Nodes: {ga_nodes_mean:.1f}")
 print(f"CART Nodes: {cart_nodes_mean:.1f}")
 print(f"Size Reduction: {reduction:.1f}%")
 
-# Statistical test
-t_stat, p_value = stats.ttest_rel(ga_results["test_acc"], cart_results["test_acc"])
-pooled_std = np.sqrt(
-    (np.var(ga_results["test_acc"]) + np.var(cart_results["test_acc"])) / 2
+# No significance test here, on purpose. This loop produces fold scores for a
+# single dataset, and folds share training data - a paired test over them
+# violates independence and its p-value is not interpretable (Dietterich 1998).
+# Report the difference descriptively, and test across datasets instead.
+print(f"\nMean accuracy difference (GA - CART): {ga_acc_mean - cart_acc_mean:+.4f}")
+print("  Descriptive only. For inference, collect several datasets and use")
+print("  ga_trees.evaluation.statistics - see docs/advanced/statistical-tests.md")
+```
+
+To test properly, run this loop over several datasets and pass the collected results to the
+statistics module:
+
+```python
+from ga_trees.evaluation.statistics import (
+    compare_all_to_reference,
+    equivalence_test,
+    per_dataset_means,
 )
-cohens_d = (ga_acc_mean - cart_acc_mean) / pooled_std if pooled_std > 0 else 0.0
 
-print(f"\nPaired t-test:")
-print(f"  t-statistic: {t_stat:.4f}")
-print(f"  p-value: {p_value:.4f}")
-print(f"  Cohen's d: {cohens_d:.4f}")
+# {dataset: {method: {"test_acc": [per-fold scores]}}}
+datasets, scores = per_dataset_means(all_results, metric="test_acc")
 
-if p_value > 0.05:
-    # Failure to reject, not equivalence - see docs/advanced/statistical-tests.md
-    print(f"  Result: No significant difference detected")
-else:
-    winner = "GA" if ga_acc_mean > cart_acc_mean else "CART"
-    print(f"  Result: {winner} is significantly better (p < 0.05)")
+for comparison in compare_all_to_reference(scores, "GA-Optimized"):
+    print(comparison.method_b, comparison.p_adjusted, comparison.significant)
+
+print(equivalence_test(scores["GA-Optimized"], scores["CART"], margin=0.02).equivalent)
 ```
 
 ## Experiment Outputs
@@ -324,23 +334,25 @@ breast_cancer       : t=-0.475, p=0.6402 ns, d=-0.108
 
 ## Statistical Analysis
 
-### Paired t-Test
+### Wilcoxon signed-rank across datasets
 
-Tests whether GA and CART have significantly different accuracies:
+Tests whether GA and a baseline differ, pairing on **datasets** rather than folds. Each
+dataset contributes one observation — its mean over outer folds.
 
 ```python
-from scipy import stats
+from ga_trees.evaluation.statistics import compare_across_datasets
 
-t_stat, p_value = stats.ttest_rel(ga_accuracies, cart_accuracies)
+# One mean score per dataset, aligned by dataset
+result = compare_across_datasets(ga_per_dataset, cart_per_dataset, "GA", "CART")
 
-print(f"t-statistic: {t_stat:.4f}")
-print(f"p-value: {p_value:.4f}")
-
-if p_value > 0.05:
-    print("No significant difference (p > 0.05)")
-else:
-    print("Significant difference (p < 0.05)")
+print(f"mean difference: {result.mean_difference:+.4f}")
+print(f"p={result.p_value:.4f}, d_z={result.effect_size:+.3f}")
+if result.underpowered:
+    print(result.note)  # too few datasets for the test to reach alpha
 ```
+
+`compare_all_to_reference` runs this against every baseline at once and fills in
+Holm-corrected p-values across the family.
 
 ### Effect Size (Cohen's d)
 

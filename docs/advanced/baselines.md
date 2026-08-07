@@ -114,16 +114,25 @@ for train_idx, test_idx in skf.split(X, y):
     cart.fit(X_train, y_train)
     cart_scores.append(evaluate_cart(cart, X_test, y_test))
 
-# Statistical test
-t_stat, p_value = stats.ttest_rel(ga_scores, cart_scores)
-print(f"p-value: {p_value:.4f}")
+# Descriptive only - these are folds of one dataset, and folds share training
+# data, so a paired test over them is not interpretable (Dietterich 1998).
+print(f"mean difference: {np.mean(ga_scores) - np.mean(cart_scores):+.4f}")
+print(
+    f"GA sd={np.std(ga_scores, ddof=1):.4f}, CART sd={np.std(cart_scores, ddof=1):.4f}"
+)
+```
 
-if p_value > 0.05:
-    # Note: this is failure to reject, NOT evidence of equivalence. Use TOST
-    # against a pre-specified margin if that is the claim you want to make.
-    print("No significant difference detected")
-else:
-    print("Significant difference detected")
+To make a claim, repeat this over several datasets and test across them:
+
+```python
+from ga_trees.evaluation.statistics import compare_across_datasets, equivalence_test
+
+# One mean score per dataset
+result = compare_across_datasets(ga_per_dataset, cart_per_dataset, "GA", "CART")
+print(result.p_value, result.underpowered)
+
+# "No significant difference" is not equivalence - test for it directly
+print(equivalence_test(ga_per_dataset, cart_per_dataset, margin=0.02).equivalent)
 ```
 
 ## Comparison Metrics

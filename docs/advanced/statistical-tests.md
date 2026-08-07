@@ -20,6 +20,35 @@ for it; a non-significant result is equally consistent with a real difference th
 power to detect. Claiming equivalence requires an equivalence test against a margin chosen in
 advance.
 
+## Use the implementation, not a hand-rolled copy
+
+`ga_trees.evaluation.statistics` implements everything on this page, with the
+pre-registered constants baked in and the underpowered cases flagged rather than silently
+reported. `scripts/experiment.py` calls it directly.
+
+```python
+from ga_trees.evaluation.statistics import (
+    compare_all_to_reference,
+    equivalence_test,
+    friedman_nemenyi,
+    per_dataset_means,
+)
+
+# all_results: {dataset: {method: {"test_acc": [per-fold scores]}}}
+datasets, scores = per_dataset_means(all_results, metric="test_acc")
+
+for comparison in compare_all_to_reference(scores, "GA-Optimized"):
+    print(comparison.method_b, comparison.p_adjusted, comparison.significant)
+
+print(equivalence_test(scores["GA-Optimized"], scores["CART"], margin=0.02))
+print(friedman_nemenyi(scores).critical_difference)
+```
+
+`PairedComparison.significant` is False whenever the dataset count is too low for the test
+to reach alpha, so an underpowered comparison cannot be read as a null result.
+
+The rest of this page explains what those functions do.
+
 ## Comparing across datasets
 
 Aggregate to one score per dataset per method, then test across datasets.
