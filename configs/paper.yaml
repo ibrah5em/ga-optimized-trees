@@ -53,9 +53,28 @@ fitness:
 
 # Experiment Settings
 experiment:
+  # The pre-registered CC-18 selection - see paper/DATASETS.md.
+  # Do not edit without recording a deviation in that file.
   datasets:
-    - iris
-    - wine
-    - breast_cancer
+    - dresses_sales
+    - kc2
+    - climate_crashes
+    - wdbc
+    - ilpd
+    - balance_scale
+    - credit_approval
+    - breast_w
+    - eucalyptus
+    - blood_transfusion
+    - diabetes_pima
+    - analcatdata_dmft
+    - vehicle
+    - tic_tac_toe
+    - vowel
+    - credit_g
+    - qsar_biodeg
+    - pc1
+    - banknote
+    - pc4
   cv_folds: 20
   random_state: 42
