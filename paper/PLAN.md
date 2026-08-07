@@ -24,37 +24,62 @@ the architecture can actually support.
 
 ______________________________________________________________________
 
-## Phase 0 — Stop the bleeding (2–3 days)
+## Phase 0 — Stop the bleeding — **COMPLETE** (2026-08-06)
 
-- [ ] `git tag pre-paper-audit` on current `main`
-- [ ] Complete `paper/CLAIMS.md` audit (started — see file)
-- [ ] Strip unsupported numbers from `README.md`, `docs/research/benchmarks.md`,
-  `docs/research/results.md`, `docs/research/methodology.md`; replace with
-  "results under revision"
-- [ ] Delete or regenerate `results/tables/paper-results.csv` (produced by unversioned code)
-- [ ] Remove the "Target: 24-77% smaller trees" header comment from `configs/paper.yaml`
+- [x] `git tag pre-paper-audit` on current `main`
+- [x] Complete `paper/CLAIMS.md` audit — every public claim marked SUPPORTED, STALE,
+  UNSUPPORTED, FALSE or FABRICATED, with the file and line it lives on
+- [x] Strip unsupported numbers from `README.md`, `docs/research/benchmarks.md`,
+  `docs/research/results.md`, `docs/research/methodology.md` (`eaea3c4`)
+- [x] Delete `results/tables/paper-results.csv` and 15 other unattributable artifacts;
+  `results/PROVENANCE.md` records what went and why (`70d3fdb`)
+- [x] Remove the "Target: 24-77% smaller trees" header comment from `configs/paper.yaml`
 
-**Exit criterion:** no claim is public that the code on `main` cannot reproduce.
+**Exit criterion met:** no claim is public that the code on `main` cannot reproduce.
+
+One item deliberately left open, tracked in `results/PROVENANCE.md`:
+`scripts/visualize_comprehensive.py` still holds the hardcoded `RESULTS` and
+`PAPER_RESULTS` dicts. Running it regenerates figures asserting the withdrawn claims.
+Deleting the output while leaving the generator in place fixes nothing.
 
 ______________________________________________________________________
 
-## Phase 1 — Rebuild the protocol (~2 weeks)
+## Phase 1 — Rebuild the protocol — **COMPLETE** (2026-08-07)
 
-Rewrite `scripts/experiment.py` into a real benchmark harness. This is where the paper is
-won or lost.
+Built as `src/ga_trees/benchmark/` with `scripts/benchmark.py` as the entry point, rather
+than by rewriting `scripts/experiment.py` in place: the harness that produces paper numbers
+belongs in the tested package, not in a script CI runs for smoke coverage.
+`scripts/experiment.py` stays as the flat-CV screening path and nothing from it belongs in
+the paper.
 
-- [ ] **Nested CV.** Outer 10-fold × 3 repeats for reporting; inner 5-fold for *all*
-  hyperparameter selection — GA weights and rates, CART `ccp_alpha` + `max_depth`,
-  RF, XGBoost. Every method gets the same treatment, no exceptions.
-- [ ] **Budget-matched baselines:**
-  - CART with cost-complexity pruning tuned by inner CV
-  - **Random search over the same tree space with the same evaluation count**
-    (`population_size × n_generations`)
-  - CART unconstrained (re-implement properly — the archived rows came from lost code)
-- [ ] **Seed everything.** `random_state` into `GAConfig` (currently dropped at
-  `scripts/experiment.py:197`), deterministic per-fold seeds, `seeds.json` artifact.
+- [x] **Nested CV** — `benchmark/nested_cv.py`. Outer `RepeatedStratifiedKFold(10, 3)`,
+  inner 5-fold via `select_hyperparameters`, applied through one `BenchmarkMethod`
+  interface so no method can be tuned more favourably than another by accident. Folds are
+  1-indexed to match `build_seed_manifest`, and every method is seeded per fold from
+  `derive_fold_seed(base, dataset, fold, method)` — sharing a stream across methods would
+  correlate their results.
+
+- [x] **Budget-matched baselines** — `benchmark/methods.py`:
+
+  - `PrunedCARTMethod`: `ccp_alpha` taken from the data's own cost-complexity pruning path
+    (capped at 12 values) crossed with a depth grid, selected by inner CV
+  - `RandomTreeSearch`: same `TreeInitializer`, same `FitnessCalculator`, same param grid,
+    same evaluation budget — the only difference from the GA is that there is no selection,
+    crossover or mutation, so any gap is attributable to the evolutionary machinery
+  - `UnconstrainedCARTMethod`: grown to purity, nothing tuned, as the single-tree ceiling
+  - **The budget formula is not `population_size × n_generations`.** Elites carry their
+    fitness across generations, so a run costs `pop + gens × (pop − n_elite)`. The naive
+    product under-funded random search by ~9% in a smoke run, which would have biased K1
+    toward the GA. `verify_budget_match` now reports realised counts per run rather than
+    trusting the config; the smoke runs come back at 0.000% spread.
+
+- [x] **Seed everything** — landed earlier in `68b9d70`. `derive_fold_seed` reaches
+  `GAConfig.random_state`; `seeds-*.json` is written next to every result set. The note
+  about `scripts/experiment.py:197` was stale.
+
 - [x] **Statistics done properly** — `src/ga_trees/evaluation/statistics.py`, wired into
   `scripts/experiment.py` via `run_statistical_analysis()` (2026-08-07):
+
   - Wilcoxon signed-rank across *datasets*, Holm-corrected; Friedman + Nemenyi critical
     difference (Demšar 2006). The CD **diagram** is still to draw — the number is computed.
   - Equivalence via **TOST** at the pre-registered 2% absolute-accuracy margin. The
@@ -66,13 +91,42 @@ won or lost.
   - Comparisons below `MIN_DATASETS_FOR_INFERENCE` (6) report `significant=False`
     regardless of p, because a signed-rank test on fewer datasets cannot reach α=0.05.
     The default 3-dataset config can no longer produce a significant result — by design.
-- [ ] **Scale to ~20 datasets** from OpenML CC-18. iris/wine/breast_cancer are saturated.
-- [ ] **Wire the config properly.** `classification_metric` and `early_stopping_rounds`
-  are read from YAML and silently dropped (`experiment.py:197,224`) — `paper.yaml`
-  currently misrepresents what ran.
 
-**Exit criterion:** one command reproduces every number; every number is committed
-alongside the config and seed that produced it.
+- [x] **Scale to 20 datasets** — `paper/DATASETS.md` pre-registers them, and
+  `configs/paper.yaml` now points at that list instead of iris/wine/breast_cancer. Every ID
+  was resolved against the live OpenML API and confirmed to be in study 99 (CC-18);
+  selection was by a rule stated before selection (500–1500 rows, ≤50 features, smallest
+  class ≥ 40 so stratified 10-fold is valid without silently reducing folds).
+
+  Verifying those IDs turned up two entries that had been serving the wrong data for the
+  life of the project: `heart` pointed at OpenML 4, which is `labor` (57 rows), and
+  `mammographic` pointed at OpenML 310, which is `mammography` (11183 rows). Both are
+  corrected. No withdrawn claim depended on either — `CLAIMS.md` traces every published
+  number to iris, wine or breast_cancer — but `--dataset heart` silently trained on
+  labour-relations data, and that is the same class of failure as the rest of this audit.
+
+  Only 8 of the loader's 15 OpenML entries were CC-18 members at all. `ionosphere`,
+  `sonar`, `hepatitis`, `titanic`, `credit_fraud` and `mammography` are kept for
+  exploration and excluded from the benchmark.
+
+- [x] **Wire the config properly** — landed earlier in `68b9d70`. `classification_metric`,
+  `early_stopping_rounds` and `early_stopping_tol` all reach the engine. Also stale.
+
+**Exit criterion met:** `python scripts/benchmark.py --config configs/paper.yaml`
+reproduces every number, writing fold-level results, the resolved config, the seed
+manifest and the statistics table side by side. `--dry-run` reports the fit count first.
+
+**Not yet run.** The full protocol is 20 datasets × 30 outer folds × 5 inner folds × grid
+size, which is many CPU-hours and a deliberate launch, not a side effect of building the
+harness. Phase 1 delivers the apparatus; Phase 3 produces the numbers.
+
+**Early signal, and it is the uncomfortable one.** A 3-dataset screening run
+(`banknote`, `wdbc`, `tic_tac_toe`, no inner tuning, `configs/fast.yaml`) put random search
+within 0.4 accuracy points of the GA — mean difference −0.0043, `d_z` = −0.205 — while both
+lost to inner-CV-tuned CART by roughly 9 points. Three datasets without tuning is not
+evidence and the harness correctly refuses to call it significant. But it is the direction
+K1 exists to catch, and it should be treated as the expected outcome until a powered run
+says otherwise.
 
 ______________________________________________________________________
 
