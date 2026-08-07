@@ -450,7 +450,9 @@ STATS_CSV_FIELDS = [
 ]
 
 
-def run_statistical_analysis(all_results, metric="test_acc"):
+def run_statistical_analysis(
+    all_results, metric="test_acc", reference=None, equivalence_baseline=None
+):
     """Compare methods across datasets and print the results.
 
     Every test pairs on *datasets*, using each dataset's mean over outer folds
@@ -461,10 +463,18 @@ def run_statistical_analysis(all_results, metric="test_acc"):
     Args:
         all_results: ``{dataset: {method: {metric: [per-fold values]}}}``.
         metric: Per-fold metric to aggregate and test on.
+        reference: Method every other method is tested against. Defaults to
+            ``REFERENCE_MODEL``.
+        equivalence_baseline: Baseline for the H2 TOST. Defaults to
+            ``EQUIVALENCE_BASELINE``. The nested harness names its tuned CART
+            "CART (pruned)", so callers must say which baseline they mean
+            rather than have the equivalence test silently skip.
 
     Returns:
         List of dicts matching ``STATS_CSV_FIELDS``, ready for CSV export.
     """
+    reference = reference or REFERENCE_MODEL
+    equivalence_baseline = equivalence_baseline or EQUIVALENCE_BASELINE
     print(f"\n{'='*70}")
     print("Statistical Analysis (paired across datasets)")
     print(f"{'='*70}\n")
@@ -472,8 +482,8 @@ def run_statistical_analysis(all_results, metric="test_acc"):
     dataset_names, scores = per_dataset_means(all_results, metric=metric)
     rows = []
 
-    if REFERENCE_MODEL not in scores:
-        print(f"  {REFERENCE_MODEL} is missing from the results; no tests run.")
+    if reference not in scores:
+        print(f"  {reference} is missing from the results; no tests run.")
         return rows
     if len(dataset_names) < 2:
         print(f"  Only {len(dataset_names)} dataset(s); across-dataset inference needs >= 2.")
@@ -491,8 +501,8 @@ def run_statistical_analysis(all_results, metric="test_acc"):
         )
 
     # --- Wilcoxon signed-rank, reference vs each baseline, Holm-corrected ---
-    print(f"Wilcoxon signed-rank vs {REFERENCE_MODEL} (Holm-corrected):")
-    for comparison in compare_all_to_reference(scores, REFERENCE_MODEL):
+    print(f"Wilcoxon signed-rank vs {reference} (Holm-corrected):")
+    for comparison in compare_all_to_reference(scores, reference):
         if comparison.p_value is None:
             print(f"  {comparison.method_b:24s}: not computable — {comparison.note}")
         else:
@@ -520,16 +530,16 @@ def run_statistical_analysis(all_results, metric="test_acc"):
         )
 
     # --- TOST equivalence against the pre-registered margin (H2) ---
-    if EQUIVALENCE_BASELINE in scores:
+    if equivalence_baseline in scores:
         equivalence = equivalence_test(
-            scores[REFERENCE_MODEL],
-            scores[EQUIVALENCE_BASELINE],
+            scores[reference],
+            scores[equivalence_baseline],
             margin=DEFAULT_EQUIVALENCE_MARGIN,
-            method_a=REFERENCE_MODEL,
-            method_b=EQUIVALENCE_BASELINE,
+            method_a=reference,
+            method_b=equivalence_baseline,
         )
         print(
-            f"\nTOST equivalence vs {EQUIVALENCE_BASELINE} "
+            f"\nTOST equivalence vs {equivalence_baseline} "
             f"(margin=±{equivalence.margin:.0%} absolute {metric}):"
         )
         print(
@@ -568,11 +578,11 @@ def run_statistical_analysis(all_results, metric="test_acc"):
         print(f"  Nemenyi critical difference (alpha={ALPHA}): {friedman.critical_difference:.3f}")
         if friedman.p_value < ALPHA:
             for method in friedman.methods:
-                if method == REFERENCE_MODEL:
+                if method == reference:
                     continue
-                gap = friedman.rank_gap(REFERENCE_MODEL, method)
-                mark = "separated" if friedman.differs(REFERENCE_MODEL, method) else "not separated"
-                print(f"    {REFERENCE_MODEL} vs {method:20s}: rank gap={gap:.2f} ({mark})")
+                gap = friedman.rank_gap(reference, method)
+                mark = "separated" if friedman.differs(reference, method) else "not separated"
+                print(f"    {reference} vs {method:20s}: rank gap={gap:.2f} ({mark})")
         else:
             print("  Omnibus not significant; pairwise post-hoc comparisons are not licensed.")
     rows.append(
@@ -592,14 +602,14 @@ def run_statistical_analysis(all_results, metric="test_acc"):
     )
 
     # --- Per-dataset differences, descriptive only ---
-    if EQUIVALENCE_BASELINE in scores:
+    if equivalence_baseline in scores:
         print("\nPer-dataset differences (descriptive — no fold-level p-values):")
         for i, dataset_name in enumerate(dataset_names):
-            ref_score = scores[REFERENCE_MODEL][i]
-            base_score = scores[EQUIVALENCE_BASELINE][i]
+            ref_score = scores[reference][i]
+            base_score = scores[equivalence_baseline][i]
             print(
-                f"  {dataset_name:20s}: {REFERENCE_MODEL}={ref_score:.4f}, "
-                f"{EQUIVALENCE_BASELINE}={base_score:.4f}, diff={ref_score - base_score:+.4f}"
+                f"  {dataset_name:20s}: {reference}={ref_score:.4f}, "
+                f"{equivalence_baseline}={base_score:.4f}, diff={ref_score - base_score:+.4f}"
             )
 
     return rows
