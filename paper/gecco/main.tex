@@ -360,8 +360,11 @@ GOSDT on \GABeatsGosdt. On \GosdtIncomplete{} datasets (\GosdtIncompleteNames) G
 exhausted memory (caps of 8 and 11\,GB) and the process died, so they are excluded. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
 \GosdtFits{} fits hit the 30 s limit and are therefore not certified optimal, and
 \GosdtFailures{} returned no model and were dropped from the path (which can only lower
-GOSDT's hypervolume). This
-comparison was added after K1/K2 were known and decides nothing.
+GOSDT's hypervolume). An
+exact sparse-tree solver, in other words, does not dominate CART's pruning path on these
+datasets either, and the \GA and GOSDT are indistinguishable (\GosdtDiff, Holm
+$p=\GosdtPholm$): the pruning path is a harder baseline than a single CART tree suggests.
+This comparison was added after K1/K2 were known and decides nothing.
 
 %% ---------------------------------------------------------------------------
 \section{What the Audit Found}
