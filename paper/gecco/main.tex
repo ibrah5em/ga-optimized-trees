@@ -336,7 +336,10 @@ fronts did: the size objective removes dead splits on its own. We added a repair
 reached by fewer than 8 training rows or leaving fewer than 3 on a side. Re-running the
 frontier benchmark with repair on and everything else fixed gives a \GA{}--\RS{}
 difference of \RepairKoneDiff{} (Holm $p=\RepairKonePholm$, \RepairKoneWins/\NDatasets{}
-datasets) and a CART dominance rate of \RepairKtwoRate. Neither verdict changes.
+datasets) and a CART dominance rate of \RepairKtwoRate. Neither verdict changes. One
+secondary result does: with repair, the standard \GA also beats its archived variant
+(\RepairArchDiff, Holm $p=\RepairArchPholm$), so the choice between delivering the final
+front and the archive is not neutral once dead splits are removed.
 
 \subsection{Exploratory: GOSDT}
 

@@ -186,6 +186,8 @@ def repair_section(primary_means):
     macro("RepairKoneDiff", fmt(tests[RS].mean_difference, 2, sign=True))
     macro("RepairKonePholm", pval(tests[RS].p_adjusted))
     macro("RepairKoneWins", int((means[GA] > means[RS]).sum()))
+    macro("RepairArchDiff", fmt(tests[GA_ARCH].mean_difference, 2, sign=True))
+    macro("RepairArchPholm", pval(tests[GA_ARCH].p_adjusted))
     macro("RepairKtwoRate", f"{float((means[GA] > means[CART]).mean()):.0%}".replace("%", "\\%"))
     macro("RepairKtwoWins", int((means[GA] > means[CART]).sum()))
     # Same folds, same seeds: the GA change is the only difference.
