@@ -49,14 +49,14 @@ def main() -> int:
         train, _ = next(StratifiedKFold(10, shuffle=True, random_state=0).split(X, y))
         ga = frontiers.ParetoGAFrontier(config["ga"], config["tree"], config["fitness"])
         rs = frontiers.RandomSearchFrontier(config["ga"], config["tree"], config["fitness"])
+        runs = []
         for label, method in (("GA (NSGA-II)", ga), ("Random Search", rs)):
             seen.clear()
-            if method is rs:
-                rs.budget = budget
             delivered, spent = method.build(X[train], y[train], seed=1)
-            if method is ga:
-                budget = spent
-            evaluated = np.array(seen)
+            rs.budget = spent  # the GA runs first; random search gets what it spent
+            runs.append((label, delivered, list(seen)))
+        for label, delivered, evaluated in runs:
+            evaluated = np.array(evaluated)
             delivered_v = [count_violations(t, X[train]) for t in delivered]
             rows.append(
                 {

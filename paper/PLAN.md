@@ -167,12 +167,28 @@ One branch per item, each with an ablation entry. The ablation table is a paper 
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------ |
 | 1   | **Validation-based fitness** — split outer-train into GA-train/GA-val; fit leaves on GA-train, score on GA-val; select champion on validation fitness | `benchmark/methods.py` `holdout_split`, `engine.py` `evolve` | done   |
 | 2   | **Data-driven split points** — thresholds from observed midpoints of samples reaching the node, not `uniform(feature_min, feature_max)`               | `ga/split_points.py`, `engine.py`                            | done   |
-| 3   | **Greedy seeding** — initialize ~20% of the population with CART trees on bootstrap samples at varying depths                                         | `engine.py` `TreeInitializer`                                | open   |
-| 4   | **Constraint repair** — re-check `min_samples_leaf`/`min_samples_split` against data after crossover and mutation (currently enforced only at init)   | `engine.py:357-381`, `improved_crossover.py`                 | open   |
-| 5   | **Memetic local search** — cheap threshold hill-climb on the elite fraction each generation                                                           | `engine.py` `evolve`                                         | open   |
+| 3   | **Greedy seeding** — initialize ~20% of the population with CART trees on bootstrap samples at varying depths                                         | `engine.py` `TreeInitializer`                                | **closed — not pursued** (see below) |
+| 4   | **Constraint repair** — re-check `min_samples_leaf`/`min_samples_split` against data after crossover and mutation (currently enforced only at init)   | `engine.py:357-381`, `improved_crossover.py`                 | **done** 2026-09-29, off by default |
+| 5   | **Memetic local search** — cheap threshold hill-climb on the elite fraction each generation                                                           | `engine.py` `evolve`                                         | **closed — not pursued** (see below) |
 | 6   | **Fix Pareto objectives** to (validation accuracy, −node_count); report hypervolume + attainment surfaces vs CART's `ccp_alpha` path                  | `benchmark/frontiers.py`                                     | done   |
 
 ______________________________________________________________________
+
+### Items 3–5 closed (2026-09-29)
+
+**Item 4 is done** as a correctness fix: `ga_trees.ga.repair`, switched on by
+`tree.repair_constraints`, collapses every split the sample-count constraints forbid after
+crossover and mutation. On one fold of four datasets 8–27% of the trees NSGA-II evaluates
+break a constraint (random search: 0%), but only 1 of 79 internal nodes in the delivered
+fronts does — the size objective prunes dead splits by itself. Repair stays **off** in
+`configs/paper.yaml` so the committed run reproduces bit for bit; `configs/paper-repair.yaml`
+is the sensitivity variant.
+
+**Items 3 and 5 are closed without implementation.** Both exist to make the GA more
+competitive, and both were still open when K2 fired. Implementing them now and re-running
+would be tuning the method after seeing the verdict — the forking path the pre-registration
+exists to close. They are listed in the paper as hypotheses for a new pre-registered study,
+not as fixes.
 
 ### The point-estimate harness cannot decide K1 (2026-08-07)
 
@@ -437,14 +453,16 @@ hypervolume and held-out accuracy.
 
 ______________________________________________________________________
 
-## Phase 3 — Interpretability construct (~1 week)
+## Phase 3 — Interpretability construct — **COMPLETE** (2026-09-29)
 
 **Decision: option (a) now, option (b) as a follow-up paper.**
 
-- [ ] Demote the composite score to a *search heuristic only*
-- [ ] Report interpretability using established proxies: #leaves, mean weighted decision-path
-  length, #distinct features used
-- [ ] Document that `semantic_coherence` and `feature_coherence` are search-guidance terms
+- [x] Demote the composite score to a *search heuristic only* (`InterpretabilityCalculator`
+  docstring, README, `docs/core-concepts/interpretability.md`)
+- [x] Report interpretability using established proxies: #leaves, mean weighted decision-path
+  length, #distinct features used — every `scripts/benchmark.py` row carries them, and the
+  paper reports nothing else (K4)
+- [x] Document that `semantic_coherence` and `feature_coherence` are search-guidance terms
   with no claimed human-interpretability validity
 
 Rationale: `semantic_coherence` (std of feature depths) is invented and ungrounded, yet

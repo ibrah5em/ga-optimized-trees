@@ -112,9 +112,9 @@ et al.~\cite{rivera2022} cover later global and metaheuristic approaches, and
 Multi-objective variants optimise accuracy against size with Pareto
 selection~\cite{zhao2007}; Freitas~\cite{freitas2004} argued early that Pareto approaches
 suit data mining precisely because the trade-off should be presented, not fixed in
-advance. Comparisons in this literature typically use a small number of UCI datasets, a
-single tuned CART tree as the baseline, and no baseline that isolates the contribution of
-the search operators. Our design addresses those three gaps specifically.
+advance. Many comparisons in this literature use a handful of UCI datasets, a single CART tree
+as the baseline, and no baseline that isolates the contribution of the search operators
+from that of the representation; our design targets those three gaps.
 
 \paragraph{Optimal sparse trees.} Exact methods find provably optimal trees under a
 sparsity penalty or depth limit: OCT~\cite{bertsimas2017} via mixed-integer programming,
@@ -172,7 +172,9 @@ about 9\%. \textbf{Archived \GA.} Because \RS{} can only deliver an archive, the
 also run delivering its archive over every candidate it scored, as a control for that
 bookkeeping difference. \textbf{CART ccp path.} Scikit-learn CART~\cite{pedregosa2011}
 with the same sample minimums, fitted at up to 12 values spread along its
-cost-complexity pruning path---a frontier obtained with no search at all.
+cost-complexity pruning path---a frontier obtained with no search at all. As
+pre-registered, the path is not depth-limited, whereas the \GA cannot exceed depth 6;
+Section~\ref{sec:k2} also reports a depth-capped path.
 
 \subsection{Frontier metric}
 Every delivered model is scored once on the held-out test fold; each method's point set
@@ -218,7 +220,7 @@ method). The point-estimate run (H2/K3) tunes every method by inner 5-fold CV---
 \GA and \RS{} over accuracy weighting $\{0.5,0.7,0.9\}\times$ depth $\{4,6,8\}$, CART
 over depth and $\alpha$ on its pruning path---and, as a recorded deviation for compute,
 uses $10\times1$ outer CV. Complexity is reported as nodes, leaves, mean decision-path
-length (over samples) and distinct features used.
+length (over training samples) and distinct features used.
 
 \textbf{Deviations.} Recorded before use: (i) midpoint thresholds, for both searchers;
 it was measured beforehand to help \RS{} more than the \GA, i.e.\ to make K1 harder;
@@ -254,10 +256,14 @@ here because two of the four methods are near-duplicates.
 \end{figure}
 
 \subsection{K2: evolution does not beat pruning}
+\label{sec:k2}
 
 The \GA has the larger mean hypervolume than CART's pruning path on \KtwoWins{} of
 \NDatasets{} datasets (\KtwoRate), below the \KtwoThreshold{} threshold: \textbf{H1 is
-rejected}. The mean difference is \CartDiff{} (Holm $p=\CartPholm$). Table~\ref{tab:hv}
+rejected}. The mean difference is \CartDiff{} (Holm $p=\CartPholm$). The depth asymmetry
+does not explain this: against CART's path re-derived with the \GA's depth cap on the same
+folds and seeds (exploratory), the \GA wins on \CappedKtwoWins{} of \NDatasets{} datasets
+(\CappedKtwoRate). Table~\ref{tab:hv}
 and Figure~\ref{fig:hvdiff} show the pattern: the \GA wins narrowly on the datasets where
 small trees are near-optimal, and loses heavily on \emph{vowel}, \emph{eucalyptus},
 \emph{tic-tac-toe} and \emph{vehicle}, where accuracy keeps rising with size.

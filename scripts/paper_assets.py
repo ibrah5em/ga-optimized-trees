@@ -34,6 +34,7 @@ FRONTIER = EVIDENCE / "frontier-2026-08-07"
 REPAIR = EVIDENCE / "frontier-repair-2026-09-29"
 GOSDT = EVIDENCE / "gosdt-2026-09-29"
 K3 = EVIDENCE / "k3-2026-09-29"
+CART_CAPPED = EVIDENCE / "cart-depth6-2026-09-29"
 VIOLATIONS = EVIDENCE / "constraint-violations-2026-09-29" / "violations.csv"
 
 GA, GA_ARCH, RS, CART, GOSDT_NAME = (
@@ -190,6 +191,20 @@ def repair_section(primary_means):
     # Same folds, same seeds: the GA change is the only difference.
     shift = means[GA] - primary_means[GA]
     macro("RepairGAShift", fmt(float(shift.mean()), 2, sign=True))
+    return means
+
+
+def cart_capped_section():
+    if not (CART_CAPPED / "folds.csv").exists():
+        return None
+    folds = pd.read_csv(CART_CAPPED / "folds.csv")
+    means = dataset_means(folds)
+    capped = "CART (ccp path, depth-capped)"
+    macro("CappedKtwoRate", f"{float((means[GA] > means[capped]).mean()):.0%}".replace("%", "\\%"))
+    macro("CappedKtwoWins", int((means[GA] > means[capped]).sum()))
+    tests = comparisons(means[[GA, capped]], GA)
+    macro("CappedDiff", fmt(tests[capped].mean_difference, 2, sign=True))
+    macro("CappedPholm", pval(tests[capped].p_adjusted))
     return means
 
 
@@ -454,6 +469,7 @@ def main() -> int:
     folds, points, means, normalised, largest, best = frontier_section()
     repair_section(means)
     violations_section()
+    cart_capped_section()
     gosdt = gosdt_section()
     frontier_table(normalised, largest, extra=None if gosdt is None else gosdt[0])
     figure_hv_differences(normalised)
