@@ -382,6 +382,14 @@ by reading the implementation against the protocol, not prompted by the result, 
 illustrates why a pre-registration must fix the metric's parameters and not only its
 name.
 
+\paragraph{A saved configuration that does not reproduce its run.} Each run saved its
+resolved configuration next to its output. The YAML writer sorted keys alphabetically, and
+the mutation operator is drawn by position from the ordered weight table, so re-running
+from the saved file selected different operators for the same seeds and produced different
+fronts. We found this only because an ablation's control arm failed to match the
+committed run; the source configuration reproduces it exactly. Serialisation order is part
+of the experiment whenever a random draw indexes into a mapping.
+
 \paragraph{Diagnoses that were wrong.} Two pre-run screening measurements (three datasets,
 three folds each, so directional only) overturned our own explanations. Midpoint
 thresholds were adopted to remove a handicap we believed was suppressing the \GA; they
