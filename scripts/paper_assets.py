@@ -53,6 +53,7 @@ K2_THRESHOLD = 0.60
 COLORS = {GA: "#2a78d6", RS: "#eb6834", GOSDT_NAME: "#1baf7a", CART: "#52514e"}
 MARKERS = {GA: "o", RS: "s", GOSDT_NAME: "D", CART: "^"}
 LABELS = {GA: "GA (NSGA-II)", RS: "Random search", CART: "CART ccp path", GOSDT_NAME: "GOSDT"}
+TABLE_LABELS = {GA: "GA", RS: "RS", CART: "CART", GOSDT_NAME: "GOSDT"}
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 
 macros = {}
@@ -154,7 +155,7 @@ def frontier_table(normalised, largest, extra=None):
         "\\begin{tabular}{l" + "r" * len(columns) + "rr}",
         "\\toprule",
         "Dataset & "
-        + " & ".join(LABELS[c].replace("CART ccp path", "CART") for c in columns)
+        + " & ".join(TABLE_LABELS[c] for c in columns)
         + " & \\multicolumn{2}{c}{Largest tree} \\\\",
         " & " * len(columns) + " & GA & CART \\\\",
         "\\midrule",
@@ -423,7 +424,7 @@ def figure_frontiers(points, gosdt_points=None, datasets=("breast_w", "vehicle")
     """Test-fold frontiers on one fold, one panel per dataset."""
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, len(datasets), figsize=(3.4, 1.8))
+    fig, axes = plt.subplots(1, len(datasets), figsize=(3.4, 2.1))
     for ax, dataset in zip(axes, datasets):
         _style(ax)
         ax.grid(axis="both", color=GRID, linewidth=0.6)
@@ -460,10 +461,12 @@ def figure_frontiers(points, gosdt_points=None, datasets=("breast_w", "vehicle")
         fontsize=6,
         frameon=False,
         loc="lower center",
-        ncol=len(labels),
-        bbox_to_anchor=(0.5, -0.02),
+        ncol=2,
+        bbox_to_anchor=(0.5, -0.01),
+        columnspacing=1.2,
+        handletextpad=0.3,
     )
-    fig.tight_layout(rect=(0, 0.1, 1, 1))
+    fig.tight_layout(rect=(0, 0.17, 1, 1))
     fig.savefig(OUT / "fig_frontiers.pdf")
     plt.close(fig)
 
