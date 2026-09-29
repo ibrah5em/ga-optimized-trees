@@ -35,6 +35,7 @@ REPAIR = EVIDENCE / "frontier-repair-2026-09-29"
 GOSDT = EVIDENCE / "gosdt-2026-09-29"
 K3 = EVIDENCE / "k3-2026-09-29"
 CART_CAPPED = EVIDENCE / "cart-depth6-2026-09-29"
+DIAGNOSTIC = EVIDENCE / "frontier-diagnostic-2026-09-29"
 VIOLATIONS = EVIDENCE / "constraint-violations-2026-09-29" / "violations.csv"
 
 GA, GA_ARCH, RS, CART, GOSDT_NAME = (
@@ -208,6 +209,32 @@ def cart_capped_section():
     macro("CappedDiff", fmt(tests[capped].mean_difference, 2, sign=True))
     macro("CappedPholm", pval(tests[capped].p_adjusted))
     return means
+
+
+def diagnostic_section():
+    if not (DIAGNOSTIC / "folds.csv").exists():
+        return None
+    table = pd.read_csv(DIAGNOSTIC / "folds.csv")
+    means = table.groupby(["dataset", "method"])[["hv_normalised", "largest_nodes"]].mean()
+    hv = means.hv_normalised.unstack()
+    largest = means.largest_nodes.unstack()
+    base, cart = hv["GA [base]"], hv[CART]
+    # The control arm must reproduce the committed GA exactly, or nothing else here holds.
+    if not np.allclose(base, hv[GA]):
+        raise RuntimeError("diagnostic control arm does not reproduce the committed GA")
+    macro("DiagDatasets", len(hv))
+    for variant, key in (
+        ("GA [resubstitution]", "Resub"),
+        ("GA [grow-bias]", "Grow"),
+        ("GA [2x-budget]", "Budget"),
+    ):
+        closed = ((hv[variant] - base) / (cart - base)).mean()
+        macro(f"Diag{key}Closed", f"{100 * closed:.0f}")
+        macro(f"Diag{key}MaxLow", f"{largest[variant].min():.0f}")
+        macro(f"Diag{key}MaxHigh", f"{largest[variant].max():.0f}")
+    macro("DiagCartMaxLow", f"{largest[CART].min():.0f}")
+    macro("DiagCartMaxHigh", f"{largest[CART].max():.0f}")
+    return hv
 
 
 def violations_section():
@@ -473,6 +500,7 @@ def main() -> int:
     repair_section(means)
     violations_section()
     cart_capped_section()
+    diagnostic_section()
     gosdt = gosdt_section()
     frontier_table(normalised, largest, extra=None if gosdt is None else gosdt[0])
     figure_hv_differences(normalised)

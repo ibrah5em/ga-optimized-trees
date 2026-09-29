@@ -275,12 +275,21 @@ averages \BestAccGA{} against CART's \BestAccCart. Across datasets the hypervolu
 to CART is almost entirely explained by that best-accuracy gap (Spearman
 $\rho=\RhoBestGap$, $p=\RhoBestGapP$). Figure~\ref{fig:frontiers} shows one fold of each
 kind. Where the \GA's front exists it is often at or above CART's; it rarely extends to
-the region where the large trees are. Two mechanisms plausibly contribute: a larger tree
-survives selection only if it improves accuracy on a validation split of roughly a
-hundred rows, which a single extra split seldom does detectably; and the
-initialisation and pruning-heavy mutation mix bias the population toward small trees.
-CART's path has neither constraint---it delivers its large trees without having to
-justify them on held-out data.
+the region where the large trees are.
+
+\emph{Exploratory ablation.} To test candidate causes we changed one thing at a time on the
+first 10 folds of the \DiagDatasets{} datasets where the \GA loses most, with the committed
+\GA as a control arm that reproduces the original fronts exactly. Scoring fitness on the
+fitting data instead of a validation split (so that a larger tree need not prove itself on
+about a hundred held-out rows) closes \DiagResubClosed\% of the normalised-hypervolume gap to
+CART on average. Doubling population and generations closes \DiagBudgetClosed\%. Removing the
+bias toward small trees---seeding full-depth trees and swapping the expand and prune
+mutation weights---closes \DiagGrowClosed\%, i.e.\ nothing. Under every variant the
+largest delivered tree stays between \DiagResubMaxLow{} and \DiagGrowMaxHigh{} nodes against
+CART's \DiagCartMaxLow--\DiagCartMaxHigh. The truncation is therefore not an initialisation
+artefact; held-out selection and search budget each account for part of it, and most of it
+is left unexplained by these three factors. CART's path delivers its large trees without
+having to justify them on held-out data, and without searching for them.
 
 \begin{figure}
   \centering
@@ -410,11 +419,12 @@ recorded, with the direction they push K1, before the frontier run.
 The positive result is narrow: over one representation, one fitness and one budget,
 NSGA-II beats random sampling of the same space by a medium effect. It is exactly what a
 mechanism claim should look like and exactly what a performance claim cannot rest on. The
-negative result is also narrow. The \GA was not tuned for the frontier run; a larger
-budget, seeding with greedy trees, or a validation scheme less hostile to large trees
-might close the gap on the multi-class datasets. We deliberately did not try, because
+negative result is also narrow. The \GA was not tuned for the frontier run. The
+ablation suggests a larger budget and a less hostile selection scheme each recover part
+of the gap, and greedy seeding with CART trees---which would place the large accurate
+trees in the population directly---is untested. We did not pursue any of them, because
 tuning the \GA after seeing K2 is the forking path the pre-registration exists to close;
-those are hypotheses for a new pre-registered study. The datasets are mid-sized
+they are hypotheses for a new pre-registered study. The datasets are mid-sized
 (500--1458 rows, up to 41 features) by design; the K3 run used one outer repeat; the
 hypervolume reference depends on the largest tree any method produced; and nothing here
 measures whether a human can read these trees faster---size proxies are not
