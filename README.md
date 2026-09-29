@@ -4,15 +4,21 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**A genetic algorithm framework for evolving decision trees that balance accuracy and interpretability.**
+**A genetic algorithm framework for evolving decision trees that trade accuracy against tree size.**
 
-Unlike greedy algorithms like CART that only optimize for accuracy, this multi-objective approach searches the accuracy–interpretability spectrum directly, so the operating point is something you choose rather than whatever a greedy split rule happens to produce.
+Instead of growing one tree greedily and pruning it, the GA searches over whole trees, so
+the objective can be any property of the tree (size, path length, features used) and the
+multi-objective mode returns a whole accuracy–size frontier from one run.
 
-> **⚠️ Benchmark results under revision.** The accuracy and tree-size claims previously
-> shown here have been withdrawn. They were not reproducible from the code on `main`, and
-> newer runs already in this repository contradict them. The experimental protocol is
-> being rebuilt — see [`paper/CLAIMS.md`](paper/CLAIMS.md) for the per-claim audit and
-> [`paper/PLAN.md`](paper/PLAN.md) for what is being re-run.
+> **Benchmark outcome (pre-registered, 20 OpenML-CC18 datasets).** Evolution beats
+> random search over the same tree space at an exactly matched evaluation budget. It does
+> **not** beat CART's cost-complexity pruning path, and a tuned GA tree is **not**
+> equivalent in accuracy to tuned CART: it loses more than 2 points on 8 of 20 datasets,
+> with trees about a third the size. Earlier claims of "46–82% smaller trees at equivalent
+> accuracy" were withdrawn; they were not produced by any run. See
+> [`paper/STATUS.md`](paper/STATUS.md) for the results,
+> [`paper/PREREGISTRATION.md`](paper/PREREGISTRATION.md) for the protocol and verdicts, and
+> [`paper/CLAIMS.md`](paper/CLAIMS.md) for the audit.
 
 ______________________________________________________________________
 
@@ -82,24 +88,26 @@ ______________________________________________________________________
 
 ## Benchmark Results
 
-**Withdrawn pending re-run.** No benchmark numbers are published here at the moment.
+Pre-registered protocol (`paper/PREREGISTRATION.md`): 20 OpenML-CC18 datasets, nested
+cross-validation, a random-search baseline matched to the GA's exact evaluation count,
+and CART's full cost-complexity pruning path as the comparator.
 
-The tables that used to occupy this section did not survive an audit against the code on
-`main`. Three problems, in order of severity:
+| Question                                                     | Answer                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------- |
+| Does evolution beat random search over the same tree space?  | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets   |
+| Does the GA's frontier beat CART's pruning path?             | **No** — larger hypervolume on 9/20 datasets (45%)            |
+| Is a tuned GA tree as accurate as tuned CART (±2 points)?    | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
+| Are the GA's trees smaller?                                  | Yes — 6.3 leaves vs 18.4, at the accuracy cost above          |
 
-- The headline size reduction came from a CSV produced by code that was never merged, so it
-  cannot be regenerated from this repository at any commit.
-- The size comparison used **unpruned** CART as the baseline. Against cost-complexity-pruned
-  CART — the fair comparison — the reduction was never measured.
-- "Statistically equivalent accuracy (p > 0.05)" conflated failure to reject with
-  equivalence. No equivalence test was ever run, and on the most recent run two datasets
-  show significant accuracy *losses* after correction for multiple comparisons.
+The GA loses on problems where accuracy keeps rising with tree size (vowel, vehicle,
+eucalyptus, tic-tac-toe, …): its fronts stop at small trees. Run data for every number is
+committed under [`paper/evidence/`](paper/evidence/); details in
+[`paper/STATUS.md`](paper/STATUS.md).
 
-`paper/CLAIMS.md` records each claim, its location, and its status.
-[`paper/PLAN.md`](paper/PLAN.md) describes the replacement protocol: nested
-cross-validation, tuned and budget-matched baselines, seeded runs, and tests appropriate to
-dependent folds. Hypotheses and kill criteria are fixed in advance in
-[`paper/PREREGISTRATION.md`](paper/PREREGISTRATION.md).
+Earlier versions of this README claimed "46–82% smaller trees with statistically equivalent
+accuracy". Those figures were typed into a plotting script rather than produced by a run,
+and the "equivalence" was a non-significant test on dependent folds.
+[`paper/CLAIMS.md`](paper/CLAIMS.md) records the audit.
 
 ______________________________________________________________________
 

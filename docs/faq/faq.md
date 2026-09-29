@@ -374,7 +374,10 @@ fitness:
 
 The trade-off:
 
-- **2-3% accuracy loss** for **50-80% smaller trees**
+- a smaller tree for some accuracy loss. How much depends on the dataset: in the
+  pre-registered benchmark a tuned GA tree had about a third of CART's leaves and was
+  within 2 points of tuned CART, or ahead of it, on 12 of 20 datasets, but 2–33 points
+  behind on the other 8 (see `paper/STATUS.md`).
 
 If unacceptable, increase accuracy weight:
 

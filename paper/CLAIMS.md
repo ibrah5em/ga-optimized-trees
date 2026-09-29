@@ -79,3 +79,28 @@ ______________________________________________________________________
 
 All `FALSE` and `STALE` rows must be removed from public docs in Phase 0. See
 `paper/PLAN.md`.
+
+______________________________________________________________________
+
+## Claims the paper makes (added 2026-09-29)
+
+Every claim in `paper/gecco/main.tex`, with the evidence it rests on. All numbers in the
+paper are generated from these files by `scripts/paper_assets.py`.
+
+| Claim                                                                                     | Status        | Evidence                                                                 |
+| ----------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| GA frontier beats budget-matched random search (+0.66 HV, p_holm 0.032, 15/20)           | **SUPPORTED** | `evidence/frontier-2026-08-07/` (pre-registered K1)                       |
+| GA frontier does not dominate CART's pruning path (45% < 60%)                             | **SUPPORTED** | same (pre-registered K2)                                                  |
+| Tuned GA tree is not equivalent to tuned CART within ±2 points (8/20 lose > 2)           | **SUPPORTED** | `evidence/k3-2026-09-29/` (pre-registered K3/H2)                          |
+| GA trees are smaller than tuned CART's (6.3 vs 18.4 leaves)                               | **SUPPORTED** | same — *at lower accuracy on 8/20 datasets; never stated without that*   |
+| GA fronts are truncated at small trees; the HV gap tracks the best-accuracy gap          | SUPPORTED, exploratory | frontier evidence + `scripts/paper_assets.py`                  |
+| Validation split and budget each explain ~30% of the truncation; small-tree bias none    | SUPPORTED, exploratory | `evidence/frontier-diagnostic-2026-09-29/` (4 datasets, 10 folds) |
+| Verdicts unchanged by constraint repair                                                   | SUPPORTED, sensitivity | `evidence/frontier-repair-2026-09-29/`                        |
+| Verdict unchanged against a depth-capped CART path (40%)                                  | SUPPORTED, exploratory | `evidence/cart-depth6-2026-09-29/`                            |
+| GOSDT does not dominate CART's path either; GA and GOSDT indistinguishable               | SUPPORTED, exploratory | `evidence/gosdt-2026-09-29/` (19/20 datasets, 10 folds)       |
+| 8–27% of evaluated GA trees violate sample-count constraints                              | SUPPORTED     | `evidence/constraint-violations-2026-09-29/` (one fold of four datasets)  |
+
+The configured constraint claim above ("min_samples_split=8, min_samples_leaf=3", FALSE)
+is now **fixable**: `tree.repair_constraints: true` enforces it after variation. It stays
+off in `configs/paper.yaml` so the pre-registered run remains reproducible.
+

@@ -1,112 +1,82 @@
-# Status — 2026-08-07
+# Status — 2026-09-29: plan closed
 
-Where the paper effort stands after Phase 2 items 1–2 and the pre-registered frontier run.
-Read `PREREGISTRATION.md` for the binding decisions and `PLAN.md` for the full history.
+Every phase of `PLAN.md` is complete or deliberately closed, every kill criterion has a
+verdict, and the paper is drafted. Read `PREREGISTRATION.md` for the binding decisions and
+their outcomes, `PLAN.md` for the history, and `paper/gecco/` for the paper.
 
 ______________________________________________________________________
 
 ## The headline
 
-**K1 cleared. K2 fired.**
+| Kill criterion                          | Outcome                                                            |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| **K1** — random search matches the GA   | **Not triggered.** GA ahead by +0.66 hypervolume, p_holm = 0.032, 15/20 datasets |
+| **K2** — GA fails to dominate CART      | **Triggered.** 45% dominance over CART's pruning path; threshold 60% |
+| **K3** — accuracy loss vs CART > 2%     | **Triggered.** 8/20 datasets lose > 2 points (threshold 6/20); H2 rejected |
+| **K4** — composite score as an outcome  | **Held.** It appears in no reported measure                       |
 
-| Kill criterion                         | Outcome                                          |
-| -------------------------------------- | ------------------------------------------------ |
-| **K1** — random search matches the GA  | **Not triggered.** GA ahead, p_holm = 0.032      |
-| **K2** — GA fails to dominate CART     | **TRIGGERED.** 45% dominance, threshold is 60%   |
-| **K3** — accuracy loss vs CART > 2%    | Not measured — run stopped, see below            |
-| **K4** — composite score as an outcome | Held. It appears nowhere in any reported measure |
-
-Evolution does contribute something over random sampling of the same space at an equal
-budget. It does not beat CART's pruning path often enough to make the frontier claim.
-
-**The claim this project set out to prove is dead.** What remains:
+**What may be claimed:**
 
 > Over the same tree space and an exactly matched evaluation budget, evolutionary search
-> recovers a better accuracy–complexity frontier than random sampling (+0.66 hypervolume,
-> p = 0.032 Holm-corrected, 15/20 datasets, d_z = 0.50), and the representation admits
-> non-decomposable objectives that greedy induction cannot express.
+> recovers a better accuracy–complexity frontier than random sampling (H3). It does not
+> beat CART's cost-complexity pruning path (H1 rejected), and its tuned single tree is not
+> equivalent in accuracy to tuned CART (H2 rejected).
 
-That is H3 — a mechanism result. It is real and it is publishable in the
-evolutionary-tree-induction literature, but it is not "we beat CART," and the paper must
-not be written as though it were.
-
-______________________________________________________________________
-
-## What was built
-
-| Area                     | Where                                                                                |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| Data-driven split points | `ga/split_points.py`, wired into `TreeInitializer` and all three threshold mutations |
-| Validation-based fitness | `benchmark/methods.py:holdout_split`, `GAEngine.evolve(X_val=, y_val=)`              |
-| Hypervolume              | `evaluation/hypervolume.py` — exact 2-D sweep on (accuracy, node count)              |
-| Frontier benchmark       | `benchmark/frontiers.py`, `scripts/frontier_benchmark.py` — answers K1/K2            |
-| Figures                  | `evaluation/figures.py`, `scripts/visualize_comprehensive.py` — raises without data  |
-| `growth_stop_prob` sweep | `scripts/sweep_growth_stop.py`                                                       |
-| JOSS paper               | `paper/paper.md`, `paper/paper.bib` — 938 words, 16 citations                        |
-
-Both Phase 2 changes are config-gated (`tree.split_strategy`, `fitness.validation_fraction`)
-so the ablation isolates them rather than asserting them.
+**What may not:** "smaller trees at equivalent accuracy", "dominates CART", or any
+interpretability claim based on the composite score.
 
 ______________________________________________________________________
 
-## Three findings that matter more than the two changes
+## Why the GA loses where it loses
 
-**1. The premise behind data-driven split points was wrong.** It was adopted to remove a
-handicap suppressing the GA and random search equally. Measured, it raises *random
-search's* accuracy by +0.0122 and moves the GA's by −0.0028, shrinking the K1 gap by
-−0.0150. The GA could already reach good thresholds through `threshold_perturbation` over
-generations; random search draws every candidate independently and could not. Fixing the
-initializer removed the **baseline's** handicap. Kept anyway — it makes K1 harder, not
-easier, and withholding it from the baseline would be indefensible.
+The losses in K2 and K3 fall on the same eight datasets (vowel, eucalyptus, tic-tac-toe,
+vehicle, qsar-biodeg, credit-g, climate-crashes, banknote): problems where accuracy keeps
+rising with tree size. The GA's delivered fronts stop at a median of 5.4 nodes against
+CART's 32, and across datasets its hypervolume deficit tracks the accuracy only larger
+trees reach (Spearman 0.85).
 
-**2. The fitness weighting is the real handicap, and it is arithmetic, not search.** At
-`configs/fast.yaml`'s weights a tree must gain **22.6 accuracy points** to justify growing
-from a stump to CART's ~47 nodes; at `configs/paper.yaml` it is still 8.1. The GA obliges,
-converging to 2.7 leaves against tuned CART's 24, then "losing" on accuracy by 8–10 points.
-**Any GA-vs-CART accuracy comparison at a fixed weighting is comparing two points at
-opposite ends of the complexity axis.** Check the `leaves` column before reading any gap.
-
-**3. `growth_stop_prob = 0.3` seeds 36–48% of the population as stumps** — confirmed by
-measurement, no evolution needed. But setting it to 0.0 makes the GA *lose* to random
-search (−0.018): seeded with full-depth trees, random search keeps the big accurate ones
-(16.7 leaves) while the GA prunes back to 4.4, because `paper.yaml` weights `prune_subtree`
-at 0.25 against `expand_leaf` at 0.05 and the interpretability term pays for it. Left at
-0.3 pending inner-CV tuning; picking it by looking at the outcome variable is what the
-pre-registration exists to prevent.
-
-All three point at the same place: **the fitness weighting and the mutation operator mix,
-not the search machinery.** That makes Phase 3 the highest-value work left.
+An exploratory ablation on the four worst datasets (control arm reproduces the committed
+fronts exactly): dropping the validation split closes 29% of the gap, doubling the budget
+28%, and removing the small-tree bias in initialisation and mutation **nothing** (−4%).
+Delivered trees stay at 15–40 nodes in every arm against CART's 78–162. Most of the
+truncation is unexplained by these three factors.
 
 ______________________________________________________________________
 
-## Two harness bugs, both found in my own code, both recorded
+## Robustness and exploratory checks
 
-A kill criterion firing is the moment a project is most tempted to go bug-hunting and least
-trustworthy when it succeeds. Both rejected result sets are committed under
-`paper/evidence/frontier-2026-08-07/` so the audit trail points at files, not descriptions.
+All added after K1/K2 were known; none can change a verdict, and none did.
 
-1. **Selection on the test fold**, favouring random search. The first run reported K1
-   TRIGGERED (−1.585, p_holm \< 0.0001, 19/20) because `RandomSearchFrontier` returned all
-   ~2,545 sampled trees and let dominance filtering run on their *test* scores — a maximum
-   over thousands of test evaluations that nothing can deliver. The tell was
-   `n_candidates`: 2,545 against the GA's 10.
-1. **Reference point per fold instead of per dataset**, favouring the GA. Found by reading
-   the implementation against the "Fixed in advance" table, not prompted by the result. It
-   moved K2 from 70% to 45% — across the threshold.
+| Check                                       | Result                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------- |
+| Constraint repair on (Phase 2 item 4)       | K1 +0.85 (p_holm 0.034), K2 45% — unchanged                         |
+| CART path capped at the GA's depth          | GA dominance 40% — the depth asymmetry does not explain K2          |
+| GOSDT regularisation path (19/20 datasets)  | Beats CART's path on 7/19; GA vs GOSDT indistinguishable (p_holm 0.98) |
+| Reproduction of the committed frontier run  | Bit-identical on the datasets re-run, all 20 datasets' data verified |
 
 ______________________________________________________________________
 
-## Open
+## Problems found and fixed in this round
 
-- **K3 / H2 not measured.** `scripts/benchmark.py --config configs/paper.yaml` was stopped
-  after 3h13m with 2 of 20 datasets done; it was pacing at ~9–11h. It only determines
-  whether "equivalent accuracy" may appear in the paper, and the ablation already suggests
-  it fails — the GA sits 3–5 points behind tuned CART, well outside the 2% margin. Restart
-  with `--outer-repeats 1` (under 2h, needs a Deviations entry) if the number is wanted.
-- **JOSS submission needs two human decisions:** the ORCID is a placeholder, and
-  `git shortlog` shows four other contributors who may warrant authorship.
-- **Phase 3** — demote the composite interpretability score to a search heuristic and
-  report established proxies. Now the highest-value work, per the three findings above.
-- **Phase 2 items 3, 4, 5** — greedy seeding, constraint repair, memetic local search —
-  remain unimplemented.
-- **The target claim in `PLAN.md` and the README framing need rewriting** around H3.
+1. **pandas 3 silently re-encoded two datasets** (`dresses_sales`, `credit_approval`):
+   missing categorical values stopped mapping to one token. Fixed; all 20 datasets now
+   reproduce the committed CART frontiers exactly (`scripts/verify_dataset_identity.py`).
+1. **Saved run configs did not reproduce their runs.** `yaml.dump` sorted
+   `mutation_types`, and the operator is drawn by position. Configs are now written in
+   order; the evidence READMEs say to reproduce from `configs/`.
+1. **Constraints were enforced only at initialisation** — 8–27% of evaluated GA trees
+   broke them. `ga_trees.ga.repair`, off by default so the committed run still reproduces.
+1. **`benchmark.py` wrote nothing until the end**, so a container restart lost 4 hours of
+   K3. It now checkpoints each dataset.
+
+______________________________________________________________________
+
+## Before submission — human decisions
+
+- **Venue and format.** `paper/gecco/main.tex` is ACM sigconf, double-blind. Check the
+  current GECCO call (deadline, page limit, template version). It needs a TeX build with
+  `acmart` (Overleaf); none was available in the environment that drafted it.
+- **Authors.** `git shortlog` shows four other contributors (see `PLAN.md`, Phase 5).
+- **ORCID.** The JOSS draft (`paper/paper.md`) still has a placeholder.
+- **Anonymised repository link** for review.
+- **References without DOIs** in `paper/gecco/refs.bib` were not machine-checked.
