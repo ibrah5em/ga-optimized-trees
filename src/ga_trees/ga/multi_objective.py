@@ -57,6 +57,10 @@ class ParetoOptimizer:
         eliminate_duplicates: Drop structurally identical individuals before
             environmental selection. On by default — without it the population
             fills with clones (see ``_deduplicate``).
+        repair_fn: Optional in-place ``(tree) -> tree`` applied to every
+            offspring changed by crossover or mutation, before it is evaluated
+            (Phase 2 item 4, see ``ga_trees.ga.repair``). ``None`` keeps the
+            original behaviour.
     """
 
     def __init__(
@@ -68,6 +72,7 @@ class ParetoOptimizer:
         mutation_prob: float = 0.2,
         random_state: Optional[int] = None,
         eliminate_duplicates: bool = True,
+        repair_fn: Optional[Callable[[TreeGenotype], TreeGenotype]] = None,
     ):
         self.initializer = initializer
         self.fitness_fn = fitness_fn
@@ -76,6 +81,7 @@ class ParetoOptimizer:
         self.mutation_prob = mutation_prob
         self.random_state = random_state
         self.eliminate_duplicates = eliminate_duplicates
+        self.repair_fn = repair_fn
 
         # --- LDD-14: clean global state before creating ---
         _cleanup_deap_creator()
@@ -162,6 +168,9 @@ class ParetoOptimizer:
 
             # Evaluate offspring that need it
             invalid = [ind for ind in offspring if not ind.fitness.valid]
+            if self.repair_fn is not None:
+                for ind in invalid:
+                    ind[0] = self.repair_fn(ind[0])
             self._evaluate(invalid, X, y)
 
             # NSGA-II environmental selection (LDD-16: assigns crowding dist)

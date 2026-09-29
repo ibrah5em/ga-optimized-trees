@@ -23,6 +23,7 @@ from ga_trees.benchmark.protocol import (
 )
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.repair import repair_from_config
 from ga_trees.ga.split_points import MIDPOINT_STRATEGY
 
 logger = logging.getLogger(__name__)
@@ -284,6 +285,7 @@ class GATreeMethod(BenchmarkMethod):
                 min_samples_leaf=self.tree_config["min_samples_leaf"],
                 split_strategy=self.tree_config.get("split_strategy", MIDPOINT_STRATEGY),
             ),
+            repair=repair_from_config(self.tree_config, context.X_train, context.y_train),
         )
         best = engine.evolve(
             context.X_train,

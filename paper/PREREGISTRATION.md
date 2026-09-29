@@ -74,6 +74,9 @@ affected result is used.
 | 2026-08-07 | Split thresholds now drawn from observed midpoints of the samples reaching each node (`tree.split_strategy: midpoint`), for **both** the GA and random search | The previous `uniform(feature_min, feature_max)` draw is not the candidate set CART searches. Recorded because it changes the shared tree space both budget-matched methods sample from. See the note below — it moves K1 *against* the GA.       |
 | 2026-08-07 | Fitness scored on a 20% stratified holdout of the fitting data (`fitness.validation_fraction: 0.2`), for **both** the GA and random search                    | Fitness was resubstitution: leaf predictions were fitted on the rows they were then scored on, so selection rewarded memorisation. Applied identically to both methods so the budget-matched comparison is unaffected.                            |
 | 2026-08-07 | Random-search budget read as `pop + gens × (pop − n_elite)` rather than the `population_size × n_generations` fixed above                                     | The stated product is not what a GA run costs — elites carry their fitness across generations. Budget-matching to the product under-funded random search by ~9%, biasing K1 toward the GA. `verify_budget_match` reports realised counts per run. |
+| 2026-09-29 | K3 point-estimate run uses **10-fold × 1 repeat** outer CV instead of 10 × 3                                                                                  | Compute. The 10 × 3 run was paced at 9–11 h and was stopped after 2 of 20 datasets. The unit of across-dataset inference (20 datasets) is unchanged; per-dataset intervals are wider. Recorded before the run was started.                          |
+| 2026-09-29 | Loader maps missing categorical values to one token under both pandas 2 and pandas 3                                                                          | pandas 3 changed `astype(str)` on missing values, which silently re-encoded `dresses_sales` and `credit_approval`. After the fix all 20 datasets reproduce the committed CART pruning-path frontier exactly (`scripts/verify_dataset_identity.py`). |
+| 2026-09-29 | Constraint repair (`tree.repair_constraints`) implemented **after** K1/K2 were observed. It is **off** in `configs/paper.yaml`                               | A correctness fix (`paper/CLAIMS.md` lists the constraints as FALSE), not a pre-registered change. Primary results stay on the pre-registered configuration. Repair is reported only as a sensitivity analysis, in both directions, and cannot overturn a verdict. |
 
 **Note on the first deviation, recorded before the run.** A 2×2 ablation over three
 screening datasets (`banknote`, `wdbc`, `tic_tac_toe`, tuned, 3 outer folds) found that
@@ -88,6 +91,28 @@ pass. It is adopted anyway, because the pre-registration is silent on threshold 
 and the conservative reading of a silent pre-registration is the setting that makes the
 kill criterion harder, not easier. Three screening datasets cannot reach significance and
 this note claims no result; it records that the choice was made with its direction known.
+
+______________________________________________________________________
+
+**K3 decision rule, fixed 2026-09-29 before the K3 run was started.** K3's text —
+"accuracy loss vs inner-CV-tuned CART exceeds the 2% TOST margin on > 30% of datasets" —
+admits two readings, and both are fixed here so the choice cannot follow the result:
+
+- **Primary (point estimate).** A dataset counts against the GA if its mean outer-fold
+  accuracy is more than 0.02 below tuned CART's (`CART (pruned)`). K3 fires if that holds
+  on more than 6 of the 20 datasets.
+- **Secondary (per-dataset TOST).** A dataset counts against the GA if a TOST at α = 0.05
+  with the Nadeau–Bengio corrected resampled-t variance over its outer folds fails to
+  establish equivalence within ±0.02. With 10 folds this test has little power, so it is
+  expected to fail on most datasets whatever the truth; it is reported, not relied on.
+- **H2 itself** is the across-dataset TOST already implemented in
+  `ga_trees.evaluation.statistics.equivalence_test` (dataset means as the unit).
+
+If the readings disagree, both are reported and the paper makes no equivalence claim —
+K3's purpose is to stop that claim, so ambiguity resolves against it.
+
+The composite interpretability score does not appear in any K3 output (K4). Complexity is
+reported as node count, leaf count, mean decision-path length and distinct features used.
 
 ______________________________________________________________________
 

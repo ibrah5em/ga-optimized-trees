@@ -65,6 +65,7 @@ from ga_trees.benchmark.methods import DEFAULT_VALIDATION_FRACTION, holdout_spli
 from ga_trees.evaluation.hypervolume import frontier, hypervolume, reference_nodes_for
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
 from ga_trees.ga.engine import Mutation, TreeInitializer
+from ga_trees.ga.repair import repair_from_config
 from ga_trees.ga.split_points import MIDPOINT_STRATEGY
 from ga_trees.reproducibility import derive_fold_seed
 
@@ -264,6 +265,7 @@ class ParetoGAFrontier(FrontierMethod):
             crossover_prob=self.ga_config["crossover_prob"],
             mutation_prob=self.ga_config["mutation_prob"],
             random_state=seed,
+            repair_fn=repair_from_config(self.tree_config, X_train, y_train),
         )
         front = optimizer.evolve_pareto_front(
             X_train,

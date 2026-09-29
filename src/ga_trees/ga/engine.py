@@ -510,11 +510,16 @@ class GAEngine:
         initializer: TreeInitializer,
         fitness_function: Callable[[TreeGenotype, np.ndarray, np.ndarray], float],
         mutation: Mutation,
+        repair: Optional[Callable[[TreeGenotype], TreeGenotype]] = None,
     ):
         self.config = config
         self.initializer = initializer
         self.fitness_function = fitness_function
         self.mutation = mutation
+        # Optional in-place repair applied to every offspring after variation
+        # (Phase 2 item 4, see ga_trees.ga.repair). None keeps the original
+        # behaviour, where the sample-count constraints hold only at init.
+        self.repair = repair
         self.population: List[TreeGenotype] = []
         self.best_individual: Optional[TreeGenotype] = None
         self.history: Dict[str, List] = {"best_fitness": [], "avg_fitness": [], "diversity": []}
@@ -664,6 +669,10 @@ class GAEngine:
                     child1 = self.mutation.mutate(child1, self.config.mutation_types)
                 if random.random() < self.config.mutation_prob:
                     child2 = self.mutation.mutate(child2, self.config.mutation_types)
+
+                if self.repair is not None:
+                    child1 = self.repair(child1)
+                    child2 = self.repair(child2)
 
                 # Reset fitness (will be evaluated next iteration)
                 child1.fitness_ = None
