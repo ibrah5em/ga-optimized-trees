@@ -40,9 +40,13 @@ def cart_points_match(name, X, y, base_seed=42, splits=10, repeats=3, max_folds=
             break
         seed = derive_fold_seed(base_seed, name, fold, method.name)
         models, _ = method.build(X[tr], y[tr], seed)
-        got = sorted(map(tuple, np.asarray(frontier(_score_candidates(models, X[tr], y[tr], X[te], y[te])).points).tolist()))
-        want = sorted(map(tuple, points[points.fold == fold][["accuracy", "nodes"]].values))
-        if not np.allclose(np.array(got, float), np.array(want, float)) if len(got) == len(want) else True:
+        front = frontier(_score_candidates(models, X[tr], y[tr], X[te], y[te]))
+        got = np.array(sorted(map(tuple, np.asarray(front.points).tolist())), dtype=float)
+        want = np.array(
+            sorted(map(tuple, points[points.fold == fold][["accuracy", "nodes"]].values)),
+            dtype=float,
+        )
+        if got.shape != want.shape or not np.allclose(got, want):
             mismatched.append((fold, got, want))
     return mismatched
 
@@ -64,7 +68,7 @@ def main():
         if bad:
             failed += 1
             fold, got, want = bad[0]
-            print(f"    fold {fold}: got {got[:3]} want {want[:3]}")
+            print(f"    fold {fold}: got {got[:3].tolist()} want {want[:3].tolist()}")
     return 1 if failed else 0
 
 

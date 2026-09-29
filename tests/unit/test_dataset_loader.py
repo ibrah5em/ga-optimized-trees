@@ -808,3 +808,28 @@ Usage:
     # Run only fast tests (skip slow OpenML tests)
     pytest tests/unit/test_dataset_loader.py -v -m "not slow"
 """
+
+
+class TestCategoricalMissingValues:
+    """Missing categories must encode the same under pandas 2 and pandas 3.
+
+    pandas 3 keeps NaN under ``astype(str)`` where pandas 2 produced ``"nan"``;
+    the committed benchmark runs used pandas 2, and a different token changes
+    the label encoding of every other category in the column.
+    """
+
+    def test_missing_category_becomes_token(self):
+        import pandas as pd
+
+        from ga_trees.data.dataset_loader import _categorical_as_str
+
+        column = pd.Series(["b", None, "a"], dtype="category")
+        assert list(_categorical_as_str(column)) == ["b", "missing_value", "a"]
+
+    def test_literal_nan_string_is_treated_as_missing(self):
+        import pandas as pd
+
+        from ga_trees.data.dataset_loader import _categorical_as_str
+
+        column = pd.Series(["nan", "a", float("nan")], dtype=object)
+        assert list(_categorical_as_str(column)) == ["missing_value", "a", "missing_value"]

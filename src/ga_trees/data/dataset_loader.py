@@ -152,6 +152,19 @@ class DataValidator:
         return X, y
 
 
+def _categorical_as_str(column: pd.Series) -> pd.Series:
+    """String view of a categorical column with missing values as ``"missing_value"``.
+
+    pandas 2 turned a missing category into the string ``"nan"`` under
+    ``astype(str)``; pandas 3 keeps it missing. The committed benchmark runs
+    were produced under pandas 2, so both paths are mapped to the same token —
+    otherwise the label encoding, and with it every tree, shifts with the
+    pandas version on any dataset that has a missing categorical value.
+    """
+    as_str = column.astype(object).where(column.notna(), "missing_value").astype(str)
+    return as_str.replace("nan", "missing_value")
+
+
 class DatasetLoader:
     """
     Comprehensive dataset loader supporting multiple sources.
@@ -404,8 +417,7 @@ class DatasetLoader:
             # Encode categorical features
             for col in df.columns:
                 if not pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].astype(str)
-                    df[col] = df[col].replace("nan", "missing_value")
+                    df[col] = _categorical_as_str(df[col])
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
                 else:
@@ -443,8 +455,7 @@ class DatasetLoader:
             # Encode categorical features
             for col in df.columns:
                 if not pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].astype(str)
-                    df[col] = df[col].replace("nan", "missing_value")
+                    df[col] = _categorical_as_str(df[col])
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
                 else:
