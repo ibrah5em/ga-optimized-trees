@@ -159,7 +159,7 @@ softened.** What survives is the mechanism result: over the same tree space and 
 matched evaluation budget, evolution beats random sampling. That is H3, and it is a
 narrower claim than the one this project set out to make.
 
-**K3 / H2 — pending** the point-estimate run (`scripts/benchmark.py`), still executing.
+**K3 / H2 — see "K3 outcome" below** (the point-estimate run completed 2026-09-29).
 
 ______________________________________________________________________
 
@@ -196,3 +196,46 @@ K1's conclusion is unchanged; **K2's is reversed**. Output from the per-fold ver
 preserved at `paper/evidence/frontier-2026-08-07/folds-SUPERSEDED-per-fold-reference.csv`. `run_frontier_cv` now
 computes the reference in a second pass over the whole dataset, pinned by
 `test_one_reference_for_the_whole_dataset`.
+
+______________________________________________________________________
+
+### K3 outcome — point-estimate run, 2026-09-29
+
+`python scripts/benchmark.py --config configs/paper.yaml --outer-repeats 1 --no-depth-tuning --n-jobs 4`
+20 datasets × 10 outer folds, 5-fold inner tuning for every method, deviations as recorded
+above (10 × 1 outer CV; GA and random search tuned over accuracy weight only). Artifacts at
+`paper/evidence/k3-2026-09-29/`; the decision rule is the one fixed above before the run,
+applied by `scripts/k3_analysis.py`. Budget match: 2,920 evaluations per fit for both
+searchers.
+
+**K3 — TRIGGERED under both readings.**
+
+| Reading                                   | Datasets against the GA | Threshold      | Verdict       |
+| ----------------------------------------- | ----------------------- | -------------- | ------------- |
+| Primary: mean loss to tuned CART > 0.02   | **8 / 20** (40%)        | > 6 (30%)      | **TRIGGERED** |
+| Secondary: corrected per-dataset TOST     | 18 / 20                 | > 6            | TRIGGERED     |
+
+**H2 — rejected.** Across datasets, GA − tuned CART = −0.0385, 90% CI [−0.0694, −0.0076],
+TOST p = 0.843: not equivalent within ±0.02. The difference is also not significant
+(Wilcoxon, Holm p = 0.072) — the combination the original "p > 0.05, therefore equivalent"
+claim misread. **"Equivalent accuracy" may not appear in the paper.**
+
+The eight losing datasets (banknote, climate_crashes, credit_g, eucalyptus, qsar_biodeg,
+tic_tac_toe, vehicle, vowel) are exactly the eight with the largest hypervolume deficit to
+CART in the frontier run. The GA's trees average 6.3 leaves against CART's 18.4; inner CV
+picked the most accuracy-favouring weight (0.9) in 52% of folds. The single-objective GA
+also beats budget-matched random search on accuracy (+0.012, Holm p = 0.003), in the same
+direction as K1.
+
+### Final verdicts
+
+| Criterion | Outcome |
+| --------- | ------- |
+| K1 | Not triggered — evolution beats budget-matched random search (H3 holds) |
+| K2 | **Triggered** — H1 rejected |
+| K3 | **Triggered** — H2 rejected; no equivalence claim |
+| K4 | Held — the composite score appears in no reported outcome |
+
+Per the kill criteria: no frontier claim, no equivalence claim. What may be claimed is the
+mechanism result (H3) and controllability of the operating point.
+

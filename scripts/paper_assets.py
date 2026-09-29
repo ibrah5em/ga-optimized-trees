@@ -325,6 +325,19 @@ def k3_section():
     macro("KthreeSecondary", secondary)
     macro("KthreeN", n)
     macro("KthreeFires", "fires" if primary / n > 0.30 else "does not fire")
+    ga_rows = folds[folds.method == k3_ga]
+    top = ga_rows.selected_params.value_counts()
+    macro("KthreeTopWeight", top.index[0].split("=")[1])
+    macro("KthreeTopWeightShare", f"{100 * top.iloc[0] / top.sum():.0f}")
+    # Do K3's losses fall on the datasets where the frontier deficit to CART is largest?
+    frontier = dataset_means(pd.read_csv(FRONTIER / "folds.csv"))
+    reference = pd.read_csv(FRONTIER / "folds.csv").groupby("dataset").reference_nodes.first()
+    gap = (frontier[GA] - frontier[CART]).div(reference)
+    losing = set(table.index[table["diff"] < -0.02])
+    worst = set(gap.sort_values().index[: len(losing)])
+    macro("KthreeOverlap", len(losing & worst))
+    macro("KthreeRest", n - primary)
+    macro("KthreeAhead", int((table["diff"] > 0.02).sum()))
 
     means = dataset_means(folds, "test_accuracy")
     h2 = equivalence_test(means[k3_ga].tolist(), means[k3_cart].tolist())
@@ -493,8 +506,16 @@ def figure_k3(table):
         label="GA $-$ tuned CART (90% CI)",
     )
     ax.set_yticks(y, [d.replace("_", " ") for d in order], fontsize=6.5, color=INK)
-    ax.set_xlabel("Test accuracy difference", fontsize=7, color=INK)
-    ax.legend(fontsize=6.5, frameon=False, loc="lower right")
+    ax.set_xlabel("Test accuracy difference, GA minus tuned CART", fontsize=7, color=INK)
+    ax.legend(
+        fontsize=6.5,
+        frameon=False,
+        loc="lower center",
+        bbox_to_anchor=(0.45, 1.0),
+        ncol=2,
+        handletextpad=0.3,
+        columnspacing=1.0,
+    )
     fig.tight_layout()
     fig.savefig(OUT / "fig_k3.pdf")
     plt.close(fig)

@@ -39,8 +39,9 @@ recovers a better frontier than budget-matched random sampling of the same tree 
 (mean $\Delta\hv$ \KoneDiff, Holm-adjusted $p=\KonePholm$, \KoneWins/\NDatasets{}
 datasets), so the evolutionary machinery contributes. But it has the larger hypervolume
 than CART's pruning path on only \KtwoRate{} of datasets, below the pre-registered
-\KtwoThreshold{} threshold, and the pre-registered accuracy-equivalence test
-\KthreeFires. The losses concentrate where accuracy needs large trees: the \GA's
+\KtwoThreshold{} threshold; and its tuned single tree loses more than 2 accuracy points
+to tuned CART on \KthreePrimary{} of \NDatasets{} datasets, so the pre-registered
+equivalence criterion fires. The losses concentrate where accuracy needs large trees: the \GA's
 delivered frontiers stop at a median of \MedianMaxNodesGA{} nodes against CART's
 \MedianMaxNodesCart. We also report what the audit behind this study found: previously
 published figures for this system that no run had produced, and two harness errors, in
@@ -313,19 +314,26 @@ having to justify them on held-out data, and without searching for them.
 \subsection{K3 and H2: accuracy of a single tuned tree}
 \label{sec:k3}
 
-With the weighting and depth tuned by inner CV, the single-objective \GA's tree loses
-more than 2 points to tuned CART on \KthreePrimary{} of \KthreeN{} datasets, so K3
-\KthreeFires{} under the primary reading. The corrected per-dataset TOST fails to
-establish equivalence on \KthreeSecondary{} of \KthreeN. Across datasets the mean
-difference is \HtwoDiff{} (90\% CI [\HtwoLow, \HtwoHigh], TOST $p=\HtwoP$): the accuracies
-are \HtwoVerdict{} within $\pm$2 points, and \textbf{no equivalence claim is made}.
-Mean accuracies are \GA{} \AccGA, tuned CART \AccCart, \RS{} \AccRS; the \GA's trees have
-\LeavesGA{} leaves (CART \LeavesCart), a mean decision path of \PathGA{} splits (CART
-\PathCart) and use \FeaturesGA{} features (CART \FeaturesCart). Figure~\ref{fig:k3}
-gives the per-dataset intervals. The smaller trees are real, but they are the product of
-the accuracy--size weighting rather than of the search: at the configured weighting a
-tree must gain about 8 accuracy points to justify growing from a stump to CART's size.
-That is the arithmetic the old ``smaller trees at equivalent accuracy'' claim ignored.
+With its accuracy weighting tuned by inner CV, the single-objective \GA's tree loses more
+than 2 points to tuned CART on \KthreePrimary{} of \KthreeN{} datasets, above the 30\%
+threshold: K3 \KthreeFires{} under the primary reading. The corrected per-dataset TOST
+fails to establish equivalence on \KthreeSecondary{} of \KthreeN, so the secondary reading
+agrees. Across datasets the mean difference is \HtwoDiff{} (90\% CI [\HtwoLow, \HtwoHigh],
+TOST $p=\HtwoP$): the accuracies are \HtwoVerdict{} within $\pm$2 points, \textbf{H2 is
+rejected, and no equivalence claim is made}. The difference is not significant either
+(Wilcoxon, Holm $p=\AccPholmCart$)---which is exactly the pattern the old ``equivalence''
+claim misread as evidence of equivalence.
+
+The losses are not spread evenly. They fall on \KthreeOverlap{} of the \KthreePrimary{}
+datasets with the largest hypervolume deficit to CART in the frontier run, a separate run
+with a different algorithm mode (Figure~\ref{fig:k3}); on the other \KthreeRest{} the \GA is
+within 2 points of CART or ahead of it (ahead by more than 2 on \KthreeAhead). Mean accuracies are \GA{} \AccGA, tuned CART \AccCart, \RS{} \AccRS. The
+\GA's trees have \LeavesGA{} leaves (CART \LeavesCart), a mean decision path of \PathGA{}
+splits (CART \PathCart) and use \FeaturesGA{} features (CART \FeaturesCart). Inner CV chose
+the most accuracy-favouring weight on offer, \KthreeTopWeight, in \KthreeTopWeightShare\% of
+folds, so the small trees are not an artefact of an untuned trade-off; they are what this
+fitness produces even when pushed toward accuracy. As in K1, the \GA also beats
+budget-matched \RS{} on accuracy (\AccDiffRS, Holm $p=\AccPholmRS$).
 
 \begin{figure}
   \centering
