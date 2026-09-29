@@ -232,6 +232,9 @@ def diagnostic_section():
         macro(f"Diag{key}Closed", f"{100 * closed:.0f}")
         macro(f"Diag{key}MaxLow", f"{largest[variant].min():.0f}")
         macro(f"Diag{key}MaxHigh", f"{largest[variant].max():.0f}")
+    arms = largest[["GA [resubstitution]", "GA [grow-bias]", "GA [2x-budget]"]]
+    macro("DiagArmMaxLow", f"{arms.min().min():.0f}")
+    macro("DiagArmMaxHigh", f"{arms.max().max():.0f}")
     macro("DiagCartMaxLow", f"{largest[CART].min():.0f}")
     macro("DiagCartMaxHigh", f"{largest[CART].max():.0f}")
     return hv
