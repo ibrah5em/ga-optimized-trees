@@ -71,6 +71,7 @@ optimization = [
 baselines = [
     "xgboost>=2.0.0",
     "lightgbm>=4.0.0",
+    "gosdt>=1.0.4",
 ]
 
 # Explainability tools (optional)

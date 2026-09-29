@@ -353,6 +353,37 @@ def equivalence_test(
     )
 
 
+def corrected_fold_equivalence(
+    fold_differences: Sequence[float],
+    test_train_ratio: float,
+    margin: float = DEFAULT_EQUIVALENCE_MARGIN,
+    alpha: float = ALPHA,
+) -> Tuple[float, float, float, bool]:
+    """Per-dataset TOST over outer-fold differences, Nadeau–Bengio corrected.
+
+    Outer folds share training rows, so the naive variance of their differences
+    understates the true variance and a plain paired t-test over folds is
+    anti-conservative (Dietterich 1998). Nadeau and Bengio (2003) inflate it by
+    ``1/k + n_test/n_train``. This is the secondary K3 reading fixed in
+    ``paper/PREREGISTRATION.md``; with ten folds it has little power.
+
+    Returns:
+        ``(mean_difference, ci_low, ci_high, equivalent)`` where the interval
+        is the ``1 - 2*alpha`` interval that TOST inverts.
+    """
+    d = np.asarray(list(fold_differences), dtype=float)
+    k = int(d.size)
+    mean = float(d.mean()) if k else 0.0
+    if k < 2:
+        return mean, float("nan"), float("nan"), False
+    variance = (1.0 / k + float(test_train_ratio)) * float(np.var(d, ddof=1))
+    if variance == 0.0:
+        return mean, mean, mean, abs(mean) < margin
+    half = float(stats.t.ppf(1 - alpha, k - 1)) * float(np.sqrt(variance))
+    low, high = mean - half, mean + half
+    return mean, low, high, bool(low > -margin and high < margin)
+
+
 def friedman_nemenyi(
     scores_by_method: Dict[str, Sequence[float]], alpha: float = ALPHA
 ) -> FriedmanResult:

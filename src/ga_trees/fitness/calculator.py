@@ -2,7 +2,7 @@
 
 This module provides:
 - TreePredictor: Makes predictions using a tree genotype (LDD-4: vectorized).
-- InterpretabilityCalculator: Computes composite interpretability scores.
+- InterpretabilityCalculator: Composite search heuristic (not an outcome measure).
 - FitnessCalculator: Combines accuracy and interpretability into a fitness value.
 
 Changes from original:
@@ -201,10 +201,15 @@ class TreePredictor:
 
 
 class InterpretabilityCalculator:
-    """Calculate interpretability metrics for decision trees.
+    """Search-guidance terms for the weighted-sum fitness.
 
-    Each sub-metric returns a value in ``[0, 1]`` where higher means
-    more interpretable.
+    Each sub-metric returns a value in ``[0, 1]``. Despite the class name, the
+    composite is a **search heuristic only** (Phase 3, kill criterion K4): it
+    has no claimed validity as a measure of human interpretability and must not
+    be reported as an outcome. ``semantic_coherence`` is ungrounded, and
+    ``feature_coherence`` scales with dataset dimensionality. Report node count,
+    leaf count, mean decision-path length and distinct features instead; see
+    ``docs/core-concepts/interpretability.md``.
     """
 
     @staticmethod

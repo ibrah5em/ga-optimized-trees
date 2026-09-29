@@ -111,7 +111,7 @@ The GA evolves a population of decision trees using a weighted fitness function:
 Fitness = w₁ × Accuracy + w₂ × Interpretability
 ```
 
-Interpretability is a composite of node complexity, feature coherence, tree balance, and semantic coherence. The evolutionary loop applies tournament selection, subtree crossover with parent tracking, and four mutation operators (threshold perturbation, feature replacement, subtree pruning, leaf expansion).
+In the weighted-sum mode, the interpretability term is a composite of node complexity, feature coherence, tree balance and semantic coherence. It is a **search heuristic only**: results are reported with node count, leaf count, mean decision-path length and distinct features used (see [docs/core-concepts/interpretability.md](docs/core-concepts/interpretability.md)). The evolutionary loop applies tournament selection, subtree crossover with parent tracking, and four mutation operators (threshold perturbation, feature replacement, subtree pruning, leaf expansion).
 
 ______________________________________________________________________
 

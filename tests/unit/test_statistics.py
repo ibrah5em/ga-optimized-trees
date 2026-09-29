@@ -402,3 +402,26 @@ class TestPerDatasetMeans:
         results = {"iris": {"GA": {"test_f1": [0.5, 0.7]}}}
         _, scores = per_dataset_means(results, metric="test_f1")
         assert scores["GA"] == pytest.approx([0.6])
+
+
+class TestCorrectedFoldEquivalence:
+    def test_correction_widens_the_interval(self):
+        from ga_trees.evaluation.statistics import corrected_fold_equivalence
+
+        diffs = [0.001, -0.004, 0.003, 0.0, 0.002, -0.001, 0.004, -0.002, 0.001, 0.0]
+        _, lo_naive, hi_naive, _ = corrected_fold_equivalence(diffs, test_train_ratio=0.0)
+        _, lo, hi, _ = corrected_fold_equivalence(diffs, test_train_ratio=1 / 9)
+        assert lo < lo_naive and hi > hi_naive
+
+    def test_tight_small_differences_are_equivalent(self):
+        from ga_trees.evaluation.statistics import corrected_fold_equivalence
+
+        diffs = [0.001, -0.002, 0.0, 0.001, -0.001, 0.002, 0.0, -0.001, 0.001, 0.0]
+        assert corrected_fold_equivalence(diffs, test_train_ratio=1 / 9)[3]
+
+    def test_a_large_loss_is_not_equivalent(self):
+        from ga_trees.evaluation.statistics import corrected_fold_equivalence
+
+        diffs = [-0.05, -0.04, -0.06, -0.05, -0.03, -0.05, -0.04, -0.06, -0.05, -0.04]
+        mean, _, _, equivalent = corrected_fold_equivalence(diffs, test_train_ratio=1 / 9)
+        assert mean < -0.02 and not equivalent
