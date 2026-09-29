@@ -55,15 +55,15 @@ from experiment import load_dataset, run_statistical_analysis  # noqa: E402
 BUDGET_MATCHED = ("GA-Optimized", "Random Search")
 
 
-def build_methods(config, tune=True, include_forest=True):
+def build_methods(config, tune=True, include_forest=True, tune_depth=True):
     """Instantiate the benchmark methods from a config dict."""
     ga_config = config["ga"]
     tree_config = config["tree"]
     fitness_config = config["fitness"]
 
     methods = [
-        GATreeMethod(ga_config, tree_config, fitness_config, tune=tune),
-        RandomTreeSearch(ga_config, tree_config, fitness_config, tune=tune),
+        GATreeMethod(ga_config, tree_config, fitness_config, tune=tune, tune_depth=tune_depth),
+        RandomTreeSearch(ga_config, tree_config, fitness_config, tune=tune, tune_depth=tune_depth),
         PrunedCARTMethod(tree_config),
         UnconstrainedCARTMethod(),
     ]
@@ -110,6 +110,15 @@ def main():
     )
     parser.add_argument("--no-forest", action="store_true", help="Skip the random forest reference")
     parser.add_argument(
+        "--no-depth-tuning",
+        action="store_true",
+        help=(
+            "Tune the GA and random search over accuracy weight only, at the configured "
+            "depth (a third of the fits). CART is still tuned over depth and ccp_alpha. "
+            "Recorded as a deviation for the K3 run."
+        ),
+    )
+    parser.add_argument(
         "--dry-run", action="store_true", help="Report the fit count and exit without running"
     )
     parser.add_argument("--output-dir", default="results/nested", help="Where to write artifacts")
@@ -134,7 +143,12 @@ def main():
         if args.datasets
         else config["experiment"]["datasets"]
     )
-    methods = build_methods(config, tune=not args.no_tune, include_forest=not args.no_forest)
+    methods = build_methods(
+        config,
+        tune=not args.no_tune,
+        include_forest=not args.no_forest,
+        tune_depth=not args.no_depth_tuning,
+    )
 
     total_fits, per_method = estimate_fits(
         methods, datasets, args.outer_splits, args.outer_repeats, args.inner_splits
@@ -149,6 +163,8 @@ def main():
     print(f"Inner         : {args.inner_splits}-fold")
     print(f"Methods       : {', '.join(m.name for m in methods)}")
     print(f"Tuning        : {'off (screening)' if args.no_tune else 'on'}")
+    if args.no_depth_tuning:
+        print("Depth tuning  : off for GA and random search (weight only; CART unchanged)")
     print(f"GA budget     : {ga_budget} evaluations per fit (random search matched)")
     print(f"Estimated fits: {total_fits:,}")
     for name, count in per_method.items():
@@ -163,10 +179,25 @@ def main():
     stamp = datetime.now().strftime("%Y-%m-%d")
     config_name = Path(args.config).stem
 
+    checkpoints = output_dir / "partial"
+    checkpoints.mkdir(exist_ok=True)
+
     def run_one(name):
-        """Full nested CV for one dataset. Self-contained so it can be forked."""
+        """Full nested CV for one dataset. Self-contained so it can be forked.
+
+        Each finished dataset is pickled under ``partial/`` and reused on a
+        re-run with the same output directory, so an interrupted run loses only
+        the datasets in progress. Seeds depend on (dataset, fold, method) alone,
+        so a resumed run is identical to an uninterrupted one.
+        """
+        import pickle
+
+        cached = checkpoints / f"{name}.pkl"
+        if cached.exists():
+            with open(cached, "rb") as handle:
+                return pickle.load(handle)
         X, y = load_dataset(name)
-        return run_nested_cv(
+        results = run_nested_cv(
             X,
             y,
             methods,
@@ -177,6 +208,9 @@ def main():
             inner_splits=args.inner_splits,
             progress=print if args.n_jobs == 1 else None,
         )
+        with open(cached, "wb") as handle:
+            pickle.dump(results, handle)
+        return results
 
     all_results = []
     if args.n_jobs == 1:
@@ -235,6 +269,7 @@ def main():
         "outer_repeats": args.outer_repeats,
         "inner_splits": args.inner_splits,
         "tuning": not args.no_tune,
+        "depth_tuning": not args.no_depth_tuning,
         "ga_evaluation_budget": ga_budget,
         "budget_match": budget,
     }

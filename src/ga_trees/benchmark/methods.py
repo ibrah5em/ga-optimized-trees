@@ -210,6 +210,31 @@ def _build_search_context(
     )
 
 
+#: Accuracy weights the searching methods are tuned over.
+ACCURACY_WEIGHT_GRID = (0.5, 0.7, 0.9)
+#: Depths they are tuned over when depth tuning is on.
+SEARCH_DEPTH_GRID = (4, 6, 8)
+
+
+def search_grid(tune_depth: bool = True) -> List[Dict[str, Any]]:
+    """The inner-CV grid shared by the GA and random search.
+
+    One function, so the two budget-matched methods cannot drift onto different
+    grids. With ``tune_depth=False`` only the accuracy weighting is tuned and
+    depth stays at the configured ``tree.max_depth`` — the reduced K3 grid
+    recorded as a deviation in ``paper/PREREGISTRATION.md`` (2026-09-29).
+    """
+    depths = SEARCH_DEPTH_GRID if tune_depth else (None,)
+    grid = []
+    for accuracy_weight in ACCURACY_WEIGHT_GRID:
+        for max_depth in depths:
+            params = {"accuracy_weight": accuracy_weight}
+            if max_depth is not None:
+                params["max_depth"] = max_depth
+            grid.append(params)
+    return grid
+
+
 class GATreeMethod(BenchmarkMethod):
     """The GA under test.
 
@@ -235,11 +260,13 @@ class GATreeMethod(BenchmarkMethod):
         tree_config: Dict[str, Any],
         fitness_config: Dict[str, Any],
         tune: bool = True,
+        tune_depth: bool = True,
     ):
         self.ga_config = dict(ga_config)
         self.tree_config = dict(tree_config)
         self.fitness_config = dict(fitness_config)
         self.tune = tune
+        self.tune_depth = tune_depth
 
     def param_grid(self, X: np.ndarray, y: np.ndarray) -> List[Dict[str, Any]]:
         if not self.tune:
@@ -247,11 +274,7 @@ class GATreeMethod(BenchmarkMethod):
         # Only the accuracy/interpretability trade-off and depth are tuned.
         # Population and generation counts are held fixed so that the search
         # budget stays identical to the random-search baseline.
-        grid = []
-        for accuracy_weight in (0.5, 0.7, 0.9):
-            for max_depth in (4, 6, 8):
-                grid.append({"accuracy_weight": accuracy_weight, "max_depth": max_depth})
-        return grid
+        return search_grid(self.tune_depth)
 
     def evaluation_budget(self, params: Dict[str, Any]) -> Optional[int]:
         return ga_evaluation_budget(self.ga_config)
@@ -333,22 +356,20 @@ class RandomTreeSearch(BenchmarkMethod):
         tree_config: Dict[str, Any],
         fitness_config: Dict[str, Any],
         tune: bool = True,
+        tune_depth: bool = True,
     ):
         self.ga_config = dict(ga_config)
         self.tree_config = dict(tree_config)
         self.fitness_config = dict(fitness_config)
         self.tune = tune
+        self.tune_depth = tune_depth
 
     def param_grid(self, X: np.ndarray, y: np.ndarray) -> List[Dict[str, Any]]:
         if not self.tune:
             return [{}]
         # Deliberately the same grid as GATreeMethod: an advantage must not come
         # from one method being tuned over a richer space than the other.
-        grid = []
-        for accuracy_weight in (0.5, 0.7, 0.9):
-            for max_depth in (4, 6, 8):
-                grid.append({"accuracy_weight": accuracy_weight, "max_depth": max_depth})
-        return grid
+        return search_grid(self.tune_depth)
 
     def evaluation_budget(self, params: Dict[str, Any]) -> Optional[int]:
         # Deliberately the GA's formula, not pop * gens: the two must spend the

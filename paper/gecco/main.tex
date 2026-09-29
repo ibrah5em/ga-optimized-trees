@@ -216,16 +216,18 @@ exactly \NDatasets{} datasets, selected by rule before any run. The frequently u
 
 \textbf{Evaluation.} Outer $10\times3$ repeated stratified CV for the frontier run
 (\NFoldsFrontier{} folds per dataset); per-fold seeds derived from (dataset, fold,
-method). The point-estimate run (H2/K3) tunes every method by inner 5-fold CV---the
-\GA and \RS{} over accuracy weighting $\{0.5,0.7,0.9\}\times$ depth $\{4,6,8\}$, CART
-over depth and $\alpha$ on its pruning path---and, as a recorded deviation for compute,
-uses $10\times1$ outer CV. Complexity is reported as nodes, leaves, mean decision-path
+method). The point-estimate run (H2/K3) tunes every method by inner 5-fold CV---CART
+over depth and $\alpha$ on its pruning path, the \GA and \RS{} over the accuracy weighting
+$\{0.5,0.7,0.9\}$---and uses $10\times1$ outer CV. Both the single outer repeat and the
+removal of depth $\{4,6,8\}$ from the \GA's and \RS's grid are recorded deviations for
+compute; the latter handicaps the \GA relative to CART, which is the conservative
+direction for a criterion that exists to block an equivalence claim. Complexity is reported as nodes, leaves, mean decision-path
 length (over training samples) and distinct features used.
 
 \textbf{Deviations.} Recorded before use: (i) midpoint thresholds, for both searchers;
 it was measured beforehand to help \RS{} more than the \GA, i.e.\ to make K1 harder;
 (ii) validation-split fitness, for both searchers; (iii) the corrected budget formula
-above; (iv) $10\times1$ outer CV for K3; (v) a loader fix for a pandas-version change
+above; (iv) $10\times1$ outer CV and a weight-only \GA/\RS{} grid for K3; (v) a loader fix for a pandas-version change
 that re-encoded two datasets, after which all \NDatasets{} datasets reproduce the
 committed CART frontiers exactly; (vi) constraint repair (Section~\ref{sec:repair}),
 written after K1/K2 were known and therefore reported only as sensitivity.

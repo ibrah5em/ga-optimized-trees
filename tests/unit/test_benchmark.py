@@ -408,3 +408,28 @@ class TestResultsToNestedDict:
         datasets, scores = per_dataset_means(results_to_nested_dict(results))
         assert datasets == ["iris"]
         assert len(scores["CART (unconstrained)"]) == 1
+
+
+class TestSearchGrid:
+    """The GA and random search must always be tuned over the same grid."""
+
+    def test_weight_only_grid_leaves_depth_to_the_config(self):
+        from ga_trees.benchmark.methods import search_grid
+
+        grid = search_grid(tune_depth=False)
+        assert [p["accuracy_weight"] for p in grid] == [0.5, 0.7, 0.9]
+        assert all("max_depth" not in p for p in grid)
+        assert len(search_grid(tune_depth=True)) == 9
+
+    def test_ga_and_random_search_share_the_grid(self):
+        import numpy as np
+
+        from ga_trees.benchmark.methods import GATreeMethod, RandomTreeSearch
+
+        cfg = {"population_size": 4, "n_generations": 2}
+        tree = {"max_depth": 6, "min_samples_split": 8, "min_samples_leaf": 3}
+        X, y = np.zeros((10, 2)), np.zeros(10)
+        for tune_depth in (True, False):
+            ga = GATreeMethod(cfg, tree, {}, tune_depth=tune_depth)
+            rs = RandomTreeSearch(cfg, tree, {}, tune_depth=tune_depth)
+            assert ga.param_grid(X, y) == rs.param_grid(X, y)
