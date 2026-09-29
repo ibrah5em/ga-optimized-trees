@@ -66,12 +66,17 @@ def macro(name: str, value) -> None:
 
 
 def fmt(value: float, digits: int = 3, sign: bool = False) -> str:
+    """A number that typesets correctly both inside and outside math mode."""
     text = f"{value:+.{digits}f}" if sign else f"{value:.{digits}f}"
-    return text.replace("-", "$-$") if not sign else text.replace("-", "$-$").replace("+", "$+$")
+    return text.replace("-", "\\ensuremath{-}").replace("+", "\\ensuremath{+}")
 
 
 def pval(p: float) -> str:
-    return "$<$0.001" if p < 0.001 else f"{p:.3f}"
+    """A p-value *with its relation*, for use as ``$p\\Macro$``: ``=0.032`` or ``<0.001``.
+
+    Carrying the relation avoids ``p = <0.001`` when a value is below the floor.
+    """
+    return "<0.001" if p < 0.001 else f"={p:.3f}"
 
 
 def dataset_means(folds: pd.DataFrame, value: str = "hypervolume") -> pd.DataFrame:
@@ -230,7 +235,7 @@ def diagnostic_section():
         ("GA [2x-budget]", "Budget"),
     ):
         closed = ((hv[variant] - base) / (cart - base)).mean()
-        macro(f"Diag{key}Closed", f"{100 * closed:.0f}")
+        macro(f"Diag{key}Closed", fmt(100 * closed, 0))
         macro(f"Diag{key}MaxLow", f"{largest[variant].min():.0f}")
         macro(f"Diag{key}MaxHigh", f"{largest[variant].max():.0f}")
     arms = largest[["GA [resubstitution]", "GA [grow-bias]", "GA [2x-budget]"]]

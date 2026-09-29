@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{xspace}
+\setlength{\emergencystretch}{1.5em}
 
 \input{generated/numbers.tex}
 
@@ -36,7 +37,7 @@ cross-validation, hypervolume over (test accuracy, node count), a random-search 
 matched to the \GA's evaluation count exactly, and CART's full cost-complexity pruning
 path as the comparator. Two of three hypotheses were decided against us. NSGA-II
 recovers a better frontier than budget-matched random sampling of the same tree space
-(mean $\Delta\hv$ \KoneDiff, Holm-adjusted $p=\KonePholm$, \KoneWins/\NDatasets{}
+(mean $\Delta\hv$ \KoneDiff, Holm-adjusted $p\KonePholm$, \KoneWins/\NDatasets{}
 datasets), so the evolutionary machinery contributes. But it has the larger hypervolume
 than CART's pruning path on only \KtwoRate{} of datasets, below the pre-registered
 \KtwoThreshold{} threshold; and its tuned single tree loses more than 2 accuracy points
@@ -240,11 +241,11 @@ written after K1/K2 were known and therefore reported only as sensitivity.
 
 Budgets matched on all folds (\BudgetMismatch{} unequal; mean \MeanEvaluations{}
 evaluations per fit). The \GA's hypervolume exceeds budget-matched \RS's by
-\KoneDiff{} on average ($p=\KoneP$, Holm $p=\KonePholm$, $d_z=\KoneDz$), on
+\KoneDiff{} on average ($p\KoneP$, Holm $p\KonePholm$, $d_z=\KoneDz$), on
 \KoneWins{} of \NDatasets{} datasets (Figure~\ref{fig:hvdiff}). K1 is not triggered. The
 archived-\GA{} control is indistinguishable from the standard \GA{} (\ArchDiff, Holm
-$p=\ArchPholm$), so the advantage is not an artefact of delivering a final population
-rather than an archive. The four-method Friedman test is not significant ($p=\FriedmanP$;
+$p\ArchPholm$), so the advantage is not an artefact of delivering a final population
+rather than an archive. The four-method Friedman test is not significant ($p\FriedmanP$;
 mean ranks \GA{} \RankGA, CART \RankCart, archived \GA{} \RankArch, \RS{} \RankRS), so no
 Nemenyi post-hoc is licensed; K1 is defined on the pairwise test, which has more power
 here because two of the four methods are near-duplicates.
@@ -263,7 +264,7 @@ here because two of the four methods are near-duplicates.
 
 The \GA has the larger mean hypervolume than CART's pruning path on \KtwoWins{} of
 \NDatasets{} datasets (\KtwoRate), below the \KtwoThreshold{} threshold: \textbf{H1 is
-rejected}. The mean difference is \CartDiff{} (Holm $p=\CartPholm$). The depth asymmetry
+rejected}. The mean difference is \CartDiff{} (Holm $p\CartPholm$). The depth asymmetry
 does not explain this: against CART's path re-derived with the \GA's depth cap on the same
 folds and seeds (exploratory), the \GA wins on \CappedKtwoWins{} of \NDatasets{} datasets
 (\CappedKtwoRate). Table~\ref{tab:hv}
@@ -276,7 +277,7 @@ tree on its test front has a median of \MedianMaxNodesGA{} nodes across datasets
 \MedianMaxNodesRS{} for \RS{} and \MedianMaxNodesCart{} for CART, and its best test accuracy
 averages \BestAccGA{} against CART's \BestAccCart. Across datasets the hypervolume deficit
 to CART is almost entirely explained by that best-accuracy gap (Spearman
-$\rho=\RhoBestGap$, $p=\RhoBestGapP$). Figure~\ref{fig:frontiers} shows one fold of each
+$\rho=\RhoBestGap$, $p\RhoBestGapP$). Figure~\ref{fig:frontiers} shows one fold of each
 kind. Where the \GA's front exists it is often at or above CART's; it rarely extends to
 the region where the large trees are.
 
@@ -319,21 +320,21 @@ than 2 points to tuned CART on \KthreePrimary{} of \KthreeN{} datasets, above th
 threshold: K3 \KthreeFires{} under the primary reading. The corrected per-dataset TOST
 fails to establish equivalence on \KthreeSecondary{} of \KthreeN, so the secondary reading
 agrees. Across datasets the mean difference is \HtwoDiff{} (90\% CI [\HtwoLow, \HtwoHigh],
-TOST $p=\HtwoP$): the accuracies are \HtwoVerdict{} within $\pm$2 points, \textbf{H2 is
+TOST $p\HtwoP$): the accuracies are \HtwoVerdict{} within $\pm$2 points, \textbf{H2 is
 rejected, and no equivalence claim is made}. The difference is not significant either
-(Wilcoxon, Holm $p=\AccPholmCart$)---which is exactly the pattern the old ``equivalence''
+(Wilcoxon, Holm $p\AccPholmCart$)---which is exactly the pattern the old ``equivalence''
 claim misread as evidence of equivalence.
 
-The losses are not spread evenly. They fall on \KthreeOverlap{} of the \KthreePrimary{}
-datasets with the largest hypervolume deficit to CART in the frontier run, a separate run
-with a different algorithm mode (Figure~\ref{fig:k3}); on the other \KthreeRest{} the \GA is
+The losses are not spread evenly. Of the \KthreePrimary{} datasets where the \GA loses, \KthreeOverlap{}
+are among the \KthreePrimary{} with the largest hypervolume deficit to CART in the frontier
+run---a separate run in a different algorithm mode (Figure~\ref{fig:k3}); on the other \KthreeRest{} the \GA is
 within 2 points of CART or ahead of it (ahead by more than 2 on \KthreeAhead). Mean accuracies are \GA{} \AccGA, tuned CART \AccCart, \RS{} \AccRS. The
 \GA's trees have \LeavesGA{} leaves (CART \LeavesCart), a mean decision path of \PathGA{}
 splits (CART \PathCart) and use \FeaturesGA{} features (CART \FeaturesCart). Inner CV chose
 the most accuracy-favouring weight on offer, \KthreeTopWeight, in \KthreeTopWeightShare\% of
 folds, so the small trees are not an artefact of an untuned trade-off; they are what this
 fitness produces even when pushed toward accuracy. As in K1, the \GA also beats
-budget-matched \RS{} on accuracy (\AccDiffRS, Holm $p=\AccPholmRS$).
+budget-matched \RS{} on accuracy (\AccDiffRS, Holm $p\AccPholmRS$).
 
 \begin{figure}
   \centering
@@ -354,10 +355,10 @@ initialiser), yet only \ViolDelivered{} of \ViolDeliveredOf{} internal nodes in 
 fronts did: the size objective removes dead splits on its own. We added a repair that collapses, top-down, every split
 reached by fewer than 8 training rows or leaving fewer than 3 on a side. Re-running the
 frontier benchmark with repair on and everything else fixed gives a \GA{}--\RS{}
-difference of \RepairKoneDiff{} (Holm $p=\RepairKonePholm$, \RepairKoneWins/\NDatasets{}
+difference of \RepairKoneDiff{} (Holm $p\RepairKonePholm$, \RepairKoneWins/\NDatasets{}
 datasets) and a CART dominance rate of \RepairKtwoRate. Neither verdict changes. One
 secondary result does: with repair, the standard \GA also beats its archived variant
-(\RepairArchDiff, Holm $p=\RepairArchPholm$), so the choice between delivering the final
+(\RepairArchDiff, Holm $p\RepairArchPholm$), so the choice between delivering the final
 front and the archive is not neutral once dead splits are removed.
 
 \subsection{Exploratory: GOSDT}
@@ -366,14 +367,14 @@ GOSDT~\cite{lin2020} with threshold guessing~\cite{mctavish2022}, swept over ten
 regularisation values at the same depth limit, run on the first \GosdtFolds{} outer folds
 and scored against the same per-dataset reference, has the larger hypervolume than
 CART's path on \GosdtBeatsCart{} of the \GosdtDatasets{} datasets it completed; the \GA beats
-GOSDT on \GABeatsGosdt. On \GosdtIncomplete{} datasets (\GosdtIncompleteNames) GOSDT's search
-exhausted memory (caps of 8 and 11\,GB) and the process died, so they are excluded. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
+GOSDT on \GABeatsGosdt. GOSDT did not complete on \GosdtIncompleteNames{}, where its search
+exhausted memory under caps of 8 and 11\,GB; that dataset is excluded. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
 \GosdtFits{} fits hit the 30 s limit and are therefore not certified optimal, and
 \GosdtFailures{} returned no model and were dropped from the path (which can only lower
 GOSDT's hypervolume). An
 exact sparse-tree solver, in other words, does not dominate CART's pruning path on these
 datasets either, and the \GA and GOSDT are indistinguishable (\GosdtDiff, Holm
-$p=\GosdtPholm$): the pruning path is a harder baseline than a single CART tree suggests.
+$p\GosdtPholm$): the pruning path is a harder baseline than a single CART tree suggests.
 This comparison was added after K1/K2 were known and decides nothing.
 
 %% ---------------------------------------------------------------------------
@@ -447,15 +448,15 @@ interpretability~\cite{lipton2018,doshivelez2017}.
 For evolutionary tree induction generally we draw three recommendations. Report
 budget-matched random search over the same representation; it is cheap, and without it
 no advantage can be attributed to evolution. Compare frontiers against the full
-cost-complexity path, not a single CART tree. And fix the metric's parameters---reference
-points, delivered-set rules---in the protocol, because both of our harness errors lived
-there and each was large enough to reverse a conclusion.
+cost-complexity path, not a single CART tree. And fix the metric's parameters in the protocol,
+including reference points and the rule for which models a method delivers: both of our
+harness errors lived there, and each was large enough to reverse a conclusion.
 
 %% ---------------------------------------------------------------------------
 \section{Conclusion}
 
-Evolution earns its place over random sampling in this system, but not over twenty
-lines of cost-complexity pruning. We report that as the finding, together with the audit
+Evolution earns its place over random sampling in this system, but not over
+cost-complexity pruning, a baseline that performs no search at all. We report that as the finding, together with the audit
 trail---the withdrawn claims, the two reversed verdicts and the committed data behind
 every number---so that the next comparison in this area can start from the baselines
 that decided this one.
