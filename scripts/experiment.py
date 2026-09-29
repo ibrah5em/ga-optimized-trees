@@ -709,7 +709,7 @@ def print_summary(all_results, config, config_name="default"):
     # Save configuration used
     config_file = output_dir / f"config-{config_name}-{date_str}.yaml"
     with open(config_file, "w") as f:
-        yaml.dump(config, f, default_flow_style=False)
+        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
     # Save the seeds actually used. Without this, "seeded" is an assertion rather
     # than something a reader can check - see results/PROVENANCE.md.

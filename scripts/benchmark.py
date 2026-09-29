@@ -244,7 +244,7 @@ def main():
 
     config_file = output_dir / f"config-{config_name}-{stamp}.yaml"
     with open(config_file, "w") as handle:
-        yaml.dump(config, handle, default_flow_style=False)
+        yaml.dump(config, handle, default_flow_style=False, sort_keys=False)
 
     datasets_seen, _ = per_dataset_means(nested)
     print(f"\n{'=' * 70}")

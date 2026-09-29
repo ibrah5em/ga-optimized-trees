@@ -23,3 +23,13 @@ python scripts/frontier_benchmark.py --config configs/paper-repair.yaml --n-jobs
 
 Neither verdict changes. Budget match: 0 of 600 folds unequal. `run.log` is the full console
 output.
+
+## Reproducing from `config.yaml` — key order matters
+
+`config.yaml` here was written by `yaml.dump` with its default `sort_keys=True`, so
+`ga.mutation_types` is stored alphabetically. `Mutation.mutate` draws the operator with
+`random.choices` over the keys **in order**, so the same seed with the same weights in a
+different order selects different operators and produces a different run. Reproduce from
+the order-preserving source config instead (`configs/paper-repair.yaml`), which was
+verified to match this run bit for bit. The scripts now write configs with
+`sort_keys=False` (2026-09-29).

@@ -101,7 +101,10 @@ def main() -> int:
     parser.add_argument("--output-dir", required=True)
     args = parser.parse_args()
 
-    config = yaml.safe_load(open(EVIDENCE / "config.yaml"))
+    # configs/paper.yaml, not the evidence copy: that copy was written with sorted
+    # keys, and mutation_types order decides which operator a given random draw
+    # selects, so it does not reproduce the committed run. This file does.
+    config = yaml.safe_load(open(ROOT / "configs" / "paper.yaml"))
     datasets = args.datasets.split(",")
 
     from joblib import Parallel, delayed

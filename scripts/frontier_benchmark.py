@@ -269,7 +269,7 @@ def main() -> int:
     with open(output_dir / f"frontier-seeds-{config_name}-{stamp}.json", "w") as handle:
         json.dump(manifest, handle, indent=2)
     with open(output_dir / f"frontier-config-{config_name}-{stamp}.yaml", "w") as handle:
-        yaml.dump(config, handle, default_flow_style=False)
+        yaml.dump(config, handle, default_flow_style=False, sort_keys=False)
 
     print(f"\n{'=' * 70}")
     print(f"✓ Fold hypervolumes : {folds_file}  ({len(rows)} rows)")

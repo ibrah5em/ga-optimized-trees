@@ -54,3 +54,13 @@ the test labels. Random search delivered 2,545 models against the GA's 10. Check
 method has the lower peak accuracy — the GA. It put K2's dominance rate at 70% instead of
 45%, i.e. on the other side of the threshold. K1's conclusion was unaffected. Check the
 `reference_nodes` column: it varies by fold here, and is constant per dataset in `folds.csv`.
+
+## Reproducing from `config.yaml` — key order matters
+
+`config.yaml` here was written by `yaml.dump` with its default `sort_keys=True`, so
+`ga.mutation_types` is stored alphabetically. `Mutation.mutate` draws the operator with
+`random.choices` over the keys **in order**, so the same seed with the same weights in a
+different order selects different operators and produces a different run. Reproduce from
+the order-preserving source config instead (`configs/paper.yaml`), which was
+verified to match this run bit for bit. The scripts now write configs with
+`sort_keys=False` (2026-09-29).
