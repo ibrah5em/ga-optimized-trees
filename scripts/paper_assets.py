@@ -243,8 +243,9 @@ def gosdt_section():
     macro("GosdtDiff", fmt(tests[GOSDT_NAME].mean_difference, 2, sign=True))
     macro("GosdtPholm", pval(tests[GOSDT_NAME].p_adjusted))
     timing = points.groupby(["dataset", "fold"]).agg(
-        t=("fit_seconds", "first"), n=("timeouts", "first")
+        t=("fit_seconds", "first"), n=("timeouts", "first"), f=("failures", "first")
     )
+    macro("GosdtFailures", int(timing.f.sum()))
     macro("GosdtSeconds", f"{timing.t.mean():.1f}")
     macro("GosdtTimeouts", int(timing.n.sum()))
     macro("GosdtFits", int(len(timing) * 10))

@@ -109,6 +109,7 @@ class GOSDTPathFrontier(FrontierMethod):
         self.n_estimators = n_estimators
         self.time_limit = time_limit
         self.n_timeouts = 0
+        self.n_failures = 0
 
     def build(self, X, y, seed) -> Tuple[List, int]:
         import pandas as pd
@@ -129,7 +130,14 @@ class GOSDTPathFrontier(FrontierMethod):
                 time_limit=self.time_limit,
                 allow_small_reg=True,
             )
-            model.fit(X_bin, y)
+            try:
+                model.fit(X_bin, y)
+            except RuntimeError:
+                # GOSDT occasionally reports "false convergence, no model was
+                # found" for one penalty. Dropping that point from the path is
+                # the conservative choice: it can only lower GOSDT's hypervolume.
+                self.n_failures += 1
+                continue
             if model.result_.status == Status.TIMEOUT:
                 self.n_timeouts += 1
             models.append(_BinarisedGOSDT(binarizer, model))

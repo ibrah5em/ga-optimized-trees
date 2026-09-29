@@ -60,6 +60,7 @@ def run_dataset(name, folds, max_depth, time_limit):
                     "nodes": nodes,
                     "fit_seconds": elapsed,
                     "timeouts": method.n_timeouts,
+                    "failures": method.n_failures,
                 }
             )
     return rows
@@ -115,10 +116,11 @@ def main() -> int:
         writer.writerows(rows)
 
     timing = gosdt.groupby(["dataset", "fold"]).agg(
-        t=("fit_seconds", "first"), to=("timeouts", "first")
+        t=("fit_seconds", "first"), to=("timeouts", "first"), fail=("failures", "first")
     )
     print(
-        f"\nGOSDT fits: mean {timing.t.mean():.1f}s per fold, {int(timing.to.sum())} timed-out fits"
+        f"\nGOSDT fits: mean {timing.t.mean():.1f}s per fold, {int(timing.to.sum())} timed out, "
+        f"{int(timing.fail.sum())} failed and dropped"
     )
     print(f"✓ {out / 'gosdt-points.csv'}\n✓ {out / 'gosdt-folds.csv'}")
     return 0

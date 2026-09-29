@@ -348,7 +348,9 @@ regularisation values at the same depth limit, run on the first \GosdtFolds{} ou
 and scored against the same per-dataset reference, has the larger hypervolume than
 CART's path on \GosdtBeatsCart{} of \NDatasets{} datasets; the \GA beats GOSDT on
 \GABeatsGosdt. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
-\GosdtFits{} fits hit the 30 s limit and are therefore not certified optimal. This
+\GosdtFits{} fits hit the 30 s limit and are therefore not certified optimal, and
+\GosdtFailures{} returned no model and were dropped from the path (which can only lower
+GOSDT's hypervolume). This
 comparison was added after K1/K2 were known and decides nothing.
 
 %% ---------------------------------------------------------------------------
