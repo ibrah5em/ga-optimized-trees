@@ -97,6 +97,11 @@ def main() -> int:
     parser.add_argument("--n-jobs", type=int, default=1)
     parser.add_argument("--output-dir", default="results/gosdt")
     parser.add_argument("--memory-gb", type=float, default=6.0, help="Per-worker address-space cap")
+    parser.add_argument(
+        "--aggregate-only",
+        action="store_true",
+        help="Fit nothing; score the per-dataset files already in --output-dir",
+    )
     args = parser.parse_args()
 
     config = yaml.safe_load(open(EVIDENCE / "config.yaml"))
@@ -109,11 +114,21 @@ def main() -> int:
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    chunks = Parallel(n_jobs=args.n_jobs, verbose=10)(
-        delayed(run_dataset)(name, args.folds, depth, args.time_limit, out, args.memory_gb)
-        for name in datasets
-    )
+    if args.aggregate_only:
+        # A dataset whose GOSDT process died (it can segfault when its search
+        # outgrows the memory cap) has no file. It is reported, not scored.
+        missing = [d for d in datasets if not (out / f"points-{d}.csv").exists()]
+        datasets = [d for d in datasets if d not in missing]
+        (out / "incomplete.txt").write_text("".join(f"{d}\n" for d in missing))
+        print(f"GOSDT did not complete on {len(missing)} dataset(s): {', '.join(missing) or '-'}")
+        chunks = [pd.read_csv(out / f"points-{d}.csv").to_dict("records") for d in datasets]
+    else:
+        chunks = Parallel(n_jobs=args.n_jobs, verbose=10)(
+            delayed(run_dataset)(name, args.folds, depth, args.time_limit, out, args.memory_gb)
+            for name in datasets
+        )
     gosdt = pd.DataFrame([row for chunk in chunks for row in chunk])
+    committed = committed[committed.dataset.isin(datasets)]
 
     gosdt.to_csv(out / "gosdt-points.csv", index=False)
 

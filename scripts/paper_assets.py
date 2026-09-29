@@ -265,6 +265,11 @@ def gosdt_section():
     reference = folds.groupby("dataset").reference_nodes.first()
     means = dataset_means(folds).div(reference, axis=0)
     macro("GosdtFolds", folds.fold.nunique())
+    macro("GosdtDatasets", len(means))
+    incomplete = GOSDT / "incomplete.txt"
+    missing = incomplete.read_text().split() if incomplete.exists() else []
+    macro("GosdtIncomplete", len(missing))
+    macro("GosdtIncompleteNames", ", ".join(m.replace("_", "\\_") for m in missing) or "none")
     wins_cart = int((means[GOSDT_NAME] > means[CART]).sum())
     wins_ga = int((means[GA] > means[GOSDT_NAME]).sum())
     macro("GosdtBeatsCart", wins_cart)

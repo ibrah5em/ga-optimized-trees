@@ -355,8 +355,9 @@ front and the archive is not neutral once dead splits are removed.
 GOSDT~\cite{lin2020} with threshold guessing~\cite{mctavish2022}, swept over ten
 regularisation values at the same depth limit, run on the first \GosdtFolds{} outer folds
 and scored against the same per-dataset reference, has the larger hypervolume than
-CART's path on \GosdtBeatsCart{} of \NDatasets{} datasets; the \GA beats GOSDT on
-\GABeatsGosdt. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
+CART's path on \GosdtBeatsCart{} of the \GosdtDatasets{} datasets it completed; the \GA beats
+GOSDT on \GABeatsGosdt. On \GosdtIncomplete{} datasets (\GosdtIncompleteNames) GOSDT's search
+exhausted an 8\,GB memory cap and the process died, so they are excluded. It took \GosdtSeconds{} s per fold on average; \GosdtTimeouts{} of
 \GosdtFits{} fits hit the 30 s limit and are therefore not certified optimal, and
 \GosdtFailures{} returned no model and were dropped from the path (which can only lower
 GOSDT's hypervolume). This
