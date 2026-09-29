@@ -500,6 +500,24 @@ def figure_k3(table):
     plt.close(fig)
 
 
+def undefined_macros(tex_path: Path) -> list:
+    """Macros used in the paper that look generated but are not defined.
+
+    Anything capitalised and not defined by the paper itself or LaTeX/acmart is
+    assumed to be one of ours; an undefined one means its evidence is missing.
+    """
+    import re
+
+    text = tex_path.read_text()
+    local = set(re.findall(r"\\newcommand\{\\(\w+)\}", text))
+    used = set(re.findall(r"\\([A-Z][A-Za-z]+)", text))
+    known = local | {"GA", "RS", "hv", "Holm"} | set(macros)
+    return sorted(m for m in used - known if m not in LATEX_BUILTINS)
+
+
+LATEX_BUILTINS = frozenset({"Large", "LARGE", "Huge", "Delta", "Gamma", "Sigma", "Omega"})
+
+
 def main() -> int:
     import matplotlib
 
@@ -524,6 +542,9 @@ def main() -> int:
     lines += [f"\\newcommand{{\\{k}}}{{{v}}}" for k, v in sorted(macros.items())]
     (OUT / "numbers.tex").write_text("\n".join(lines) + "\n")
     print(f"{len(macros)} macros -> {OUT / 'numbers.tex'}")
+    undefined = undefined_macros(ROOT / "paper" / "gecco" / "main.tex")
+    if undefined:
+        print(f"  ! main.tex uses {len(undefined)} undefined macro(s): {', '.join(undefined)}")
     for key in ("KoneDiff", "KonePholm", "KoneWins", "KtwoRate", "MedianMaxNodesGA"):
         print(f"  {key} = {macros.get(key)}")
     return 0
