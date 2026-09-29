@@ -159,7 +159,7 @@ says otherwise.
 
 ______________________________________________________________________
 
-## Phase 2 — Make the algorithm competitive (~2–3 weeks)
+## Phase 2 — Make the algorithm competitive — **CLOSED** (2026-09-29)
 
 One branch per item, each with an ablation entry. The ablation table is a paper section.
 
@@ -474,7 +474,7 @@ Rudin 2019, Lage et al.; run a forward-simulation human study (n≈30).
 
 ______________________________________________________________________
 
-## Phase 4 — Positioning (parallel with 1–3)
+## Phase 4 — Positioning — **COMPLETE** (2026-09-29)
 
 Three literatures must be engaged or the paper is desk-rejected as reinvention:
 
@@ -486,6 +486,19 @@ Three literatures must be engaged or the paper is desk-rejected as reinvention:
    *Our angle:* exact methods optimize a fixed sparsity penalty and scale badly; a GA
    gives an anytime, whole-frontier answer with arbitrary non-decomposable objectives.
 1. **Interpretability measurement** — Rudin 2019, Doshi-Velez & Kim 2017.
+
+Done:
+
+- [x] Related-work section in `paper/gecco/main.tex` covering all three, plus evaluation
+  methodology (Demšar, Dietterich, Nadeau–Bengio, TOST, pre-registration). 40 references in
+  `paper/gecco/refs.bib`; every DOI checked against Crossref.
+- [x] **GOSDT run as an exploratory baseline** (`ga_trees.benchmark.gosdt_frontier`,
+  `scripts/gosdt_frontier.py`): regularisation path with threshold-guessed binarisation, on
+  the committed run's first 10 folds, scored against the same per-dataset reference. Added
+  after K2 was known, so it is reported as exploratory and decides nothing.
+- [x] **Depth-capped CART path** (`scripts/cart_depth_matched.py`): the pre-registered
+  CART path is not depth-limited while the GA is. With CART capped at the GA's depth the
+  GA's dominance rate is 40% (vs 45%), so the asymmetry does not explain K2.
 
 ______________________________________________________________________
 
