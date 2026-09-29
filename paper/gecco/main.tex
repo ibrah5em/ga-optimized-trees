@@ -379,12 +379,17 @@ by reading the implementation against the protocol, not prompted by the result, 
 illustrates why a pre-registration must fix the metric's parameters and not only its
 name.
 
-\paragraph{Diagnoses that were wrong.} Midpoint thresholds were adopted to remove a
-handicap we believed was suppressing the \GA. Measured, they raised \emph{random search}'s
-accuracy (+0.012) more than the \GA's ($-$0.003): the \GA could already reach good
-thresholds by mutation over generations, \RS{} could not. Lowering the initial stopping
-probability to grow bigger trees made the \GA lose to \RS: seeded with full-depth trees,
-\RS{} keeps the big accurate ones while the \GA's pruning-heavy mutations shrink them.
+\paragraph{Diagnoses that were wrong.} Two pre-run screening measurements (three datasets,
+three folds each, so directional only) overturned our own explanations. Midpoint
+thresholds were adopted to remove a handicap we believed was suppressing the \GA; they
+raised \emph{random search}'s accuracy by 0.012 and lowered the \GA's by 0.003. The \GA
+could already reach good thresholds by mutation over generations; \RS{} could not.
+Lowering the initial stopping probability to 0 to seed bushier trees made the \GA lose to
+\RS{} ($-$0.018): seeded with full-depth trees, \RS{} keeps the large accurate ones
+(16.7 leaves) while the \GA, whose mutations favour pruning five to one and whose
+single-objective fitness pays for small size, shrinks them back (4.4 leaves). Both
+decisions---keep midpoint thresholds, keep the stopping probability at 0.3---were
+recorded, with the direction they push K1, before the frontier run.
 
 %% ---------------------------------------------------------------------------
 \section{Discussion and Limitations}

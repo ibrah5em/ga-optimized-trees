@@ -25,6 +25,7 @@ stale number.
 
 - Check the current GECCO call for the page limit, template version and anonymity rules.
 - The repository link must be anonymised for review (e.g. anonymous.4open.science).
-- Verify every entry in `refs.bib` against the publisher's record; they were written
-  from memory of the literature, not exported from a database.
+- `refs.bib`: every entry with a DOI was checked against Crossref on 2026-09-29 (title,
+  volume, issue, pages, year). Entries without a DOI (JMLR, PMLR, NeurIPS, MLSys, the
+  Holm and CART classics) were not machine-checked; confirm them before submission.
 - Authors: see the authorship note in `paper/PLAN.md` (Phase 5).
