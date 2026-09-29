@@ -132,10 +132,10 @@ class GOSDTPathFrontier(FrontierMethod):
             )
             try:
                 model.fit(X_bin, y)
-            except RuntimeError:
+            except (RuntimeError, MemoryError):
                 # GOSDT occasionally reports "false convergence, no model was
-                # found" for one penalty. Dropping that point from the path is
-                # the conservative choice: it can only lower GOSDT's hypervolume.
+                # found" for one penalty, or exhausts a memory cap. Dropping that
+                # point is conservative: it can only lower GOSDT's hypervolume.
                 self.n_failures += 1
                 continue
             if model.result_.status == Status.TIMEOUT:
