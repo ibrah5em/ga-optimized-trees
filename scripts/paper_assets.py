@@ -31,6 +31,8 @@ from ga_trees.evaluation.statistics import (  # noqa: E402
 
 EVIDENCE = ROOT / "paper" / "evidence"
 OUT = ROOT / "paper" / "gecco" / "generated"
+#: PNG copies of the figures for the README and the docs site, which can't show PDFs.
+WEB_FIGURES = ROOT / "docs" / "assets" / "figures"
 #: Every paper that reads the generated files, each with its own copy.
 PAPERS = (ROOT / "paper" / "gecco", ROOT / "paper" / "general")
 FRONTIER = EVIDENCE / "frontier-2026-08-07"
@@ -477,6 +479,17 @@ def ablation_table(hv: pd.DataFrame, largest: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _save(fig, stem: str) -> None:
+    """Write *fig* as the paper's PDF and as a PNG for the README and docs.
+
+    The PDF's creation date is dropped so a rebuild from the same evidence is
+    byte-identical and doesn't show up as a spurious change in git.
+    """
+    fig.savefig(OUT / f"{stem}.pdf", metadata={"CreationDate": None})
+    WEB_FIGURES.mkdir(parents=True, exist_ok=True)
+    fig.savefig(WEB_FIGURES / f"{stem}.png", dpi=220, facecolor="white")
+
+
 def _style(ax):
     ax.spines[["top", "right"]].set_visible(False)
     for side in ("left", "bottom"):
@@ -531,7 +544,7 @@ def figure_hv_differences(normalised):
         columnspacing=1.0,
     )
     fig.tight_layout()
-    fig.savefig(OUT / "fig_hv_diff.pdf")
+    _save(fig, "fig_hv_diff")
     plt.close(fig)
 
 
@@ -582,7 +595,7 @@ def figure_frontiers(points, gosdt_points=None, datasets=("breast_w", "vehicle")
         handletextpad=0.3,
     )
     fig.tight_layout(rect=(0, 0.17, 1, 1))
-    fig.savefig(OUT / "fig_frontiers.pdf")
+    _save(fig, "fig_frontiers")
     plt.close(fig)
 
 
@@ -619,7 +632,7 @@ def figure_k3(table):
         columnspacing=1.0,
     )
     fig.tight_layout()
-    fig.savefig(OUT / "fig_k3.pdf")
+    _save(fig, "fig_k3")
     plt.close(fig)
 
 
