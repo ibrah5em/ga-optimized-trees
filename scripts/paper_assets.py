@@ -2,7 +2,8 @@
 """Every number, table and figure in ``paper/gecco`` — computed, never typed.
 
 Reads only committed evidence under ``paper/evidence/`` and writes
-``paper/gecco/generated/``. The paper ``\\input``s the generated files, so a
+``paper/gecco/generated/`` and copies it to ``paper/general/generated/``, so each
+paper directory builds on its own. The papers ``\\input`` the generated files, so a
 number in the PDF can always be traced to a CSV and to this script. An evidence
 set that does not exist yet is skipped and its macros are left undefined, which
 makes LaTeX fail loudly instead of printing a stale value.
@@ -30,6 +31,8 @@ from ga_trees.evaluation.statistics import (  # noqa: E402
 
 EVIDENCE = ROOT / "paper" / "evidence"
 OUT = ROOT / "paper" / "gecco" / "generated"
+#: Every paper that reads the generated files, each with its own copy.
+PAPERS = (ROOT / "paper" / "gecco", ROOT / "paper" / "general")
 FRONTIER = EVIDENCE / "frontier-2026-08-07"
 REPAIR = EVIDENCE / "frontier-repair-2026-09-29"
 GOSDT = EVIDENCE / "gosdt-2026-09-29"
@@ -246,7 +249,7 @@ def diagnostic_section():
     macro("DiagArmMaxHigh", f"{arms.max().max():.0f}")
     macro("DiagCartMaxLow", f"{largest[CART].min():.0f}")
     macro("DiagCartMaxHigh", f"{largest[CART].max():.0f}")
-    return hv
+    return hv, largest
 
 
 def violations_section():
@@ -379,6 +382,94 @@ def k3_section():
         macro(f"Path{key}", f"{values.mean_path_length:.2f}")
         macro(f"Features{key}", f"{values.features_used:.1f}")
     return table
+
+
+# ---------------------------------------------------------------------------
+# Extra tables for the long-form paper (paper/general)
+# ---------------------------------------------------------------------------
+
+
+CHECK = "\\checkmark"
+
+
+def _name(dataset: str) -> str:
+    return dataset.replace("_", "\\_")
+
+
+def _signed(value: float, digits: int = 3) -> str:
+    return f"{value:+.{digits}f}".replace("-", "$-$").replace("+", "$+$")
+
+
+def k3_table(table: pd.DataFrame) -> None:
+    """Per-dataset K3 results, sorted by the GA − CART difference."""
+    folds = pd.read_csv(sorted(K3.glob("folds*.csv"))[0])
+    accuracy = dataset_means(folds, "test_accuracy")
+    lines = [
+        "\\begin{tabular}{lrrrrrrc}",
+        "\\toprule",
+        "Dataset & GA & CART & $\\Delta$ & \\multicolumn{2}{c}{90\\% CI} & "
+        "Leaves GA/CART & Loss $>$2 pts \\\\",
+        "\\midrule",
+    ]
+    for dataset, row in table.sort_values("diff").iterrows():
+        mark = CHECK if row["diff"] < -0.02 else ""
+        lines.append(
+            f"{_name(dataset)} & {accuracy.loc[dataset, 'GA-Optimized']:.3f} & "
+            f"{accuracy.loc[dataset, 'CART (pruned)']:.3f} & {_signed(row['diff'])} & "
+            f"{_signed(row['low'])} & {_signed(row['high'])} & "
+            f"{row['ga_leaves']:.1f} / {row['cart_leaves']:.1f} & "
+            f"{mark} \\\\"
+        )
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    (OUT / "tab_k3.tex").write_text("\n".join(lines) + "\n")
+
+
+def datasets_table() -> None:
+    """The pre-registered dataset list, parsed from paper/DATASETS.md."""
+    rows = []
+    for line in (ROOT / "paper" / "DATASETS.md").read_text().splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 7 and cells[1].isdigit():
+            rows.append(cells)
+    lines = [
+        "\\begin{tabular}{lrrrrr}",
+        "\\toprule",
+        "Dataset & OpenML ID & $n$ & $p$ & Classes & Smallest class \\\\",
+        "\\midrule",
+    ]
+    for loader, openml_id, _, n, p, classes, smallest in rows:
+        lines.append(
+            f"{_name(loader.strip('`'))} & {openml_id} & {n} & {p} & {classes} & {smallest} \\\\"
+        )
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    macro("NDatasetsListed", len(rows))
+    (OUT / "tab_datasets.tex").write_text("\n".join(lines) + "\n")
+
+
+def ablation_table(hv: pd.DataFrame, largest: pd.DataFrame) -> None:
+    """Normalised hypervolume and largest delivered tree per diagnostic arm."""
+    arms = [
+        ("GA [base]", "GA (control)"),
+        ("GA [resubstitution]", "No validation split"),
+        ("GA [grow-bias]", "No small-tree bias"),
+        ("GA [2x-budget]", "$2\\times$ budget"),
+        (RS, "Random search"),
+        (CART, "CART ccp path"),
+    ]
+    datasets = list(hv.index)
+    header = " & ".join(f"\\multicolumn{{2}}{{c}}{{{_name(d)}}}" for d in datasets)
+    lines = [
+        "\\begin{tabular}{l" + "rr" * len(datasets) + "}",
+        "\\toprule",
+        f"Arm & {header} \\\\",
+        " & " + " & ".join("HV & Max" for _ in datasets) + " \\\\",
+        "\\midrule",
+    ]
+    for key, label in arms:
+        cells = [f"{hv.loc[d, key]:.3f} & {largest.loc[d, key]:.0f}" for d in datasets]
+        lines.append(f"{label} & " + " & ".join(cells) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    (OUT / "tab_ablation.tex").write_text("\n".join(lines) + "\n")
 
 
 # ---------------------------------------------------------------------------
@@ -561,7 +652,10 @@ def main() -> int:
     repair_section(means)
     violations_section()
     cart_capped_section()
-    diagnostic_section()
+    diagnostic = diagnostic_section()
+    if diagnostic is not None:
+        ablation_table(*diagnostic)
+    datasets_table()
     gosdt = gosdt_section()
     frontier_table(normalised, largest, extra=None if gosdt is None else gosdt[0])
     figure_hv_differences(normalised)
@@ -569,14 +663,24 @@ def main() -> int:
     table = k3_section()
     if table is not None:
         figure_k3(table)
+        k3_table(table)
 
     lines = ["% Generated by scripts/paper_assets.py — do not edit."]
     lines += [f"\\newcommand{{\\{k}}}{{{v}}}" for k, v in sorted(macros.items())]
     (OUT / "numbers.tex").write_text("\n".join(lines) + "\n")
     print(f"{len(macros)} macros -> {OUT / 'numbers.tex'}")
-    undefined = undefined_macros(ROOT / "paper" / "gecco" / "main.tex")
-    if undefined:
-        print(f"  ! main.tex uses {len(undefined)} undefined macro(s): {', '.join(undefined)}")
+    import shutil
+
+    for paper in PAPERS:
+        target = paper / "generated"
+        if target != OUT:
+            target.mkdir(parents=True, exist_ok=True)
+            for item in OUT.iterdir():
+                shutil.copy2(item, target / item.name)
+        tex = paper / "main.tex"
+        undefined = undefined_macros(tex) if tex.exists() else []
+        if undefined:
+            print(f"  ! {tex.relative_to(ROOT)} uses undefined macro(s): {', '.join(undefined)}")
     for key in ("KoneDiff", "KonePholm", "KoneWins", "KtwoRate", "MedianMaxNodesGA"):
         print(f"  {key} = {macros.get(key)}")
     return 0
