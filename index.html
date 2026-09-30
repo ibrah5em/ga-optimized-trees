@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2495,84 +2495,95 @@
 <div class="hero-banner">
 <h1 id="ga-optimized-decision-trees_1">🌳 GA-Optimized Decision Trees<a class="headerlink" href="#ga-optimized-decision-trees_1" title="Permanent link">&para;</a></h1>
 <p><strong>Evolving decision trees that balance accuracy and interpretability using multi-objective genetic algorithms.</strong></p>
-<p>Achieve <strong>46–82% smaller trees</strong> with statistically equivalent accuracy — validated with 20-fold cross-validation (p &gt; 0.05 on all benchmarks).</p>
+<p>Search the accuracy–complexity spectrum directly and choose the operating point, instead of accepting whatever a greedy split rule produces.</p>
 </div>
 <div class="stats-row">
 <div class="stat-card">
-<div class="stat-num">82%</div>
-<div class="stat-desc">Max size reduction</div>
+<div class="stat-num">NSGA‑II</div>
+<div class="stat-desc">Multi-objective search</div>
 </div>
 <div class="stat-card">
-<div class="stat-num">p &gt; 0.05</div>
-<div class="stat-desc">Accuracy parity</div>
+<div class="stat-num">4</div>
+<div class="stat-desc">Mutation operators</div>
 </div>
 <div class="stat-card">
-<div class="stat-num">3</div>
-<div class="stat-desc">Benchmark datasets</div>
+<div class="stat-num">25+</div>
+<div class="stat-desc">Loadable datasets</div>
 </div>
 <div class="stat-card">
-<div class="stat-num">20‑CV</div>
-<div class="stat-desc">Fold validation</div>
+<div class="stat-num">3.8–3.12</div>
+<div class="stat-desc">Python support</div>
 </div>
 </div>
+<blockquote>
+<p><strong>Where this stands.</strong> The pre-registered benchmark on 20 OpenML-CC18 datasets is done.
+Evolution beats random search over the same tree space at a matched budget, but it does
+<strong>not</strong> beat CART's cost-complexity pruning path, and a tuned GA tree is <strong>not</strong> as
+accurate as tuned CART. Earlier "46–82% smaller trees at equivalent accuracy" claims on
+this site were withdrawn. See <a href="research/results/">Results</a>.</p>
+</blockquote>
 <hr />
 <h2 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Install</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>```bash
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git clone https://github.com/ibrah5em/ga-optimized-trees.git
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>cd ga-optimized-trees
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>python -m venv venv &amp;&amp; source venv/bin/activate
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip install -e .          # core only
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>pip install -e .[all]     # all features
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>```
+<p>Install:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ibrah5em/ga-optimized-trees.git
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>ga-optimized-trees
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w">          </span><span class="c1"># core only</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span><span class="w">     </span><span class="c1"># all optional features</span>
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Train a tree</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>```bash
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python scripts/train.py --config configs/paper.yaml --dataset iris
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>```
+<p>Train a tree from a config:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>scripts/train.py<span class="w"> </span>--config<span class="w"> </span>configs/paper.yaml<span class="w"> </span>--dataset<span class="w"> </span>iris
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Python API</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>```python
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>from ga_trees import GAEngine, GAConfig, TreeInitializer, FitnessCalculator, Mutation
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>from ga_trees.data import DatasetLoader
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>from ga_trees.fitness import TreePredictor
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>import numpy as np
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>data = DatasetLoader().load_dataset(&quot;iris&quot;, test_size=0.2)
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>X_train, y_train = data[&quot;X_train&quot;], data[&quot;y_train&quot;]
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>config   = GAConfig(population_size=80, n_generations=40)
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>init     = TreeInitializer(X_train.shape[1], len(np.unique(y_train)), max_depth=6)
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>fitness  = FitnessCalculator(accuracy_weight=0.68, interpretability_weight=0.32)
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>mutation = Mutation(X_train.shape[1], {i: (X_train[:,i].min(), X_train[:,i].max())
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>                                        for i in range(X_train.shape[1])})
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>engine = GAEngine(config, init, fitness.calculate_fitness, mutation)
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>best   = engine.evolve(X_train, y_train, verbose=True)
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>print(f&quot;Tree: {best.get_num_nodes()} nodes, depth {best.get_depth()}&quot;)
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>```
+<p>Or from Python:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ga_trees</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitnessCalculator</span><span class="p">,</span> <span class="n">GAConfig</span><span class="p">,</span> <span class="n">GAEngine</span><span class="p">,</span> <span class="n">Mutation</span><span class="p">,</span> <span class="n">TreeInitializer</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ga_trees.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatasetLoader</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ga_trees.fitness</span><span class="w"> </span><span class="kn">import</span> <span class="n">TreePredictor</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">data</span> <span class="o">=</span> <span class="n">DatasetLoader</span><span class="p">()</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">"breast_cancer"</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"X_train"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"y_train"</span><span class="p">]</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Hold a slice of the training data out of the search. Without it the GA fits</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># and scores leaves on the same rows and rewards whichever tree overfits most.</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">X_fit</span><span class="p">,</span> <span class="n">X_val</span><span class="p">,</span> <span class="n">y_fit</span><span class="p">,</span> <span class="n">y_val</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">stratify</span><span class="o">=</span><span class="n">y_train</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">n_features</span> <span class="o">=</span> <span class="n">X_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">initializer</span> <span class="o">=</span> <span class="n">TreeInitializer</span><span class="p">(</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>    <span class="n">n_features</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">min_samples_split</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_samples_leaf</span><span class="o">=</span><span class="mi">5</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="p">)</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">mutation</span> <span class="o">=</span> <span class="n">Mutation</span><span class="p">(</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>    <span class="n">n_features</span><span class="p">,</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>    <span class="n">feature_ranges</span><span class="o">=</span><span class="p">{</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>        <span class="n">i</span><span class="p">:</span> <span class="p">(</span><span class="n">X_fit</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">X_fit</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>    <span class="p">},</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>    <span class="n">X</span><span class="o">=</span><span class="n">X_fit</span><span class="p">,</span>  <span class="c1"># lets mutation pick thresholds from values that actually reach the node</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>    <span class="n">min_samples_leaf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="p">)</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="n">fitness</span> <span class="o">=</span> <span class="n">FitnessCalculator</span><span class="p">(</span><span class="n">accuracy_weight</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">interpretability_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">GAEngine</span><span class="p">(</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>    <span class="n">GAConfig</span><span class="p">(</span><span class="n">population_size</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">n_generations</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">),</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>    <span class="n">initializer</span><span class="p">,</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>    <span class="n">fitness</span><span class="o">.</span><span class="n">calculate_fitness</span><span class="p">,</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>    <span class="n">mutation</span><span class="p">,</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="p">)</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="n">best</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">evolve</span><span class="p">(</span><span class="n">X_fit</span><span class="p">,</span> <span class="n">y_fit</span><span class="p">,</span> <span class="n">X_val</span><span class="o">=</span><span class="n">X_val</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="n">y_val</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="c1"># Structure was chosen on the validation split; refit the leaves on all training rows.</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="n">predictor</span> <span class="o">=</span> <span class="n">TreePredictor</span><span class="p">()</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="n">predictor</span><span class="o">.</span><span class="n">fit_leaf_predictions</span><span class="p">(</span><span class="n">best</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="n">accuracy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">best</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">"X_test"</span><span class="p">])</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="s2">"y_test"</span><span class="p">])</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="nb">print</span><span class="p">(</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">best</span><span class="o">.</span><span class="n">get_num_nodes</span><span class="p">()</span><span class="si">}</span><span class="s2"> nodes, depth </span><span class="si">{</span><span class="n">best</span><span class="o">.</span><span class="n">get_depth</span><span class="p">()</span><span class="si">}</span><span class="s2">, test accuracy </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="p">)</span>
 </span></code></pre></div>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Run benchmarks</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block"></div>
-</div>
-</div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>```bash
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python scripts/experiment.py --config configs/paper.yaml
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>```
-</span></code></pre></div>
+<p>The pre-registered benchmark itself is <code>scripts/frontier_benchmark.py</code> (frontiers, K1/K2)
+and <code>scripts/benchmark.py</code> (single tuned tree, K3); <code>paper/evidence/</code> has the configs and
+commands for every committed run.</p>
 <hr />
 <h2 id="documentation">📚 Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <div class="card-grid">
@@ -2638,82 +2649,66 @@
 <table>
 <thead>
 <tr>
-<th>Dataset</th>
-<th>GA Accuracy</th>
-<th>CART Accuracy</th>
-<th>GA Nodes</th>
-<th>CART Nodes</th>
-<th>Size Reduction</th>
+<th>Question</th>
+<th>Answer</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Iris</strong></td>
-<td>94.55 ± 8.07%</td>
-<td>92.41 ± 10.43%</td>
-<td>7.4</td>
-<td>16.4</td>
-<td><strong>55%</strong></td>
+<td>Does evolution beat random search over the same tree space?</td>
+<td><strong>Yes</strong> — hypervolume +0.66, Holm p = 0.032, 15/20 datasets</td>
 </tr>
 <tr>
-<td><strong>Wine</strong></td>
-<td>88.19 ± 10.39%</td>
-<td>87.22 ± 10.70%</td>
-<td>10.7</td>
-<td>20.7</td>
-<td><strong>48%</strong></td>
+<td>Does the GA's frontier beat CART's pruning path?</td>
+<td><strong>No</strong> — larger hypervolume on 9/20 datasets (45%)</td>
 </tr>
 <tr>
-<td><strong>Breast Cancer</strong></td>
-<td>91.05 ± 5.60%</td>
-<td>91.57 ± 3.92%</td>
-<td>6.5</td>
-<td>35.5</td>
-<td><strong>82%</strong></td>
+<td>Is a tuned GA tree as accurate as tuned CART (±2 points)?</td>
+<td><strong>No</strong> — mean −3.9 points; loses &gt; 2 points on 8/20 datasets</td>
+</tr>
+<tr>
+<td>Are the GA's trees smaller?</td>
+<td>Yes — 6.3 leaves vs 18.4, at the accuracy cost above</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>All p-values &gt; 0.05 — accuracy difference is not statistically significant.</p>
-</blockquote>
+<p>Details, per-dataset numbers and the ablations are on the <a href="research/results/">Results</a>
+page and in <code>paper/STATUS.md</code>.</p>
 <hr />
-<h2 id="how-it-compares">🆚 How It Compares<a class="headerlink" href="#how-it-compares" title="Permanent link">&para;</a></h2>
+<h2 id="when-to-use-it">🆚 When to use it<a class="headerlink" href="#when-to-use-it" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Aspect</th>
 <th>CART</th>
-<th>Random Forest</th>
-<th><strong>GA-Optimized</strong></th>
+<th>GA-Optimized</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Optimization</td>
-<td>Greedy (local)</td>
-<td>Ensemble</td>
-<td><strong>Global (evolutionary)</strong></td>
+<td>Search</td>
+<td>Greedy, top-down</td>
+<td>Evolutionary, over whole trees</td>
 </tr>
 <tr>
-<td>Objectives</td>
-<td>Accuracy only</td>
-<td>Accuracy only</td>
-<td><strong>Multi-objective</strong></td>
+<td>Objective</td>
+<td>Impurity, then pruning</td>
+<td>Any function of the tree — size, features used, custom metrics</td>
 </tr>
 <tr>
-<td>Interpretability</td>
-<td>No control</td>
-<td>Black box</td>
-<td><strong>Explicit control ✓</strong></td>
+<td>Speed</td>
+<td>Milliseconds</td>
+<td>Seconds to minutes</td>
 </tr>
 <tr>
-<td>Tree size</td>
-<td>Often large</td>
-<td>N/A</td>
-<td><strong>Controllable ✓</strong></td>
+<td>Accuracy</td>
+<td>Better on our benchmark</td>
+<td>Behind CART where accuracy keeps rising with tree size</td>
 </tr>
 </tbody>
 </table>
+<p>Use CART when you want the most accurate small tree for plain accuracy. The GA is worth
+it when the objective is something a greedy split rule can't optimise directly.</p>
 <hr />
 <h2 id="links">🔗 Links<a class="headerlink" href="#links" title="Permanent link">&para;</a></h2>
 <p><span class="badge badge-slate">v1.0.0</span>
@@ -2823,7 +2818,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.highlight", "search.share", "search.suggest", "content.code.copy", "content.code.annotate", "content.tabs.link", "toc.follow", "header.autohide"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

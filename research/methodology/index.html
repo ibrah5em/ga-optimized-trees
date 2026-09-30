@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2022,15 +2022,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#experimental-design" class="md-nav__link">
+  <a href="#current-protocol-and-its-defects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Experimental Design
+        Current protocol, and its defects
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Experimental Design">
+    <nav class="md-nav" aria-label="Current protocol, and its defects">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2079,6 +2079,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replacement-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replacement protocol
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2575,15 +2586,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#experimental-design" class="md-nav__link">
+  <a href="#current-protocol-and-its-defects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Experimental Design
+        Current protocol, and its defects
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Experimental Design">
+    <nav class="md-nav" aria-label="Current protocol, and its defects">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2632,6 +2643,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replacement-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replacement protocol
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2704,21 +2726,38 @@
 
 
 <h1 id="research-methodology">Research Methodology<a class="headerlink" href="#research-methodology" title="Permanent link">&para;</a></h1>
-<h2 id="experimental-design">Experimental Design<a class="headerlink" href="#experimental-design" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>This is not the paper's protocol.</strong> It describes <code>scripts/experiment.py</code>, the original
+quick-comparison script, annotated with what is wrong with it as a basis for claims. The
+pre-registered benchmark uses nested CV on 20 CC-18 datasets instead: see
+<a href="../benchmarks/">Benchmarks</a> for the protocol and <a href="../results/">Results</a> for what it found.</p>
+</blockquote>
+<h2 id="current-protocol-and-its-defects">Current protocol, and its defects<a class="headerlink" href="#current-protocol-and-its-defects" title="Permanent link">&para;</a></h2>
 <h3 id="datasets">Datasets<a class="headerlink" href="#datasets" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Iris</strong>: 150 samples, 4 features, 3 classes (simple)</li>
-<li><strong>Wine</strong>: 178 samples, 13 features, 3 classes (medium)</li>
-<li><strong>Breast Cancer</strong>: 569 samples, 30 features, 2 classes (complex)</li>
+<li><strong>Iris</strong>: 150 samples, 4 features, 3 classes</li>
+<li><strong>Wine</strong>: 178 samples, 13 features, 3 classes</li>
+<li><strong>Breast Cancer</strong>: 569 samples, 30 features, 2 classes</li>
 </ul>
+<p>All three are saturated — accuracy differences between reasonable methods sit inside fold
+noise, so the suite cannot separate methods. The replacement suite is roughly 20 datasets
+from OpenML CC-18, frozen before any run.</p>
 <h3 id="cross-validation">Cross-Validation<a class="headerlink" href="#cross-validation" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>20-fold stratified CV</strong> for statistical rigor</li>
-<li>Same folds for GA and baselines (paired testing)</li>
-<li>Random seed: 42 (reproducibility)</li>
+<li><strong>20-fold stratified CV</strong>, same folds for the GA and the baselines</li>
 </ul>
+<p>The shared folds are real, and paired comparison across them is the right intent. The
+remaining problem is that there is no inner loop, so nothing is tuned and model selection
+happens on the same folds used for reporting.</p>
+<p><strong>Seeding was fixed on 2026-08-06.</strong> Until then <code>scripts/experiment.py</code> built <code>GAConfig</code>
+without <code>random_state</code>, so seed 42 reached only the CV splitter and no GA run was
+reproducible. Each fold now gets a distinct seed derived deterministically from
+<code>(base_seed, dataset, method, fold)</code> via <code>ga_trees.reproducibility.derive_fold_seed</code>, and the
+seeds actually used are written to <code>results/seeds-{config}-{date}.json</code> beside every run.
+Per-fold derivation matters because <code>GAEngine.evolve</code> seeds <code>random</code> and <code>numpy.random</code>
+globally — one seed shared across folds would make every fold repeat the same search.</p>
 <h3 id="hyperparameters">Hyperparameters<a class="headerlink" href="#hyperparameters" title="Permanent link">&para;</a></h3>
-<p><strong>GA (configs/paper.yaml)</strong>:</p>
+<p><strong>GA (<code>configs/paper.yaml</code>)</strong>:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">population_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">n_generations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">40</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">crossover_prob</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.72</span>
@@ -2727,15 +2766,77 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">interpretability_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.32</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">max_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
 </span></code></pre></div>
+<p>Nothing here is tuned; the values were fixed by hand.</p>
+<p><code>classification_metric</code> was read from the config and silently discarded until 2026-08-06; it
+now reaches <code>FitnessCalculator</code>, and an unrecognised value raises instead of falling back to
+accuracy. <code>early_stopping_rounds</code> is honoured when present and disabled when absent.</p>
+<p>Still outstanding: the tree constraints (<code>min_samples_split</code>, <code>min_samples_leaf</code>) are enforced
+only at initialization. Neither crossover nor <code>expand_leaf</code> re-checks them against data, so
+evolved trees can violate the constraints the config advertises.</p>
+<p>Fitness is <strong>resubstitution accuracy</strong>. Leaf predictions are fit on <code>X</code> and then scored on
+the same <code>X</code>, and the champion is selected on training fit. A validation split is supported
+by <code>FitnessCalculator</code> but never supplied.</p>
 <p><strong>CART Baseline</strong>:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">max_depth</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 </span></code></pre></div>
+<p>Untuned, with no <code>ccp_alpha</code> and no <code>min_samples_*</code> matched to the GA's constraints. This is
+the central flaw in the size comparison: it is effectively an unpruned baseline, so any tree
+penalised for node count looks small next to it.</p>
 <h3 id="statistical-tests">Statistical Tests<a class="headerlink" href="#statistical-tests" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Paired t-test</strong>: Compare GA vs CART on same folds</li>
-<li><strong>Cohen's d</strong>: Measure effect size</li>
-<li><strong>Significance level</strong>: α = 0.05</li>
+<li><strong>Paired t-test</strong> across folds, <strong>Cohen's d</strong>, α = 0.05</li>
 </ul>
+<p>The t-test across cross-validation folds is invalid — folds share training data and are not
+independent (Dietterich 1998). Standard deviations use <code>np.std</code> at default <code>ddof=0</code>. And a
+non-significant result was reported as equivalence, which does not follow.</p>
+<h2 id="replacement-protocol">Replacement protocol<a class="headerlink" href="#replacement-protocol" title="Permanent link">&para;</a></h2>
+<p>Specified in <code>paper/PLAN.md</code>, pre-registered in <code>paper/PREREGISTRATION.md</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outer evaluation</td>
+<td>10-fold stratified CV × 3 repeats</td>
+</tr>
+<tr>
+<td>Inner tuning</td>
+<td>5-fold CV, applied identically to every method</td>
+</tr>
+<tr>
+<td>Baselines</td>
+<td>inner-CV-tuned CART, unconstrained CART, budget-matched random search, RF, XGBoost</td>
+</tr>
+<tr>
+<td>Fitness</td>
+<td>fit leaves on a GA-train split, score on a held-out GA-validation split</td>
+</tr>
+<tr>
+<td>Across-dataset</td>
+<td>Wilcoxon signed-rank; Friedman + Nemenyi with critical-difference diagrams</td>
+</tr>
+<tr>
+<td>Equivalence</td>
+<td>TOST against a pre-registered 2% absolute-accuracy margin</td>
+</tr>
+<tr>
+<td>Multiplicity</td>
+<td>Holm correction across datasets, α = 0.05</td>
+</tr>
+<tr>
+<td>Complexity axis</td>
+<td>node count</td>
+</tr>
+<tr>
+<td>Seeding</td>
+<td><code>random_state</code> into <code>GAConfig</code>, deterministic per-fold seeds, <code>seeds.json</code></td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -2851,7 +2952,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.highlight", "search.share", "search.suggest", "content.code.copy", "content.code.annotate", "content.tabs.link", "toc.follow", "header.autohide"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

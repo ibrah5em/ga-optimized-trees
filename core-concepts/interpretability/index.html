@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -78,6 +78,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#interpretability-what-is-measured-and-what-is-only-searched-for" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -919,6 +924,26 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interpretability
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -936,6 +961,58 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reported-measures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reported measures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-composite-score-is-a-search-heuristic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The composite score is a search heuristic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-consequence-worth-knowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A consequence worth knowing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -2460,6 +2537,49 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reported-measures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reported measures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-composite-score-is-a-search-heuristic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The composite score is a search heuristic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-consequence-worth-knowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A consequence worth knowing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -2527,9 +2647,92 @@
   
 
 
-  <h1>Interpretability</h1>
-
-
+<h1 id="interpretability-what-is-measured-and-what-is-only-searched-for">Interpretability: what is measured, and what is only searched for<a class="headerlink" href="#interpretability-what-is-measured-and-what-is-only-searched-for" title="Permanent link">&para;</a></h1>
+<p>This page states the project's position after Phase 3 of <code>paper/PLAN.md</code>. It is binding for
+anything written about results: see kill criterion <strong>K4</strong> in <code>paper/PREREGISTRATION.md</code>.</p>
+<h2 id="reported-measures">Reported measures<a class="headerlink" href="#reported-measures" title="Permanent link">&para;</a></h2>
+<p>Interpretability is reported with established structural proxies only
+[Freitas 2014; Piltaver et al. 2016]:</p>
+<table>
+<thead>
+<tr>
+<th>Measure</th>
+<th>Definition</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Node count</strong></td>
+<td>Internal nodes + leaves</td>
+<td><code>ga_tree_complexity</code>, <code>tree_.node_count</code> (CART)</td>
+</tr>
+<tr>
+<td><strong>Leaf count</strong></td>
+<td>Number of rules the tree encodes</td>
+<td>same</td>
+</tr>
+<tr>
+<td><strong>Mean decision-path length</strong></td>
+<td>Depth of the leaf each sample lands in, averaged over the samples</td>
+<td>same — weighted by the data, not by leaf count</td>
+</tr>
+<tr>
+<td><strong>Distinct features used</strong></td>
+<td>Features that appear in at least one split</td>
+<td>same</td>
+</tr>
+</tbody>
+</table>
+<p>These are properties of the tree that anyone can recompute. None of them is claimed to <em>be</em>
+interpretability; they are the size- and length-based proxies that the comprehensibility
+literature most often uses, and every one is reported for every method, including CART.</p>
+<p>The frontier benchmark uses <strong>node count</strong> as its complexity axis, as pre-registered.</p>
+<h2 id="the-composite-score-is-a-search-heuristic">The composite score is a search heuristic<a class="headerlink" href="#the-composite-score-is-a-search-heuristic" title="Permanent link">&para;</a></h2>
+<p><code>FitnessCalculator</code> combines four terms into one "interpretability" number used by the
+weighted-sum fitness:</p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>What it computes</th>
+<th>Why it is not an outcome measure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>node_complexity</code></td>
+<td>Decreasing function of node count</td>
+<td>Redundant with node count, which is reported directly</td>
+</tr>
+<tr>
+<td><code>feature_coherence</code></td>
+<td><code>1 − n_used / n_total</code></td>
+<td>Scales with dataset dimensionality: a 30-feature dataset gets a high score for free</td>
+</tr>
+<tr>
+<td><code>tree_balance</code></td>
+<td>Balance of left/right subtree depths</td>
+<td>No evidence that balance helps a human read a tree</td>
+</tr>
+<tr>
+<td><code>semantic_coherence</code></td>
+<td>Standard deviation of the depths at which features appear</td>
+<td>Invented for this project; no grounding in the literature and no human study</td>
+</tr>
+</tbody>
+</table>
+<p>The composite steers the single-objective search toward small trees, and in that role it
+works. It has <strong>no claimed validity as a measure of human interpretability</strong>, and it appears
+in no reported result. Validating any of these terms would need a forward-simulation user
+study [Doshi-Velez &amp; Kim 2017; Lipton 2018], listed in <code>paper/PLAN.md</code> as a follow-up.</p>
+<h2 id="a-consequence-worth-knowing">A consequence worth knowing<a class="headerlink" href="#a-consequence-worth-knowing" title="Permanent link">&para;</a></h2>
+<p>The weighting in the composite is the dominant factor in how big a single-objective GA tree
+ends up. At <code>configs/paper.yaml</code>'s weights a tree must gain about 8 accuracy points to justify
+growing from a stump to the size of a tuned CART tree (22.6 points at <code>configs/fast.yaml</code>).
+So a single GA tree and a single CART tree compared on accuracy alone are usually two points
+at opposite ends of the size axis. Compare frontiers, or check the leaf column, before reading
+an accuracy gap.</p>
 
 
 
@@ -2645,7 +2848,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.highlight", "search.share", "search.suggest", "content.code.copy", "content.code.annotate", "content.tabs.link", "toc.follow", "header.autohide"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

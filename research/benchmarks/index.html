@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2078,10 +2078,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
+  <a href="#why-the-table-was-withdrawn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary
+        Why the table was withdrawn
       
     </span>
   </a>
@@ -2089,10 +2089,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-findings" class="md-nav__link">
+  <a href="#what-replaced-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Findings
+        What replaced it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting
       
     </span>
   </a>
@@ -2536,10 +2547,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
+  <a href="#why-the-table-was-withdrawn" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary
+        Why the table was withdrawn
       
     </span>
   </a>
@@ -2547,10 +2558,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-findings" class="md-nav__link">
+  <a href="#what-replaced-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Findings
+        What replaced it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting
       
     </span>
   </a>
@@ -2626,57 +2648,46 @@
 
 
 <h1 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h1>
-<p>Complete benchmark results across datasets.</p>
-<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Dataset</th>
-<th>GA Acc</th>
-<th>CART Acc</th>
-<th>p-value</th>
-<th>GA Nodes</th>
-<th>CART Nodes</th>
-<th>Reduction</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Iris</td>
-<td>94.55%</td>
-<td>92.41%</td>
-<td>0.186</td>
-<td>7.4</td>
-<td>16.4</td>
-<td>55%</td>
-</tr>
-<tr>
-<td>Wine</td>
-<td>88.19%</td>
-<td>87.22%</td>
-<td>0.683</td>
-<td>10.7</td>
-<td>20.7</td>
-<td>48%</td>
-</tr>
-<tr>
-<td>Breast Cancer</td>
-<td>91.05%</td>
-<td>91.57%</td>
-<td>0.640</td>
-<td>6.5</td>
-<td>35.5</td>
-<td>82%</td>
-</tr>
-</tbody>
-</table>
-<p>All results use <strong>20-fold cross-validation</strong> with <code>configs/paper.yaml</code>.</p>
-<h2 id="key-findings">Key Findings<a class="headerlink" href="#key-findings" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Statistical Equivalence</strong>: All p-values &gt; 0.05</li>
-<li><strong>Size Reduction</strong>: 46-82% smaller trees than CART</li>
-<li><strong>Interpretability</strong>: Explicit control via fitness weights</li>
-</ol>
+<p>This page used to publish a summary table across iris, wine and breast cancer. Those
+numbers are withdrawn; the reasons are below. The replacement benchmark has run, and its
+results are on the <a href="../results/">Results</a> page.</p>
+<h2 id="why-the-table-was-withdrawn">Why the table was withdrawn<a class="headerlink" href="#why-the-table-was-withdrawn" title="Permanent link">&para;</a></h2>
+<p><strong>The size reduction was measured against the wrong baseline.</strong> CART ran as
+<code>DecisionTreeClassifier(max_depth=6, random_state=42)</code> — untuned, with no <code>ccp_alpha</code> and no
+<code>min_samples_*</code> matching the GA's tree constraints. Comparing an evolved tree penalised for
+node count against an unpruned greedy tree measures the absence of pruning, not the value of
+evolutionary search. The fair comparison against cost-complexity-pruned CART was never run.</p>
+<p><strong>"Statistical equivalence" did not follow from the p-values.</strong> Failure to reject a null
+hypothesis is not evidence for it. Establishing equivalence requires an equivalence test
+against a pre-specified margin — TOST, or a Bayesian test with a region of practical
+equivalence — and none was run. Separately, the paired t-test was computed across
+cross-validation folds, which share training data and are therefore not independent
+(Dietterich 1998), so the p-values were not valid to begin with.</p>
+<p><strong>The headline figures were not reproducible.</strong> The 46–82% range came from
+<code>results/tables/paper-results.csv</code>, produced by code that never landed on <code>main</code>. No commit
+in this repository regenerates it.</p>
+<p><strong>The newest run points the other way.</strong> On the most recent 8-dataset run the GA loses to
+depth-matched CART on 7 of 8 datasets, with two of those losses significant after Bonferroni
+correction (<code>digits</code> p_adj = 0.0153, d = −1.03; <code>banknote</code> p_adj = 0.00078, d = −1.32).</p>
+<h2 id="what-replaced-it">What replaced it<a class="headerlink" href="#what-replaced-it" title="Permanent link">&para;</a></h2>
+<p>The protocol in <code>paper/PLAN.md</code>, run in August–September 2026:</p>
+<ul>
+<li>Outer 10-fold stratified cross-validation (× 3 repeats for the frontier run); inner 5-fold
+  for all hyperparameter selection, applied the same way to every method</li>
+<li>Baselines: CART's full cost-complexity pruning path, tuned CART, and random search over
+  the same tree space at an exactly matched evaluation budget</li>
+<li>20 datasets from OpenML-CC18, listed in <code>paper/DATASETS.md</code></li>
+<li>Holm-corrected Wilcoxon signed-rank tests across datasets for K1; TOST against a 2-point
+  accuracy margin for K3</li>
+<li>Seeded end to end, with every run committed alongside its config, seeds and command in
+  <code>paper/evidence/</code></li>
+</ul>
+<p>Hypotheses, thresholds and kill criteria were fixed in advance in
+<code>paper/PREREGISTRATION.md</code>; deviations are logged there with dates.</p>
+<h2 id="reporting">Reporting<a class="headerlink" href="#reporting" title="Permanent link">&para;</a></h2>
+<p>Interpretability is reported as node count, leaves, mean decision-path length and distinct
+features used. The composite interpretability score is a search heuristic and appears in no
+reported result.</p>
 
 
 
@@ -2792,7 +2803,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.highlight", "search.share", "search.suggest", "content.code.copy", "content.code.annotate", "content.tabs.link", "toc.follow", "header.autohide"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "stable", "provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
