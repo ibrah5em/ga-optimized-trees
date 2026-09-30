@@ -2,18 +2,17 @@
 # Paper Configuration - the config the pre-registered benchmark ran with.
 #
 # scripts/frontier_benchmark.py and scripts/benchmark.py read it for the K1/K2
-# and K3 runs committed under paper/evidence/; see each run's README for the
-# exact command. Change it and those runs no longer reproduce.
+# and K3 runs. Change it and those runs no longer reproduce.
 #
 # The "24-77% smaller trees at statistically equivalent accuracy" target that
-# used to sit on this line was never produced by any run - see paper/CLAIMS.md.
+# used to sit on this line was never produced by any run, and was withdrawn.
 #
 # Notes:
 #   - classification_metric now reaches FitnessCalculator, and the GA is seeded
 #     per fold. Both were silently dropped until 2026-08-06.
 #   - early_stopping_rounds is honoured if set, and absent means disabled. It is
 #     deliberately not set here: enabling it changes the search budget, which
-#     matters for the budget-matched random-search comparison (paper/PLAN.md).
+#     matters for the budget-matched random-search comparison.
 #   - semantic_coherence is weighted 0.30. It is an unvalidated search-guidance
 #     term (std of feature depths), not a measure of interpretability.
 # =============================================================================
@@ -59,7 +58,7 @@ fitness:
 
 # Experiment Settings
 experiment:
-  # The pre-registered CC-18 selection - see paper/DATASETS.md.
+  # The pre-registered CC-18 selection (DatasetLoader.CC18_BENCHMARK).
   # Do not edit without recording a deviation in that file.
   datasets:
     - dresses_sales

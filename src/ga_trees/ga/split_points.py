@@ -21,7 +21,7 @@ equally and makes them look alike. Sampling from observed midpoints gives both
 methods the same candidate set CART chooses from, which is the honest version of
 the comparison.
 
-The ``uniform`` strategy is retained so the ablation table in ``paper/PLAN.md``
+The ``uniform`` strategy is retained so the split-point ablation
 can isolate this change rather than assert it.
 """
 

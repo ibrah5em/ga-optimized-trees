@@ -9,7 +9,7 @@ The previous version of this script carried two module-level dicts, ``RESULTS``
 and ``PAPER_RESULTS``, and rendered them into figures captioned "GA Achieves
 46-82% Tree Size Reduction" and "Statistical Equivalence to CART (All p > 0.05 =
 No Significant Difference)". Those numbers were never produced by any run
-(``paper/CLAIMS.md``), and that second caption is the cross-fold paired t-test
+(since withdrawn), and that second caption is the cross-fold paired t-test
 the project retired in ``0d446e7`` as invalid. It was the last thing in the repo
 able to regenerate the withdrawn claims.
 

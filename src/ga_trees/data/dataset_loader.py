@@ -173,7 +173,7 @@ class DatasetLoader:
     # Built-in scikit-learn datasets
     SKLEARN_DATASETS = {"iris", "wine", "breast_cancer", "digits", "diabetes"}
 
-    # The 20 OpenML-CC18 datasets pre-registered in paper/DATASETS.md. Every ID
+    # The 20 OpenML-CC18 datasets pre-registered for the benchmark. Every ID
     # was resolved against the live OpenML API on 2026-08-07 and confirmed to be
     # a member of study 99 (OpenML-CC18); names here match `details["name"]`.
     CC18_BENCHMARK = {

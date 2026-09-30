@@ -4,7 +4,7 @@
 #
 # Written 2026-09-29, AFTER K1/K2 were observed. It may only be reported as a
 # sensitivity analysis next to the pre-registered result, never in place of it
-# (paper/PREREGISTRATION.md, Deviations).
+# (logged as a deviation from the pre-registered protocol).
 # =============================================================================
 
 # Genetic Algorithm Parameters
@@ -49,7 +49,7 @@ fitness:
 
 # Experiment Settings
 experiment:
-  # The pre-registered CC-18 selection - see paper/DATASETS.md.
+  # The pre-registered CC-18 selection (DatasetLoader.CC18_BENCHMARK).
   # Do not edit without recording a deviation in that file.
   datasets:
     - dresses_sales

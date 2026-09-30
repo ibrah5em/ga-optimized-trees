@@ -3,7 +3,7 @@
 The budget-matched pair is :class:`GATreeMethod` and :class:`RandomTreeSearch`:
 both draw from the same tree space, both are given the same number of candidate
 evaluations, and both select by the same fitness. That comparison is kill
-criterion K1 in ``paper/PREREGISTRATION.md`` — if random search matches the GA,
+criterion K1 in the pre-registered protocol — if random search matches the GA,
 the evolutionary machinery contributes nothing.
 """
 
@@ -222,7 +222,7 @@ def search_grid(tune_depth: bool = True) -> List[Dict[str, Any]]:
     One function, so the two budget-matched methods cannot drift onto different
     grids. With ``tune_depth=False`` only the accuracy weighting is tuned and
     depth stays at the configured ``tree.max_depth`` — the reduced K3 grid
-    recorded as a deviation in ``paper/PREREGISTRATION.md`` (2026-09-29).
+    recorded as a deviation from the pre-registered protocol (2026-09-29).
     """
     depths = SEARCH_DEPTH_GRID if tune_depth else (None,)
     grid = []

@@ -74,7 +74,7 @@ logger = logging.getLogger(__name__)
 #: Added to the largest node count seen on a dataset to form the shared reference
 #: point, so the largest model still contributes non-zero area.
 #:
-#: ``paper/PREREGISTRATION.md`` fixes the reference at "nodes = max over all
+#: The pre-registered protocol fixes the reference at "nodes = max over all
 #: methods on that **dataset**", so it is computed once per dataset over every
 #: fold, not per fold. The distinction is not cosmetic: a per-fold reference is a
 #: smaller box, and since raising the reference adds ``max_accuracy x delta`` to a

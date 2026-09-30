@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Nested cross-validation benchmark — the harness that produces paper numbers.
 
-Runs the protocol fixed in ``paper/PREREGISTRATION.md``: outer 10-fold × 3
+Runs the pre-registered protocol: outer 10-fold × 3
 repeats for reporting, inner 5-fold for all hyperparameter selection, applied
 identically to every method.
 

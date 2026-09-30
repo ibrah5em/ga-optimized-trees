@@ -54,10 +54,6 @@ repos:
     rev: 0.7.17
     hooks:
       - id: mdformat
-        # paper/paper.md is a JOSS submission, not ordinary Markdown: mdformat
-        # rewrites its YAML front matter into horizontal rules and escapes the
-        # [@citation] brackets, which breaks the build on JOSS's side.
-        exclude: ^paper/paper\.md$
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black

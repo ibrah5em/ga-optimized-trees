@@ -73,7 +73,7 @@ baselines = [
     "lightgbm>=4.0.0",
 ]
 
-# GOSDT frontier baseline for the paper's exploratory check. Kept out of `all`:
+# GOSDT frontier baseline (exploratory). Kept out of `all`:
 # gosdt ships no wheel for Apple Silicon, so `pip install .[all]` would try a
 # C++ source build on macOS arm64.
 gosdt = [

@@ -1,6 +1,6 @@
 """Nested cross-validation harness.
 
-The protocol fixed in ``paper/PREREGISTRATION.md``: an outer 10-fold × 3-repeat
+The pre-registered protocol: an outer 10-fold × 3-repeat
 stratified CV for reporting, and an inner 5-fold CV for *all* hyperparameter
 selection, applied identically to every method.
 
@@ -31,7 +31,7 @@ from ga_trees.reproducibility import derive_fold_seed
 
 logger = logging.getLogger(__name__)
 
-#: Outer protocol fixed in paper/PREREGISTRATION.md.
+#: Outer protocol, fixed by the pre-registration.
 DEFAULT_OUTER_SPLITS = 10
 DEFAULT_OUTER_REPEATS = 3
 DEFAULT_INNER_SPLITS = 5

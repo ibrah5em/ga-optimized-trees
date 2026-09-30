@@ -1,6 +1,6 @@
 """Frontier quality: dominance filtering and 2-D hypervolume.
 
-This is the machinery behind H1 in ``paper/PREREGISTRATION.md`` — whether the
+This is the machinery behind the pre-registered hypothesis H1 — whether the
 evolved accuracy--complexity frontier dominates the one obtainable from CART's
 cost-complexity pruning path.
 

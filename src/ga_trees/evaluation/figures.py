@@ -5,10 +5,10 @@ Every function here takes fold-level results produced by
 literal, and there is no fallback that invents data: given no results, the
 loader raises. That is deliberate. The generator this module replaces carried
 its numbers as module-level dicts and printed claims — "46-82% smaller",
-"statistical equivalence to CART" — that ``paper/CLAIMS.md`` marks FABRICATED.
+"statistical equivalence to CART" — that were withdrawn as fabricated.
 Deleting the figures while leaving that generator in place fixed nothing.
 
-What may be plotted is constrained by ``paper/PREREGISTRATION.md``:
+What may be plotted is constrained by the pre-registered protocol:
 
 * K4 — reported interpretability is leaf count, mean weighted decision-path
   length and distinct features used. The composite interpretability score is a
