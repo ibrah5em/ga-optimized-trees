@@ -97,7 +97,7 @@ paper are generated from these files by `scripts/paper_assets.py`.
 | Validation split and budget each explain ~30% of the truncation; small-tree bias none    | SUPPORTED, exploratory | `evidence/frontier-diagnostic-2026-09-29/` (4 datasets, 10 folds) |
 | Verdicts unchanged by constraint repair                                                   | SUPPORTED, sensitivity | `evidence/frontier-repair-2026-09-29/`                        |
 | Verdict unchanged against a depth-capped CART path (40%)                                  | SUPPORTED, exploratory | `evidence/cart-depth6-2026-09-29/`                            |
-| GOSDT does not dominate CART's path either; GA and GOSDT indistinguishable               | SUPPORTED, exploratory | `evidence/gosdt-2026-09-29/` (19/20 datasets, 10 folds)       |
+| GOSDT does not dominate CART's path either; GA vs GOSDT not significant               | SUPPORTED, exploratory | `evidence/gosdt-2026-09-29/` (19/20 datasets, 10 folds)       |
 | 8–27% of evaluated GA trees violate sample-count constraints                              | SUPPORTED     | `evidence/constraint-violations-2026-09-29/` (one fold of four datasets)  |
 
 The configured constraint claim above ("min_samples_split=8, min_samples_leaf=3", FALSE)

@@ -19,7 +19,7 @@ which fetches what it needs on first run:
 cd paper/gecco && latexmk -pdf main.tex      # or: tectonic -X compile main.tex
 ```
 
-`main.pdf` is the committed build (tectonic 0.15, 2026-09-29): 6 pages in review mode, no
+`main.pdf` is the committed build (tectonic 0.15, 2026-09-30): 6 pages in review mode, no
 overfull lines. Rebuild it after any change to `paper/evidence/` or `main.tex`.
 
 A missing evidence set leaves its macros undefined, so LaTeX fails instead of printing a

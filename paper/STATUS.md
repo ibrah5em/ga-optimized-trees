@@ -51,7 +51,7 @@ All added after K1/K2 were known; none can change a verdict, and none did.
 | ------------------------------------------- | ------------------------------------------------------------------- |
 | Constraint repair on (Phase 2 item 4)       | K1 +0.85 (p_holm 0.034), K2 45% — unchanged                         |
 | CART path capped at the GA's depth          | GA dominance 40% — the depth asymmetry does not explain K2          |
-| GOSDT regularisation path (19/20 datasets)  | Beats CART's path on 7/19; GA vs GOSDT indistinguishable (p_holm 0.98) |
+| GOSDT regularisation path (19/20 datasets)  | Beats CART's path on 7/19; GA vs GOSDT not significant (p_holm 0.98) |
 | Reproduction of the committed frontier run  | Bit-identical on the datasets re-run, all 20 datasets' data verified |
 
 ______________________________________________________________________

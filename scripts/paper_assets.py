@@ -166,12 +166,15 @@ def frontier_table(normalised, largest, extra=None):
         "\\midrule",
     ]
     for dataset, row in table.iterrows():
-        top = max(row[c] for c in columns if not np.isnan(row[c]))
+        # GOSDT ran on 10 of the 30 folds with its own reference point, so its
+        # column is not on the same scale and does not compete for bold.
+        top = max(row[c] for c in (GA, RS, CART) if not np.isnan(row[c]))
         cells = []
         for c in columns:
             value = row[c]
             text = "--" if np.isnan(value) else f"{value:.3f}"
-            cells.append(f"\\textbf{{{text}}}" if value == top else text)
+            bold = c != GOSDT_NAME and value == top
+            cells.append(f"\\textbf{{{text}}}" if bold else text)
         name = dataset.replace("_", "\\_")
         cells += [f"{largest.loc[dataset, GA]:.0f}", f"{largest.loc[dataset, CART]:.0f}"]
         lines.append(f"{name} & " + " & ".join(cells) + " \\\\")
@@ -323,8 +326,11 @@ def k3_section():
             }
         )
     table = pd.DataFrame(rows).set_index("dataset")
+    # Round before comparing with the margin: a difference of exactly 0.02 (e.g.
+    # 0.598 - 0.578) is 0.020000000000000018 in floating point and would count.
+    diff = table["diff"].round(9)
     n = len(table)
-    primary = int((table["diff"] < -0.02).sum())
+    primary = int((diff < -0.02).sum())
     secondary = int((~table["equivalent"]).sum())
     macro("KthreePrimary", primary)
     macro("KthreeSecondary", secondary)
@@ -338,11 +344,11 @@ def k3_section():
     frontier = dataset_means(pd.read_csv(FRONTIER / "folds.csv"))
     reference = pd.read_csv(FRONTIER / "folds.csv").groupby("dataset").reference_nodes.first()
     gap = (frontier[GA] - frontier[CART]).div(reference)
-    losing = set(table.index[table["diff"] < -0.02])
+    losing = set(table.index[diff < -0.02])
     worst = set(gap.sort_values().index[: len(losing)])
     macro("KthreeOverlap", len(losing & worst))
     macro("KthreeRest", n - primary)
-    macro("KthreeAhead", int((table["diff"] > 0.02).sum()))
+    macro("KthreeAhead", int((diff > 0.02).sum()))
 
     means = dataset_means(folds, "test_accuracy")
     h2 = equivalence_test(means[k3_ga].tolist(), means[k3_cart].tolist())
