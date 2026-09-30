@@ -33,7 +33,7 @@ This framework evolves decision trees using genetic algorithms to balance **accu
 Note what is *not* on that list: benchmark claims. Earlier versions of these docs advertised
 46–82% smaller trees at equivalent accuracy. Those claims have been withdrawn — they were not
 reproducible from the code on `main`, the size baseline was unpruned CART, and no equivalence
-test was ever run. See `paper/CLAIMS.md` for the audit and `paper/PLAN.md` for the re-run.
+test was ever run.
 
 ### Is this ready for production use?
 
@@ -374,10 +374,9 @@ fitness:
 
 The trade-off:
 
-- a smaller tree for some accuracy loss. How much depends on the dataset: in the
-  pre-registered benchmark a tuned GA tree had about a third of CART's leaves and was
-  within 2 points of tuned CART, or ahead of it, on 12 of 20 datasets, but 2–33 points
-  behind on the other 8 (see `paper/STATUS.md`).
+- a smaller tree for some accuracy loss. How much depends on the dataset: where a few
+  splits capture most of the signal the loss is small, and where accuracy keeps rising with
+  tree size, CART's larger trees pull ahead.
 
 If unacceptable, increase accuracy weight:
 
@@ -652,18 +651,11 @@ Yes! The framework is MIT licensed. Please cite:
 }
 ```
 
-### Where can I find the research methodology?
+### Is there a paper?
 
-See [Methodology](../research/methodology.md) for:
-
-- Experimental design
-- Statistical testing approach
-- Baseline configurations
-- Evaluation metrics
-
-### Are there published papers using this?
-
-Check [Publications](../research/publications.md) for list of papers using this framework.
+A paper describing the full study behind this framework is in preparation. Until it's out,
+cite the software as above. For how to evaluate the framework yourself, see
+[Statistical Testing](../advanced/statistical-tests.md).
 
 ______________________________________________________________________
 

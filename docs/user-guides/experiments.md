@@ -47,7 +47,7 @@ python scripts/experiment.py --config configs/paper.yaml
    - CART baseline
    - Random Forest baseline
 1. Compares methods **across datasets** — Wilcoxon signed-rank (Holm-corrected), TOST
-   equivalence against the pre-registered 2% margin, Friedman + Nemenyi
+   equivalence against a 2% margin, Friedman + Nemenyi
 1. Saves results to CSV and YAML
 
 **Expected runtime:**

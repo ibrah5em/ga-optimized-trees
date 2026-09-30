@@ -1,7 +1,7 @@
 # Interpretability: what is measured, and what is only searched for
 
-This page states the project's position after Phase 3 of `paper/PLAN.md`. It is binding for
-anything written about results: see kill criterion **K4** in `paper/PREREGISTRATION.md`.
+This page states the project's position on interpretability. It applies to anything written
+about results from this framework.
 
 ## Reported measures
 
@@ -36,7 +36,7 @@ weighted-sum fitness:
 The composite steers the single-objective search toward small trees, and in that role it
 works. It has **no claimed validity as a measure of human interpretability**, and it appears
 in no reported result. Validating any of these terms would need a forward-simulation user
-study \[Doshi-Velez & Kim 2017; Lipton 2018\], listed in `paper/PLAN.md` as a follow-up.
+study \[Doshi-Velez & Kim 2017; Lipton 2018\].
 
 ## A consequence worth knowing
 
