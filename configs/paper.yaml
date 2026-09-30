@@ -1,11 +1,14 @@
 # =============================================================================
-# Paper Configuration - largest search budget of the shipped configs.
+# Paper Configuration - the config the pre-registered benchmark ran with.
 #
-# No benchmark result is claimed for this config. The "24-77% smaller trees at
-# statistically equivalent accuracy" target that used to sit on this line was
-# never produced by any run - see paper/CLAIMS.md.
+# scripts/frontier_benchmark.py and scripts/benchmark.py read it for the K1/K2
+# and K3 runs committed under paper/evidence/; see each run's README for the
+# exact command. Change it and those runs no longer reproduce.
 #
-# Notes before using it for anything reportable:
+# The "24-77% smaller trees at statistically equivalent accuracy" target that
+# used to sit on this line was never produced by any run - see paper/CLAIMS.md.
+#
+# Notes:
 #   - classification_metric now reaches FitnessCalculator, and the GA is seeded
 #     per fold. Both were silently dropped until 2026-08-06.
 #   - early_stopping_rounds is honoured if set, and absent means disabled. It is
