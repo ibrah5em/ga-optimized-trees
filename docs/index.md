@@ -29,66 +29,85 @@ Search the accuracy–complexity spectrum directly and choose the operating poin
 </div>
 </div>
 
-> **⚠️ Benchmark results under revision.** Accuracy and tree-size claims previously shown
-> on this site have been withdrawn — they were not reproducible from the code on `main`, and
-> newer runs in the repository contradict them. The experimental protocol is being rebuilt.
-> See `paper/CLAIMS.md` for the per-claim audit and `paper/PLAN.md` for what is being re-run.
+> **Where this stands.** The pre-registered benchmark on 20 OpenML-CC18 datasets is done.
+> Evolution beats random search over the same tree space at a matched budget, but it does
+> **not** beat CART's cost-complexity pruning path, and a tuned GA tree is **not** as
+> accurate as tuned CART. Earlier "46–82% smaller trees at equivalent accuracy" claims on
+> this site were withdrawn. See [Results](research/results.md).
 
 ______________________________________________________________________
 
 ## 🚀 Quick Start
 
-=== "Install"
+Install:
 
-````
 ```bash
 git clone https://github.com/ibrah5em/ga-optimized-trees.git
 cd ga-optimized-trees
 python -m venv venv && source venv/bin/activate
 pip install -e .          # core only
-pip install -e .[all]     # all features
+pip install -e .[all]     # all optional features
 ```
-````
 
-=== "Train a tree"
+Train a tree from a config:
 
-````
 ```bash
 python scripts/train.py --config configs/paper.yaml --dataset iris
 ```
-````
 
-=== "Python API"
+Or from Python:
 
-````
 ```python
-from ga_trees import GAEngine, GAConfig, TreeInitializer, FitnessCalculator, Mutation
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+from ga_trees import FitnessCalculator, GAConfig, GAEngine, Mutation, TreeInitializer
 from ga_trees.data import DatasetLoader
 from ga_trees.fitness import TreePredictor
-import numpy as np
 
-data = DatasetLoader().load_dataset("iris", test_size=0.2)
+data = DatasetLoader().load_dataset("breast_cancer", test_size=0.2)
 X_train, y_train = data["X_train"], data["y_train"]
 
-config   = GAConfig(population_size=80, n_generations=40)
-init     = TreeInitializer(X_train.shape[1], len(np.unique(y_train)), max_depth=6)
-fitness  = FitnessCalculator(accuracy_weight=0.68, interpretability_weight=0.32)
-mutation = Mutation(X_train.shape[1], {i: (X_train[:,i].min(), X_train[:,i].max())
-                                        for i in range(X_train.shape[1])})
+# Hold a slice of the training data out of the search. Without it the GA fits
+# and scores leaves on the same rows and rewards whichever tree overfits most.
+X_fit, X_val, y_fit, y_val = train_test_split(
+    X_train, y_train, test_size=0.25, stratify=y_train, random_state=0
+)
+n_features = X_fit.shape[1]
 
-engine = GAEngine(config, init, fitness.calculate_fitness, mutation)
-best   = engine.evolve(X_train, y_train, verbose=True)
-print(f"Tree: {best.get_num_nodes()} nodes, depth {best.get_depth()}")
+initializer = TreeInitializer(
+    n_features, n_classes=2, max_depth=5, min_samples_split=10, min_samples_leaf=5
+)
+mutation = Mutation(
+    n_features,
+    feature_ranges={
+        i: (X_fit[:, i].min(), X_fit[:, i].max()) for i in range(n_features)
+    },
+    X=X_fit,  # lets mutation pick thresholds from values that actually reach the node
+    min_samples_leaf=5,
+)
+fitness = FitnessCalculator(accuracy_weight=0.9, interpretability_weight=0.1)
+
+engine = GAEngine(
+    GAConfig(population_size=80, n_generations=40, random_state=42),
+    initializer,
+    fitness.calculate_fitness,
+    mutation,
+)
+best = engine.evolve(X_fit, y_fit, X_val=X_val, y_val=y_val, verbose=False)
+
+# Structure was chosen on the validation split; refit the leaves on all training rows.
+predictor = TreePredictor()
+predictor.fit_leaf_predictions(best, X_train, y_train)
+accuracy = np.mean(predictor.predict(best, data["X_test"]) == data["y_test"])
+print(
+    f"{best.get_num_nodes()} nodes, depth {best.get_depth()}, test accuracy {accuracy:.3f}"
+)
 ```
-````
 
-=== "Run benchmarks"
-
-````
-```bash
-python scripts/experiment.py --config configs/paper.yaml
-```
-````
+The pre-registered benchmark itself is `scripts/frontier_benchmark.py` (frontiers, K1/K2)
+and `scripts/benchmark.py` (single tuned tree, K3); `paper/evidence/` has the configs and
+commands for every committed run.
 
 ______________________________________________________________________
 
@@ -166,26 +185,29 @@ ______________________________________________________________________
 
 ## 📈 Benchmark Results
 
-**Withdrawn pending re-run.** The table that stood here reported a size advantage measured
-against *unpruned* CART, and read "p > 0.05" as evidence of equivalence when no equivalence
-test had been run. Its headline numbers also traced back to a CSV produced by code that was
-never merged, so they cannot be regenerated from this repository.
+| Question                                                    | Answer                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| Does evolution beat random search over the same tree space? | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets  |
+| Does the GA's frontier beat CART's pruning path?            | **No** — larger hypervolume on 9/20 datasets (45%)           |
+| Is a tuned GA tree as accurate as tuned CART (±2 points)?   | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
+| Are the GA's trees smaller?                                 | Yes — 6.3 leaves vs 18.4, at the accuracy cost above         |
 
-Nothing replaces it until the rebuilt protocol runs: nested cross-validation, tuned and
-budget-matched baselines, seeded runs, and statistics that account for dependent folds. See
-`paper/PLAN.md`, with hypotheses and kill criteria fixed in advance in
-`paper/PREREGISTRATION.md`.
+Details, per-dataset numbers and the ablations are on the [Results](research/results.md)
+page and in `paper/STATUS.md`.
 
 ______________________________________________________________________
 
-## 🆚 How It Compares
+## 🆚 When to use it
 
-| Aspect           | CART           | Random Forest | **GA-Optimized**          |
-| ---------------- | -------------- | ------------- | ------------------------- |
-| Optimization     | Greedy (local) | Ensemble      | **Global (evolutionary)** |
-| Objectives       | Accuracy only  | Accuracy only | **Multi-objective**       |
-| Interpretability | No control     | Black box     | **Explicit control ✓**    |
-| Tree size        | Often large    | N/A           | **Controllable ✓**        |
+| Aspect    | CART                    | GA-Optimized                                                   |
+| --------- | ----------------------- | -------------------------------------------------------------- |
+| Search    | Greedy, top-down        | Evolutionary, over whole trees                                 |
+| Objective | Impurity, then pruning  | Any function of the tree — size, features used, custom metrics |
+| Speed     | Milliseconds            | Seconds to minutes                                             |
+| Accuracy  | Better on our benchmark | Behind CART where accuracy keeps rising with tree size         |
+
+Use CART when you want the most accurate small tree for plain accuracy. The GA is worth
+it when the objective is something a greedy split rule can't optimise directly.
 
 ______________________________________________________________________
 

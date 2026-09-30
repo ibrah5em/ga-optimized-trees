@@ -398,7 +398,9 @@ plt.savefig("results/figures/statistical_significance.png", dpi=300)
 
 ### 1. Accuracy vs Interpretability Trade-off
 
-Show Pareto-optimal solutions:
+Show Pareto-optimal solutions in the GA's own objective space. That's useful for watching
+the search, but for anything you report, put node count (or leaves) on the x-axis instead:
+the composite interpretability score is a search heuristic, not a measure.
 
 ```python
 # Results from Pareto optimization

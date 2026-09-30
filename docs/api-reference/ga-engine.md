@@ -16,7 +16,13 @@ Configuration dataclass for genetic algorithm.
 - `mutation_prob` (float): Mutation probability \[0, 1\] (default: 0.2)
 - `tournament_size` (int): Tournament selection size (default: 3)
 - `elitism_ratio` (float): Fraction of elite preserved \[0, 1\] (default: 0.1)
-- `mutation_types` (dict): Mutation operator probabilities (must sum to 1.0)
+- `mutation_types` (dict): Mutation operator probabilities (must sum to 1.0). The operator
+  is drawn by position, so the key order matters for reproducing a run.
+- `random_state` (int | None): Seeds `random` and `numpy.random` at the start of `evolve`
+  (default: None)
+- `early_stopping_rounds` (int | None): Stop after this many generations without the best
+  fitness improving by more than `early_stopping_tol`; None disables it (default: None)
+- `early_stopping_tol` (float): Minimum improvement that resets the counter (default: 1e-6)
 
 **Example:**
 
@@ -56,6 +62,7 @@ TreeInitializer(
     min_samples_leaf,
     task_type="classification",
     growth_stop_prob=0.3,
+    split_strategy="midpoint",
 )
 ```
 
@@ -70,6 +77,10 @@ TreeInitializer(
 - `growth_stop_prob` (float): Per-node probability of stopping growth when seeding the
   population, in \[0, 1). Lower values seed bushier trees; defaults to
   `DEFAULT_GROWTH_STOP_PROB` (0.3)
+- `split_strategy` (str): Where split thresholds come from. `"midpoint"` (default) picks a
+  midpoint between observed values of the samples reaching the node, keeping
+  `min_samples_leaf` on both sides. `"uniform"` is the original draw across the feature's
+  whole range, which often produces splits that send every sample one way.
 
 #### Methods
 
@@ -105,6 +116,34 @@ print(f"Created tree: depth={tree.get_depth()}, nodes={tree.get_num_nodes()}")
 
 ______________________________________________________________________
 
+### Mutation
+
+The four mutation operators.
+
+#### Constructor
+
+```python
+Mutation(
+    n_features, feature_ranges, X=None, min_samples_leaf=1, split_strategy="midpoint"
+)
+```
+
+**Parameters:**
+
+- `n_features` (int): Number of input features
+- `feature_ranges` (dict): `{feature_index: (min, max)}`, used when no `X` is given
+- `X` (np.ndarray | None): The data the GA trains on. With it, `threshold_perturbation`,
+  `feature_replacement` and `expand_leaf` draw thresholds from the values that actually reach
+  the node being mutated. Without it they fall back to `feature_ranges`. Pass the GA's
+  training split only, never the validation split, or the search sees the data it's scored on.
+- `min_samples_leaf` (int): Minimum samples a new split must leave on each side
+- `split_strategy` (str): `"midpoint"` or `"uniform"`, as for `TreeInitializer`
+
+`mutate(tree, mutation_types)` picks one operator by the given probabilities and applies it
+in place.
+
+______________________________________________________________________
+
 ### GAEngine
 
 Main genetic algorithm engine.
@@ -112,57 +151,83 @@ Main genetic algorithm engine.
 #### Constructor
 
 ```python
-GAEngine(config, initializer, fitness_function, mutation)
+GAEngine(config, initializer, fitness_function, mutation, repair=None)
 ```
 
 **Parameters:**
 
 - `config` (GAConfig): GA configuration
 - `initializer` (TreeInitializer): Tree initializer
-- `fitness_function` (callable): Function to evaluate fitness
+- `fitness_function` (callable): `f(tree, X, y)` returning a float. If you pass a validation
+  set to `evolve`, it's called as `f(tree, X, y, X_val, y_val)` instead;
+  `FitnessCalculator.calculate_fitness` accepts both.
 - `mutation` (Mutation): Mutation operator
+- `repair` (callable | None): Applied to every offspring after crossover and mutation. Without
+  it, `min_samples_split` / `min_samples_leaf` are only enforced when the initial population
+  is created. `ga_trees.ga.repair.repair_from_config(tree_config, X, y)` builds one that
+  collapses splits the constraints wouldn't allow.
 
 #### Methods
 
-##### `evolve(X, y, verbose=True)`
+##### `evolve(X, y, verbose=True, X_val=None, y_val=None)`
 
 Run the evolution process.
 
 **Parameters:**
 
-- `X` (np.ndarray): Training features
+- `X` (np.ndarray): Training features; leaf predictions are fitted on these
 - `y` (np.ndarray): Training labels
-- `verbose` (bool): Print progress
+- `verbose` (bool): Log progress
+- `X_val`, `y_val` (np.ndarray | None): Held-out data to score fitness on. Pass both or
+  neither. Without them fitness is resubstitution (leaves fitted and scored on the same
+  rows), which rewards whichever tree overfits hardest.
 
 **Returns:**
 
-- `TreeGenotype`: Best individual found
+- `TreeGenotype`: Best individual found, by validation fitness when a validation set is given
 
 **Example:**
 
 ```python
-from ga_trees.ga.engine import GAEngine, GAConfig, TreeInitializer, Mutation
+import numpy as np
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+
 from ga_trees.fitness.calculator import FitnessCalculator
+from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
 
-# Setup components
-ga_config = GAConfig(population_size=80, n_generations=40)
-initializer = TreeInitializer(
-    n_features=4, n_classes=2, max_depth=5, min_samples_split=10, min_samples_leaf=5
+X, y = load_breast_cancer(return_X_y=True)
+X_fit, X_val, y_fit, y_val = train_test_split(
+    X, y, test_size=0.25, stratify=y, random_state=0
 )
-fitness_calc = FitnessCalculator()
-mutation = Mutation(n_features=4, feature_ranges={i: (0, 1) for i in range(4)})
+n_features = X.shape[1]
 
-# Create engine
 ga_engine = GAEngine(
-    config=ga_config,
-    initializer=initializer,
-    fitness_function=fitness_calc.calculate_fitness,
-    mutation=mutation,
+    config=GAConfig(population_size=60, n_generations=30, random_state=42),
+    initializer=TreeInitializer(
+        n_features=n_features,
+        n_classes=2,
+        max_depth=5,
+        min_samples_split=10,
+        min_samples_leaf=5,
+    ),
+    fitness_function=FitnessCalculator(
+        accuracy_weight=0.9, interpretability_weight=0.1
+    ).calculate_fitness,
+    mutation=Mutation(
+        n_features=n_features,
+        feature_ranges={
+            i: (X_fit[:, i].min(), X_fit[:, i].max()) for i in range(n_features)
+        },
+        X=X_fit,
+        min_samples_leaf=5,
+    ),
 )
 
-# Train
-best_tree = ga_engine.evolve(X_train, y_train, verbose=True)
-print(f"Best fitness: {best_tree.fitness_:.4f}")
+best_tree = ga_engine.evolve(X_fit, y_fit, X_val=X_val, y_val=y_val, verbose=False)
+print(
+    f"Best validation fitness: {best_tree.fitness_:.4f}, {best_tree.get_num_nodes()} nodes"
+)
 ```
 
 ##### `get_history()`

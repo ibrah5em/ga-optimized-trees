@@ -1,8 +1,9 @@
 # Research Methodology
 
-> **⚠️ Under revision.** The protocol described below is the one the code on `main`
-> currently implements, annotated with what is wrong with it. It is being replaced — see
-> `paper/PLAN.md`. Do not treat this page as a description of a sound experimental design.
+> **This is not the paper's protocol.** It describes `scripts/experiment.py`, the original
+> quick-comparison script, annotated with what is wrong with it as a basis for claims. The
+> pre-registered benchmark uses nested CV on 20 CC-18 datasets instead: see
+> [Benchmarks](benchmarks.md) for the protocol and [Results](results.md) for what it found.
 
 ## Current protocol, and its defects
 
