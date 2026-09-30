@@ -1,6 +1,6 @@
 """GOSDT regularisation path as a frontier method (Phase 4, exploratory).
 
-``paper/PLAN.md`` Phase 4 asks for GOSDT (Lin et al. 2020) "as a baseline where
+The benchmark plan asked for GOSDT (Lin et al. 2020) "as a baseline where
 feasible". This is **not** part of the pre-registered protocol: it was added
 after K1/K2 were known and is reported as an exploratory comparison only.
 

@@ -69,8 +69,7 @@ tree:
 ```
 
 > **⚠️ No results are claimed for this config.** Earlier versions of this page listed
-> per-dataset size reductions at equivalent accuracy. Those have been withdrawn — see
-> `paper/CLAIMS.md`. Note also that `semantic_coherence` is weighted 0.30 here; it is an
+> per-dataset size reductions at equivalent accuracy. Those have been withdrawn. Note also that `semantic_coherence` is weighted 0.30 here; it is an
 > unvalidated search-guidance term, not a measure of interpretability.
 
 ## Quick Start Examples

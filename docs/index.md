@@ -29,12 +29,6 @@ Search the accuracy–complexity spectrum directly and choose the operating poin
 </div>
 </div>
 
-> **Where this stands.** The pre-registered benchmark on 20 OpenML-CC18 datasets is done.
-> Evolution beats random search over the same tree space at a matched budget, but it does
-> **not** beat CART's cost-complexity pruning path, and a tuned GA tree is **not** as
-> accurate as tuned CART. Earlier "46–82% smaller trees at equivalent accuracy" claims on
-> this site were withdrawn. See [Results](research/results.md).
-
 ______________________________________________________________________
 
 ## 🚀 Quick Start
@@ -105,9 +99,9 @@ print(
 )
 ```
 
-The pre-registered benchmark itself is `scripts/frontier_benchmark.py` (frontiers, K1/K2)
-and `scripts/benchmark.py` (single tuned tree, K3); `paper/evidence/` has the configs and
-commands for every committed run.
+To compare the GA with CART and random search on your own data, see the benchmarking
+harness: `scripts/benchmark.py` (one tuned tree per method, nested CV) and
+`scripts/frontier_benchmark.py` (accuracy–size frontiers).
 
 ______________________________________________________________________
 
@@ -156,10 +150,10 @@ ______________________________________________________________________
 </div>
 
 <div class="card" markdown>
-<a href="research/results/">
+<a href="advanced/statistical-tests/">
 <div class="card-icon">📊</div>
-<div class="card-title">Results</div>
-<div class="card-desc">Benchmark tables and statistical tests</div>
+<div class="card-title">Evaluating models</div>
+<div class="card-desc">Comparing methods across datasets, done properly</div>
 </a>
 </div>
 
@@ -183,28 +177,20 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 📈 Benchmark Results
+## 📄 Research paper
 
-| Question                                                    | Answer                                                       |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| Does evolution beat random search over the same tree space? | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets  |
-| Does the GA's frontier beat CART's pruning path?            | **No** — larger hypervolume on 9/20 datasets (45%)           |
-| Is a tuned GA tree as accurate as tuned CART (±2 points)?   | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
-| Are the GA's trees smaller?                                 | Yes — 6.3 leaves vs 18.4, at the accuracy cost above         |
-
-Details, per-dataset numbers and the ablations are on the [Results](research/results.md)
-page and in `paper/STATUS.md`.
+A paper on the full study behind this framework is in preparation. It'll be linked here
+when it's out; until then, cite the software (see the [FAQ](faq/faq.md)).
 
 ______________________________________________________________________
 
 ## 🆚 When to use it
 
-| Aspect    | CART                    | GA-Optimized                                                   |
-| --------- | ----------------------- | -------------------------------------------------------------- |
-| Search    | Greedy, top-down        | Evolutionary, over whole trees                                 |
-| Objective | Impurity, then pruning  | Any function of the tree — size, features used, custom metrics |
-| Speed     | Milliseconds            | Seconds to minutes                                             |
-| Accuracy  | Better on our benchmark | Behind CART where accuracy keeps rising with tree size         |
+| Aspect    | CART                   | GA-Optimized                                                   |
+| --------- | ---------------------- | -------------------------------------------------------------- |
+| Search    | Greedy, top-down       | Evolutionary, over whole trees                                 |
+| Objective | Impurity, then pruning | Any function of the tree — size, features used, custom metrics |
+| Speed     | Milliseconds           | Seconds to minutes                                             |
 
 Use CART when you want the most accurate small tree for plain accuracy. The GA is worth
 it when the objective is something a greedy split rule can't optimise directly.

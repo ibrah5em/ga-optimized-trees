@@ -437,7 +437,7 @@ def run_xgboost_experiment(X, y, dataset_name, config, n_folds=5):
 #: Method every other method is tested against.
 REFERENCE_MODEL = "GA-Optimized"
 
-#: Baseline for the H2 equivalence claim in paper/PREREGISTRATION.md.
+#: Baseline for the pre-registered H2 equivalence claim.
 EQUIVALENCE_BASELINE = "CART"
 
 #: Columns of results/stats-*.csv. Wider than the old (t, p, d) schema because

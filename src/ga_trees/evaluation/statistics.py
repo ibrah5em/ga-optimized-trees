@@ -1,6 +1,6 @@
 """Statistical comparison of learners across datasets.
 
-Implements the analysis fixed in ``paper/PREREGISTRATION.md``. The guiding
+Implements the pre-registered analysis. The guiding
 constraint is Dietterich (1998): cross-validation folds share training data, so
 a paired test *across folds* violates the independence assumption and its
 p-value means nothing. Inference therefore happens **across datasets**, with
@@ -27,10 +27,10 @@ from scipy import stats
 
 logger = logging.getLogger(__name__)
 
-#: Significance level fixed in paper/PREREGISTRATION.md.
+#: Significance level fixed by the pre-registration.
 ALPHA = 0.05
 
-#: TOST equivalence margin, in absolute accuracy, fixed in paper/PREREGISTRATION.md.
+#: TOST equivalence margin, in absolute accuracy, fixed by the pre-registration.
 DEFAULT_EQUIVALENCE_MARGIN = 0.02
 
 #: Below this many datasets, a signed-rank test cannot reach alpha=0.05 no
@@ -143,7 +143,7 @@ def holm_adjust(p_values: Sequence[float]) -> List[float]:
     """Holm-Bonferroni step-down adjustment.
 
     Uniformly more powerful than Bonferroni at the same family-wise error rate,
-    which is why ``paper/PREREGISTRATION.md`` fixes Holm.
+    which is why the pre-registration fixes Holm.
 
     Parameters
     ----------
@@ -265,7 +265,7 @@ def equivalence_test(
 
     A non-significant difference test is *not* evidence of equivalence. TOST
     inverts the question: it rejects the null of a difference at least as large
-    as ``margin``, which is what H2 in ``paper/PREREGISTRATION.md`` claims.
+    as ``margin``, which is what the pre-registered H2 claims.
 
     Parameters
     ----------
@@ -365,7 +365,7 @@ def corrected_fold_equivalence(
     understates the true variance and a plain paired t-test over folds is
     anti-conservative (Dietterich 1998). Nadeau and Bengio (2003) inflate it by
     ``1/k + n_test/n_train``. This is the secondary K3 reading fixed in
-    ``paper/PREREGISTRATION.md``; with ten folds it has little power.
+    the pre-registration; with ten folds it has little power.
 
     Returns:
         ``(mean_difference, ci_low, ci_high, equivalent)`` where the interval

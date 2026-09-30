@@ -4,8 +4,7 @@ Guide to statistical evaluation of GA-optimized trees.
 
 > **⚠️ This page previously recommended an invalid procedure** — a paired t-test across
 > cross-validation folds, with a non-significant result reported as equivalence. Both are
-> wrong, and both shaped this project's withdrawn results. The page has been rewritten. See
-> `paper/CLAIMS.md`.
+> wrong, and both shaped this project's withdrawn results. The page has been rewritten.
 
 ## Two mistakes to avoid first
 
@@ -135,8 +134,7 @@ Valid only when the inputs are independent — so across datasets, not across fo
    three or more methods
 1. TOST against a pre-registered margin if the claim is equivalence
 1. Holm correction across datasets; report effect sizes and `ddof=1` dispersion throughout
-1. Fix hypotheses, margins, and decision thresholds before the run — see
-   `paper/PREREGISTRATION.md`
+1. Fix hypotheses, margins, and decision thresholds before the run, and write them down
 
 ## References
 

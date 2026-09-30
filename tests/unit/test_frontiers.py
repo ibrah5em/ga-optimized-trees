@@ -201,7 +201,7 @@ class TestBudgetMatching:
 
 class TestSharedReferencePoint:
     def test_one_reference_for_the_whole_dataset(self, fold_results):
-        # PREREGISTRATION.md fixes it at "max over all methods on that dataset",
+        # The pre-registration fixes it at "max over all methods on that dataset",
         # not per fold. A per-fold reference is a smaller box, and a smaller box
         # favours whichever method has the lower peak accuracy.
         references = {result.reference_nodes for result in fold_results}

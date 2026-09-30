@@ -1,61 +1,39 @@
 # 🌳 GA-Optimized Decision Trees
 
+[![CI](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Docs](https://img.shields.io/badge/docs-ibrah5em.github.io-informational)](https://ibrah5em.github.io/ga-optimized-trees/)
 
-A genetic algorithm that evolves decision trees, trading accuracy against tree size.
+A Python framework for evolving decision trees with a genetic algorithm.
 
-CART grows a tree one greedy split at a time and prunes it afterwards. This project searches
-over whole trees instead, so the objective can be anything you can compute from a tree:
-node count, features used, path length, a custom metric. The multi-objective mode (NSGA-II)
-hands back an accuracy–size frontier from a single run, and you pick the point you want.
+CART grows a tree one greedy split at a time and prunes it afterwards. This framework
+searches over whole trees instead, so the objective can be anything you can compute from a
+tree: accuracy, node count, features used, path length, or your own metric. Run it with one
+weighted objective, or with NSGA-II to get the whole accuracy–size trade-off from a single
+run and pick the tree you want.
 
-## Does it work?
+![The evolutionary loop: population, evaluate, select, crossover, mutate](docs/assets/readme/how-it-works.png)
 
-Partly. We pre-registered a benchmark on 20 OpenML-CC18 datasets and wrote down in advance
-what would count as failure. Two of the three tests failed.
+## What's in the box
 
-| Question                                                    | Answer                                                       |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| Does evolution beat random search over the same tree space? | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets  |
-| Does the GA's frontier beat CART's pruning path?            | **No** — larger hypervolume on 9/20 datasets (45%)           |
-| Is a tuned GA tree as accurate as tuned CART (±2 points)?   | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
-| Are the GA's trees smaller?                                 | Yes — 6.3 leaves vs 18.4, at the accuracy cost above         |
+- **Two search modes.** A weighted single-objective GA, and NSGA-II multi-objective search
+  that returns a Pareto front.
+- **Fitness on held-out data.** Pass a validation split and the search scores trees on data
+  it didn't fit the leaves on, so it doesn't reward memorisation.
+- **Splits that come from the data.** Given the training data, thresholds are drawn from
+  values that actually reach a node, so a mutation always changes how the data is split.
+- **Four mutation operators and subtree crossover:** nudge a threshold, swap a split's
+  feature, prune a subtree to a leaf, grow a leaf into a split.
+- **Constraint repair** (optional) that keeps `min_samples_split` / `min_samples_leaf`
+  true after every crossover and mutation, not just at initialisation.
+- **A benchmarking harness:** nested cross-validation, baselines matched to the GA's exact
+  evaluation budget, CART's full pruning path, hypervolume, and across-dataset statistics.
+- **Dataset loading** from scikit-learn, OpenML (including a 20-dataset CC-18 benchmark
+  set), CSV and Excel.
+- **YAML configs**, so a run is described by one file.
 
-So the search itself does its job: with exactly the same number of tree evaluations, it
-finds better trees than random sampling does. What it doesn't do is beat CART, which has a
-40-year head start on this exact problem.
-
-![GA minus tuned CART, test accuracy per dataset with 90% intervals](docs/assets/figures/fig_k3.png)
-
-The losses aren't random. They land on datasets where accuracy keeps climbing as the tree
-gets bigger (vowel, eucalyptus, tic-tac-toe, vehicle). The GA's fronts stop at a median of
-5.4 nodes while CART's run to 32, so on those problems CART simply reaches further:
-
-![Test-fold frontiers on breast-w and vehicle](docs/assets/figures/fig_frontiers.png)
-
-On breast-w, where a handful of nodes is enough, the GA's frontier sits at or above CART's.
-On vehicle, CART's larger trees pull ahead. An ablation on the four worst datasets explains
-only part of this truncation, and the rest is still open. [`paper/STATUS.md`](paper/STATUS.md)
-has the full story.
-
-> **A note on the old numbers.** Earlier versions of this README claimed "46–82% smaller
-> trees with statistically equivalent accuracy". Those figures were typed into a plotting
-> script, not produced by any run, and the "equivalence" was a non-significant t-test on
-> dependent folds. They're withdrawn. [`paper/CLAIMS.md`](paper/CLAIMS.md) is the audit, and
-> everything above is regenerated from the run data in [`paper/evidence/`](paper/evidence/).
-
-## When to use it
-
-Use **CART** if you want the most accurate small tree for plain accuracy. It's faster and,
-on our benchmark, better.
-
-Use the **GA** when the thing you're optimising isn't something a greedy split rule can
-target: a cap on distinct features, a feature-cost budget, a custom metric over the whole
-tree, or when you want to see the whole accuracy–size frontier and choose from it.
-
-## Quick start
+## Install
 
 ```bash
 git clone https://github.com/ibrah5em/ga-optimized-trees.git
@@ -63,18 +41,22 @@ cd ga-optimized-trees
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-pip install -e .           # core only
-pip install -e .[all]      # all optional features
-pip install -e .[dev]      # tests, linting
+pip install -e .           # core
+pip install -e .[all]      # plots, Optuna, XGBoost/LightGBM baselines, SHAP/LIME
+pip install -e .[dev]      # tests and linting
 ```
 
-Train a tree from a config:
+CI tests Python 3.9–3.12 on Linux, and 3.11 on macOS and Windows.
+
+## Quick start
+
+From the command line:
 
 ```bash
 python scripts/train.py --config configs/default.yaml --dataset breast_cancer
 ```
 
-Or from Python. This takes a few seconds and prints something like
+From Python. This runs in a few seconds and prints
 `11 nodes, depth 5, test accuracy 0.939`:
 
 ```python
@@ -125,62 +107,114 @@ print(
 )
 ```
 
-Two things in there matter more than they look. Passing `X_val` stops the search from
-rewarding memorisation. And keep `interpretability_weight` small: at 0.35, a tree has to gain
-about 23 accuracy points before growing from a stump to CART's size pays off, so the GA
-settles on stumps and looks worse than it is.
+Here's what that run looks like, generation by generation:
 
-## How it works
+![Best and mean fitness per generation for the run above](docs/assets/readme/evolution.png)
 
-Each individual is a complete binary tree. Every generation the GA:
+Two settings matter more than they look:
 
-1. **Selects** parents by tournament.
-1. **Crosses them over** by swapping subtrees, then checks depth and sample constraints.
-1. **Mutates** with one of four operators: nudge a threshold, swap a split's feature, prune
-   a subtree to a leaf, or grow a leaf into a split. Given the training data, thresholds are
-   drawn from values that actually reach the node, so a mutation always changes the split.
-1. **Scores** the offspring: `w × accuracy + (1 − w) × interpretability`, or both objectives
-   separately under NSGA-II.
+- **Pass `X_val`.** Without it, fitness is resubstitution and the search chases overfitting.
+- **Keep `interpretability_weight` small.** At 0.35, a tree has to gain about 23 accuracy
+  points before growing from a stump to CART's size pays off, so the GA settles on stumps.
+  Start around 0.1 and raise it if the trees come out too big.
 
-The "interpretability" term is a composite of node count, feature reuse, balance and path
-consistency. It steers the search and nothing more: it isn't a validated measure of how
-understandable a tree is, so results are reported as node count, leaves, path length and
-features used ([why](docs/core-concepts/interpretability.md)).
+## Multi-objective: get the whole trade-off
+
+NSGA-II returns every tree on the accuracy–size front, so you choose the operating point
+after the run instead of guessing a weight before it. Continuing from the example above:
+
+```python
+from ga_trees.ga import ParetoOptimizer
+
+calculator = FitnessCalculator()
+
+
+def objectives(tree, X, y):
+    """Validation accuracy up, node count down (negated: NSGA-II maximises both)."""
+    calculator.calculate_fitness(tree, X, y, X_val, y_val)
+    return tree.accuracy_, -tree.get_num_nodes()
+
+
+optimizer = ParetoOptimizer(
+    initializer=initializer,
+    fitness_fn=objectives,
+    mutation_fn=lambda tree: mutation.mutate(tree, GAConfig().mutation_types),
+    random_state=42,
+)
+front = optimizer.evolve_pareto_front(
+    X_fit, y_fit, population_size=80, n_generations=40
+)
+
+points = sorted({(t.get_num_nodes(), round(t.accuracy_, 3)) for t in front})
+for nodes, acc in points:
+    print(f"{nodes:3d} nodes  validation accuracy {acc:.3f}")
+```
+
+```
+  1 nodes  validation accuracy 0.623
+  3 nodes  validation accuracy 0.921
+  5 nodes  validation accuracy 0.974
+```
+
+## When to use it
+
+If all you need is the most accurate small tree on plain accuracy, use CART. It's faster
+and hard to beat at its own game.
+
+Use this framework when the objective is something a greedy split rule can't target
+directly: a cap on distinct features, a feature-cost budget, a custom metric over the whole
+tree, or when you want the full accuracy–size front to choose from.
 
 ## Configs
 
 Every script takes `--config`:
 
-| Config                          | What it's for                                               |
-| ------------------------------- | ----------------------------------------------------------- |
-| `paper.yaml`                    | The pre-registered benchmark ran with this. Don't edit it.  |
-| `paper-repair.yaml`             | Same, with constraint repair on (the sensitivity run)       |
-| `default.yaml`                  | General-purpose starting point                              |
-| `fast.yaml`                     | Small population, few generations, for quick iteration      |
-| `balanced.yaml`                 | Equal weight on accuracy and the size heuristic             |
-| `accuracy_focused.yaml`         | Weight mostly on accuracy, bigger budget                    |
-| `interpretability_focused.yaml` | Weight mostly on the size heuristic; expect stumps          |
-| `optimized.yaml`                | GA settings from an earlier Optuna search, not re-validated |
+| Config                          | What it's for                                                |
+| ------------------------------- | ------------------------------------------------------------ |
+| `default.yaml`                  | General-purpose starting point                               |
+| `fast.yaml`                     | Small population, few generations, for quick iteration       |
+| `accuracy_focused.yaml`         | Weight mostly on accuracy, bigger budget                     |
+| `balanced.yaml`                 | Equal weight on accuracy and the size heuristic              |
+| `interpretability_focused.yaml` | Weight mostly on the size heuristic; expect very small trees |
+| `optimized.yaml`                | GA settings from an earlier Optuna search, not re-validated  |
+| `paper.yaml`                    | The benchmark configuration: 20 CC-18 datasets, nested CV    |
+| `paper-repair.yaml`             | Same, with constraint repair on                              |
 
-## Reproducing the paper
+## Benchmarking
 
-Every number above comes from a committed run. Each folder in
-[`paper/evidence/`](paper/evidence/) has the fold-level CSVs, the seeds, and the exact
-command that produced them. The main two:
+The harness in `ga_trees.benchmark` compares the GA with CART and random search on equal
+terms: nested cross-validation, the same tree space, and an exactly matched number of
+evaluations.
 
 ```bash
-python scripts/frontier_benchmark.py --config configs/paper.yaml --n-jobs 5   # K1, K2 (hours)
-python scripts/benchmark.py --config configs/paper.yaml --outer-repeats 1 --no-depth-tuning --n-jobs 4   # K3
-python scripts/paper_assets.py   # regenerate every table, figure and number in the papers
+# One tuned tree per method, nested CV
+python scripts/benchmark.py --config configs/paper.yaml --datasets wdbc,vehicle --n-jobs 4
+
+# Accuracy–size frontiers, compared by hypervolume
+python scripts/frontier_benchmark.py --config configs/paper.yaml --datasets wdbc,vehicle
 ```
 
-The write-ups:
+Leave out `--datasets` to run the full 20-dataset set. That takes hours.
 
-- [`paper/general/`](paper/general/): the full study as a long-form article
-- [`paper/gecco/`](paper/gecco/): the conference version
-- [`paper/PREREGISTRATION.md`](paper/PREREGISTRATION.md): hypotheses and kill criteria, fixed
-  before the runs
-- [`paper/STATUS.md`](paper/STATUS.md): the one-page summary
+## Research paper
+
+A paper on the full study behind this framework is in preparation: the method, a
+pre-registered benchmark on 20 OpenML-CC18 datasets against CART and random search, and the
+results. It'll be linked here when it's out. Until then, please cite the software:
+
+```bibtex
+@software{hasaki2025gatrees,
+  title  = {GA-Optimized Decision Trees},
+  author = {Hasaki, Ibrahem},
+  year   = {2025},
+  url    = {https://github.com/ibrah5em/ga-optimized-trees},
+  note   = {MIT License}
+}
+```
+
+Earlier versions of this README quoted benchmark numbers ("46–82% smaller trees at
+equivalent accuracy") that didn't survive an audit. They've been withdrawn; the paper will
+carry the real results.
 
 ## Project layout
 
@@ -189,34 +223,28 @@ src/ga_trees/
 ├── genotype/     tree representation
 ├── ga/           engine, operators, NSGA-II, split points, constraint repair
 ├── fitness/      prediction and the fitness function
-├── benchmark/    nested CV, frontiers, baselines for the pre-registered runs
-├── evaluation/   hypervolume, statistics, figures, metrics, visualisation
+├── benchmark/    nested CV, frontiers and baselines
+├── evaluation/   hypervolume, statistics, metrics, visualisation
 ├── baselines/    CART, random forest, XGBoost wrappers
-└── data/         dataset loading (scikit-learn, OpenML, CSV)
-scripts/          CLI entry points: train, benchmark, paper assets
+└── data/         dataset loading (scikit-learn, OpenML, CSV, Excel)
+scripts/          command-line entry points
 configs/          YAML configs
-paper/            pre-registration, evidence, both papers
 tests/            unit and integration tests
 docs/             documentation site source
 ```
 
-## Tests
-
-```bash
-pytest tests/ -v
-pytest tests/unit/ --cov=src/ga_trees --cov-fail-under=80
-```
-
-## Contributing
+## Development
 
 ```bash
 pip install -e .[dev]
 pre-commit install
 pytest tests/ -v
+pytest tests/unit/ --cov=src/ga_trees --cov-fail-under=80
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). The docs site is
-**[ibrah5em.github.io/ga-optimized-trees](https://ibrah5em.github.io/ga-optimized-trees/)**.
+The README figures are generated by `python scripts/readme_figures.py`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the rest, and the
+**[docs site](https://ibrah5em.github.io/ga-optimized-trees/)** for the full API.
 
 ## License
 

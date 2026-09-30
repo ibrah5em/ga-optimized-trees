@@ -212,9 +212,8 @@ plt.savefig("results/figures/size_comparison.png")
 
 ## Benchmark Results
 
-> **⚠️ Withdrawn pending re-run.** The result table that stood here is not reproducible from
-> the code on `main`, and its size comparison used unpruned CART as the baseline. See
-> `paper/CLAIMS.md` for the audit and `paper/PLAN.md` for the replacement protocol.
+> **⚠️ Withdrawn.** The result table that stood here wasn't reproducible from the code on
+> `main`, and its size comparison used unpruned CART as the baseline.
 
 ### Making the CART comparison fair
 
