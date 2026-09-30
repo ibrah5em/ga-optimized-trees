@@ -454,6 +454,34 @@ class TestFeatures:
         assert len(set(counts)) == 1
         assert data["metadata"]["balanced"] is True
 
+    @pytest.mark.parametrize("strategy", ["oversample", "undersample"])
+    def test_balancing_never_leaks_into_test_split(self, loader, temp_dir, strategy):
+        """Resampling must happen after the split, on the training rows only.
+
+        Every row here is unique, so a clean split shares no rows between train
+        and test. Oversampling before the split duplicates minority rows and lets
+        copies land on both sides, which inflates test accuracy.
+        """
+        rng = np.random.RandomState(0)
+        n_major, n_minor = 180, 20
+        X = rng.permutation(np.arange((n_major + n_minor) * 3, dtype=float)).reshape(-1, 3)
+        y = np.array([0] * n_major + [1] * n_minor)
+        csv_path = Path(temp_dir) / "imbalanced.csv"
+        pd.DataFrame(np.column_stack([X, y]), columns=["a", "b", "c", "target"]).to_csv(
+            csv_path, index=False
+        )
+
+        data = loader.load_dataset(str(csv_path), test_size=0.25, balance=strategy, random_state=0)
+
+        train_rows = {tuple(row) for row in data["X_train"]}
+        assert not any(tuple(row) in train_rows for row in data["X_test"])
+        # The test split keeps the real class ratio; only training is resampled.
+        _, test_counts = np.unique(data["y_test"], return_counts=True)
+        assert test_counts.tolist() == [45, 5]
+        _, train_counts = np.unique(data["y_train"], return_counts=True)
+        assert len(set(train_counts.tolist())) == 1
+        assert data["metadata"]["test_size"] == 50
+
 
 # ============================================================================
 # INTEGRATION TESTS

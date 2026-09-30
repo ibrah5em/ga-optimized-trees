@@ -93,11 +93,10 @@ There is no validation split in the return value. If you want the GA to score fi
 held-out data (recommended — see [Training](../user-guides/training.md)), split
 `X_train` yourself with `train_test_split`.
 
-> **⚠️ `balance` resamples before the train/test split.** Oversampling duplicates
-> minority-class rows and then splits, so copies of the same row can end up in both train and
-> test and inflate test accuracy. Use `balance` for exploration only. For an honest
-> evaluation, split first and resample the training split yourself, or use a class-aware
-> metric instead (`FitnessCalculator(classification_metric="balanced_accuracy")`).
+`balance` resamples the training split only, after the train/test split, so the test split
+keeps the real class ratio and never contains copies of training rows. `train_size` in the
+metadata is the size after resampling. If you'd rather not resample at all, a class-aware
+metric does a similar job: `FitnessCalculator(classification_metric="balanced_accuracy")`.
 
 ## Validation and cleaning
 

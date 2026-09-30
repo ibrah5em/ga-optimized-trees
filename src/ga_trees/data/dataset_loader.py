@@ -251,7 +251,9 @@ class DatasetLoader:
             random_state: Random seed
             stratify: Use stratified split for classification
             standardize: Apply standardization
-            balance: Balancing strategy ('oversample', 'undersample', or None)
+            balance: Resample the training split to equal class sizes
+                ('oversample', 'undersample', or None). The test split is
+                never resampled.
 
         Returns:
             Dictionary with keys: X_train, X_test, y_train, y_test,
@@ -316,10 +318,6 @@ class DatasetLoader:
                     f"Consider using a smaller test_size or adding more samples."
                 )
 
-        # Balance if requested
-        if balance:
-            X, y = self._balance_dataset(X, y, strategy=balance, random_state=random_state)
-
         # Train/test split with error handling
         stratify_labels = y if stratify else None
         try:
@@ -336,6 +334,14 @@ class DatasetLoader:
                 )
             else:
                 raise
+
+        # Balance the training split only. Resampling before the split let
+        # oversampled copies of a row land in both train and test, and gave the
+        # test split an artificial class ratio.
+        if balance:
+            X_train, y_train = self._balance_dataset(
+                X_train, y_train, strategy=balance, random_state=random_state
+            )
 
         # Standardize if requested
         scaler = None
