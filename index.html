@@ -380,28 +380,6 @@
     
     
       <li class="md-tabs__item">
-        <a href="research/methodology/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Research
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
         <a href="development/contributing/" class="md-tabs__link">
           
   
@@ -1913,6 +1891,8 @@
       
         
       
+        
+      
     
     
     
@@ -1938,7 +1918,7 @@
   <span class="md-ellipsis">
     
   
-    Research
+    Development
   
 
     
@@ -1951,191 +1931,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Research
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="research/methodology/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Methodology
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="research/results/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Results
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="research/benchmarks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="research/publications/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Publications
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
-        
-          
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Development
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2322,10 +2117,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -2343,8 +2138,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_11">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2515,13 +2310,6 @@
 <div class="stat-desc">Python support</div>
 </div>
 </div>
-<blockquote>
-<p><strong>Where this stands.</strong> The pre-registered benchmark on 20 OpenML-CC18 datasets is done.
-Evolution beats random search over the same tree space at a matched budget, but it does
-<strong>not</strong> beat CART's cost-complexity pruning path, and a tuned GA tree is <strong>not</strong> as
-accurate as tuned CART. Earlier "46–82% smaller trees at equivalent accuracy" claims on
-this site were withdrawn. See <a href="research/results/">Results</a>.</p>
-</blockquote>
 <hr />
 <h2 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <p>Install:</p>
@@ -2581,9 +2369,9 @@ this site were withdrawn. See <a href="research/results/">Results</a>.</p>
 </span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">best</span><span class="o">.</span><span class="n">get_num_nodes</span><span class="p">()</span><span class="si">}</span><span class="s2"> nodes, depth </span><span class="si">{</span><span class="n">best</span><span class="o">.</span><span class="n">get_depth</span><span class="p">()</span><span class="si">}</span><span class="s2">, test accuracy </span><span class="si">{</span><span class="n">accuracy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
 </span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>The pre-registered benchmark itself is <code>scripts/frontier_benchmark.py</code> (frontiers, K1/K2)
-and <code>scripts/benchmark.py</code> (single tuned tree, K3); <code>paper/evidence/</code> has the configs and
-commands for every committed run.</p>
+<p>To compare the GA with CART and random search on your own data, see the benchmarking
+harness: <code>scripts/benchmark.py</code> (one tuned tree per method, nested CV) and
+<code>scripts/frontier_benchmark.py</code> (accuracy–size frontiers).</p>
 <hr />
 <h2 id="documentation">📚 Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <div class="card-grid">
@@ -2623,10 +2411,10 @@ commands for every committed run.</p>
 <p></a></p>
 </div>
 <div class="card">
-<p><a href="research/results/"></p>
+<p><a href="advanced/statistical-tests/"></p>
 <div class="card-icon">📊</div>
-<div class="card-title">Results</div>
-<div class="card-desc">Benchmark tables and statistical tests</div>
+<div class="card-title">Evaluating models</div>
+<div class="card-desc">Comparing methods across datasets, done properly</div>
 <p></a></p>
 </div>
 <div class="card">
@@ -2645,35 +2433,9 @@ commands for every committed run.</p>
 </div>
 </div>
 <hr />
-<h2 id="benchmark-results">📈 Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Question</th>
-<th>Answer</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Does evolution beat random search over the same tree space?</td>
-<td><strong>Yes</strong> — hypervolume +0.66, Holm p = 0.032, 15/20 datasets</td>
-</tr>
-<tr>
-<td>Does the GA's frontier beat CART's pruning path?</td>
-<td><strong>No</strong> — larger hypervolume on 9/20 datasets (45%)</td>
-</tr>
-<tr>
-<td>Is a tuned GA tree as accurate as tuned CART (±2 points)?</td>
-<td><strong>No</strong> — mean −3.9 points; loses &gt; 2 points on 8/20 datasets</td>
-</tr>
-<tr>
-<td>Are the GA's trees smaller?</td>
-<td>Yes — 6.3 leaves vs 18.4, at the accuracy cost above</td>
-</tr>
-</tbody>
-</table>
-<p>Details, per-dataset numbers and the ablations are on the <a href="research/results/">Results</a>
-page and in <code>paper/STATUS.md</code>.</p>
+<h2 id="research-paper">📄 Research paper<a class="headerlink" href="#research-paper" title="Permanent link">&para;</a></h2>
+<p>A paper on the full study behind this framework is in preparation. It'll be linked here
+when it's out; until then, cite the software (see the <a href="faq/faq/">FAQ</a>).</p>
 <hr />
 <h2 id="when-to-use-it">🆚 When to use it<a class="headerlink" href="#when-to-use-it" title="Permanent link">&para;</a></h2>
 <table>
@@ -2699,11 +2461,6 @@ page and in <code>paper/STATUS.md</code>.</p>
 <td>Speed</td>
 <td>Milliseconds</td>
 <td>Seconds to minutes</td>
-</tr>
-<tr>
-<td>Accuracy</td>
-<td>Better on our benchmark</td>
-<td>Behind CART where accuracy keeps rising with tree size</td>
 </tr>
 </tbody>
 </table>

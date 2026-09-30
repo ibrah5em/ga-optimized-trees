@@ -382,28 +382,6 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../research/methodology/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Research
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
         <a href="../../development/contributing/" class="md-tabs__link">
           
   
@@ -2010,6 +1988,8 @@
       
         
       
+        
+      
     
     
     
@@ -2035,7 +2015,7 @@
   <span class="md-ellipsis">
     
   
-    Research
+    Development
   
 
     
@@ -2048,191 +2028,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Research
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/methodology/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Methodology
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/results/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Results
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/benchmarks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/publications/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Publications
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
-        
-          
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Development
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2419,10 +2214,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -2440,8 +2235,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_11">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2713,13 +2508,12 @@ a train/test split plus a little metadata. Everything on this page matches
 <code>DatasetLoader().load_dataset(name, **kwargs)</code>.</p>
 <h2 id="what-it-can-load">What it can load<a class="headerlink" href="#what-it-can-load" title="Permanent link">&para;</a></h2>
 <p><strong>scikit-learn:</strong> <code>iris</code>, <code>wine</code>, <code>breast_cancer</code>, <code>digits</code>, <code>diabetes</code> (regression).</p>
-<p><strong>OpenML-CC18 benchmark set</strong> — the 20 datasets pre-registered for the paper
-(<code>paper/DATASETS.md</code>), keyed by name in <code>DatasetLoader.CC18_BENCHMARK</code>:
+<p><strong>OpenML-CC18 benchmark set</strong> — 20 datasets chosen for benchmarking, keyed by name in <code>DatasetLoader.CC18_BENCHMARK</code>:
 <code>dresses_sales</code>, <code>kc2</code>, <code>climate_crashes</code>, <code>wdbc</code>, <code>ilpd</code>, <code>balance_scale</code>,
 <code>credit_approval</code>, <code>breast_w</code>, <code>eucalyptus</code>, <code>blood_transfusion</code>, <code>diabetes_pima</code>,
 <code>analcatdata_dmft</code>, <code>vehicle</code>, <code>tic_tac_toe</code>, <code>vowel</code>, <code>credit_g</code>, <code>qsar_biodeg</code>, <code>pc1</code>,
 <code>banknote</code>, <code>pc4</code>.</p>
-<p><strong>Other OpenML datasets</strong> (exploration only, not used by the paper): <code>heart</code>,
+<p><strong>Other OpenML datasets</strong> (not in the benchmark set): <code>heart</code>,
 <code>mammography</code>, <code>ionosphere</code>, <code>sonar</code>, <code>hepatitis</code>, <code>titanic</code>, <code>adult</code>, <code>mnist</code>,
 <code>credit_fraud</code>.</p>
 <p>Any other name is tried against OpenML by name as a last resort. The full list, with IDs,

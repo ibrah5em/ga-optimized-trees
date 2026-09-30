@@ -382,28 +382,6 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../research/methodology/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Research
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
         <a href="../../development/contributing/" class="md-tabs__link">
           
   
@@ -1988,6 +1966,8 @@
       
         
       
+        
+      
     
     
     
@@ -2013,7 +1993,7 @@
   <span class="md-ellipsis">
     
   
-    Research
+    Development
   
 
     
@@ -2026,191 +2006,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Research
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/methodology/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Methodology
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/results/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Results
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/benchmarks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../research/publications/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Publications
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
-        
-          
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Development
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2397,10 +2192,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -2418,8 +2213,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_11">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2648,8 +2443,8 @@
 
 
 <h1 id="interpretability-what-is-measured-and-what-is-only-searched-for">Interpretability: what is measured, and what is only searched for<a class="headerlink" href="#interpretability-what-is-measured-and-what-is-only-searched-for" title="Permanent link">&para;</a></h1>
-<p>This page states the project's position after Phase 3 of <code>paper/PLAN.md</code>. It is binding for
-anything written about results: see kill criterion <strong>K4</strong> in <code>paper/PREREGISTRATION.md</code>.</p>
+<p>This page states the project's position on interpretability. It applies to anything written
+about results from this framework.</p>
 <h2 id="reported-measures">Reported measures<a class="headerlink" href="#reported-measures" title="Permanent link">&para;</a></h2>
 <p>Interpretability is reported with established structural proxies only
 [Freitas 2014; Piltaver et al. 2016]:</p>
@@ -2725,7 +2520,7 @@ weighted-sum fitness:</p>
 <p>The composite steers the single-objective search toward small trees, and in that role it
 works. It has <strong>no claimed validity as a measure of human interpretability</strong>, and it appears
 in no reported result. Validating any of these terms would need a forward-simulation user
-study [Doshi-Velez &amp; Kim 2017; Lipton 2018], listed in <code>paper/PLAN.md</code> as a follow-up.</p>
+study [Doshi-Velez &amp; Kim 2017; Lipton 2018].</p>
 <h2 id="a-consequence-worth-knowing">A consequence worth knowing<a class="headerlink" href="#a-consequence-worth-knowing" title="Permanent link">&para;</a></h2>
 <p>The weighting in the composite is the dominant factor in how big a single-objective GA tree
 ends up. At <code>configs/paper.yaml</code>'s weights a tree must gain about 8 accuracy points to justify
