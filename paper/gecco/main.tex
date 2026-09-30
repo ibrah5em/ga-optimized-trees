@@ -18,13 +18,15 @@
 
 \settopmatter{printacmref=false}
 \setcopyright{none}
-\acmConference[GECCO '27]{Genetic and Evolutionary Computation Conference}{July 2027}{}
+\acmConference[GECCO '27]{Genetic and Evolutionary Computation Conference}{July 12--16,
+2027}{Krak\'{o}w, Poland}
 % No copyright block or ISBN/DOI placeholders in the review build.
 \renewcommand\footnotetextcopyrightpermission[1]{}
 
 \begin{document}
 
-\title{Evolution Beats Random Search but Not Pruning: A Pre-Registered Test of
+\title[Evolution Outperforms Random Search but Not Cost-Complexity Pruning]{Evolution
+Outperforms Random Search but Not Cost-Complexity Pruning: A Pre-Registered Test of
 Multi-Objective Evolutionary Decision-Tree Induction}
 
 \author{Anonymous Author(s)}
@@ -68,10 +70,12 @@ induction~\cite{barros2012,kretowski2019,rivera2022} instead scores whole trees,
 multi-objective algorithm such as NSGA-II~\cite{deb2002} it returns a set of trees along
 the accuracy--size trade-off from one run~\cite{zhao2007}. The standard argument for it
 is that a global search over whole trees should find models that greedy induction
-misses: as small, or smaller, at the same accuracy.
+misses: as small, or smaller, at the same accuracy. The comparisons surveyed by Barros et
+al.\ use greedy inducers such as C4.5 and CART as baselines, mostly on UCI datasets, and
+many report similar predictive performance with smaller trees~\cite{barros2012}.
 
-Testing that argument requires two baselines that published comparisons often
-omit~\cite{freitas2004,barros2012}. The first is \emph{random search over the same tree
+Testing that argument requires two further baselines, neither of which appears among the
+comparators that survey lists. The first is \emph{random search over the same tree
 space with the same number of fitness evaluations}~\cite{bergstra2012}: without it, a
 favourable result cannot be attributed to evolution rather than to the representation,
 the fitness or the sampling distribution. The second is CART's \emph{entire}
@@ -112,17 +116,20 @@ number is generated from committed run output.
 %% ---------------------------------------------------------------------------
 \section{Related Work}
 
-\paragraph{Evolutionary tree induction.} Barros et al.~\cite{barros2012} survey roughly a
-hundred evolutionary decision-tree inducers; Kretowski~\cite{kretowski2019} and Rivera-Lopez
-et al.~\cite{rivera2022} cover later global and metaheuristic approaches, and
+\paragraph{Evolutionary tree induction.} Barros et al.~\cite{barros2012} survey
+evolutionary algorithms that induce whole decision trees or design their components;
+Kretowski~\cite{kretowski2019} presents a framework for global evolutionary induction,
+Rivera-Lopez et al.~\cite{rivera2022} review metaheuristic approaches more broadly, and
 \texttt{evtree}~\cite{grubinger2014} is an R implementation of single-objective global
 evolutionary tree induction.
 Multi-objective variants optimise accuracy against size with Pareto
-selection~\cite{zhao2007}; Freitas~\cite{freitas2004} argued early that Pareto approaches
-suit data mining precisely because the trade-off should be presented, not fixed in
-advance. Many comparisons in this literature use a handful of UCI datasets, a single CART tree
-as the baseline, and no baseline that isolates the contribution of the search operators
-from that of the representation; our design targets those three gaps.
+selection~\cite{zhao2007}. Freitas~\cite{freitas2004} argued that weighted formulas,
+which fix the trade-off between criteria in advance, are largely ad hoc, and that Pareto
+and lexicographic approaches are more principled. In the comparisons surveyed by Barros et
+al., the baselines are greedy inducers and the datasets mostly come from
+UCI~\cite{barros2012}; none of the listed comparators isolates the contribution of the
+search operators from that of the representation, which is the gap our random-search
+baseline targets.
 
 \paragraph{Optimal sparse trees.} Exact methods find provably optimal trees under a
 sparsity penalty or depth limit: OCT~\cite{bertsimas2017} via mixed-integer programming,
@@ -161,8 +168,8 @@ pruning and leaf expansion (weights 0.45/0.25/0.25/0.05).
 
 \subsection{Fitness and selection}
 Each training fold is split 80/20 (stratified) into a fitting part and a validation part.
-Leaves are fitted on the former and the tree is scored on the latter, so the search never
-rewards trees for memorising the rows their leaves were fitted on. The multi-objective search uses NSGA-II~\cite{deb2002} (DEAP
+Leaves are fitted on the former and the tree is scored on the latter, so the search does not
+reward trees for memorising the rows their leaves were fitted on. The multi-objective search uses NSGA-II~\cite{deb2002} (DEAP
 implementation~\cite{fortin2012}) over (validation accuracy, $-$node count), population
 80, 40 generations, crossover 0.72, mutation 0.18. Structurally identical individuals
 are removed before environmental selection: crowding distance does not separate clones,
