@@ -14,12 +14,12 @@ python scripts/frontier_benchmark.py --config configs/paper-repair.yaml --n-jobs
 
 ## Result
 
-| Test                                  | Pre-registered (repair off)  | This run (repair on)          |
-| ------------------------------------- | ---------------------------- | ----------------------------- |
-| K1: GA − random search                | +0.662, p_holm 0.032, 15/20  | +0.846, p_holm 0.034          |
-| K2: GA dominance over CART ccp path   | 45% (triggered)              | 45% (triggered)               |
-| GA − archived GA                      | +0.116, p_holm 0.286 (ns)    | +0.544, p_holm 0.025          |
-| Friedman over four methods            | p = 0.202                    | p = 0.041                     |
+| Test                                | Pre-registered (repair off) | This run (repair on) |
+| ----------------------------------- | --------------------------- | -------------------- |
+| K1: GA − random search              | +0.662, p_holm 0.032, 15/20 | +0.846, p_holm 0.034 |
+| K2: GA dominance over CART ccp path | 45% (triggered)             | 45% (triggered)      |
+| GA − archived GA                    | +0.116, p_holm 0.286 (ns)   | +0.544, p_holm 0.025 |
+| Friedman over four methods          | p = 0.202                   | p = 0.041            |
 
 Neither verdict changes. Budget match: 0 of 600 folds unequal. `run.log` is the full console
 output.

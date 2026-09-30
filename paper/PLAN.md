@@ -165,14 +165,14 @@ ______________________________________________________________________
 
 One branch per item, each with an ablation entry. The ablation table is a paper section.
 
-| #   | Change                                                                                                                                                | Where                                                        | Status |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------ |
-| 1   | **Validation-based fitness** — split outer-train into GA-train/GA-val; fit leaves on GA-train, score on GA-val; select champion on validation fitness | `benchmark/methods.py` `holdout_split`, `engine.py` `evolve` | done   |
-| 2   | **Data-driven split points** — thresholds from observed midpoints of samples reaching the node, not `uniform(feature_min, feature_max)`               | `ga/split_points.py`, `engine.py`                            | done   |
+| #   | Change                                                                                                                                                | Where                                                        | Status                               |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| 1   | **Validation-based fitness** — split outer-train into GA-train/GA-val; fit leaves on GA-train, score on GA-val; select champion on validation fitness | `benchmark/methods.py` `holdout_split`, `engine.py` `evolve` | done                                 |
+| 2   | **Data-driven split points** — thresholds from observed midpoints of samples reaching the node, not `uniform(feature_min, feature_max)`               | `ga/split_points.py`, `engine.py`                            | done                                 |
 | 3   | **Greedy seeding** — initialize ~20% of the population with CART trees on bootstrap samples at varying depths                                         | `engine.py` `TreeInitializer`                                | **closed — not pursued** (see below) |
-| 4   | **Constraint repair** — re-check `min_samples_leaf`/`min_samples_split` against data after crossover and mutation (currently enforced only at init)   | `engine.py:357-381`, `improved_crossover.py`                 | **done** 2026-09-29, off by default |
+| 4   | **Constraint repair** — re-check `min_samples_leaf`/`min_samples_split` against data after crossover and mutation (currently enforced only at init)   | `engine.py:357-381`, `improved_crossover.py`                 | **done** 2026-09-29, off by default  |
 | 5   | **Memetic local search** — cheap threshold hill-climb on the elite fraction each generation                                                           | `engine.py` `evolve`                                         | **closed — not pursued** (see below) |
-| 6   | **Fix Pareto objectives** to (validation accuracy, −node_count); report hypervolume + attainment surfaces vs CART's `ccp_alpha` path                  | `benchmark/frontiers.py`                                     | done   |
+| 6   | **Fix Pareto objectives** to (validation accuracy, −node_count); report hypervolume + attainment surfaces vs CART's `ccp_alpha` path                  | `benchmark/frontiers.py`                                     | done                                 |
 
 ______________________________________________________________________
 
@@ -537,12 +537,12 @@ ______________________________________________________________________
 
 Pre-registered in `paper/PREREGISTRATION.md`. Final verdicts (2026-09-29):
 
-| Criterion | Verdict |
-| --------- | ------- |
-| K1 | Not triggered — GA beats budget-matched random search (H3 holds) |
-| K2 | **Triggered** — H1 rejected (45% < 60%) |
-| K3 | **Triggered** — H2 rejected (8/20 datasets lose > 2 points) |
-| K4 | Held |
+| Criterion | Verdict                                                          |
+| --------- | ---------------------------------------------------------------- |
+| K1        | Not triggered — GA beats budget-matched random search (H3 holds) |
+| K2        | **Triggered** — H1 rejected (45% \< 60%)                         |
+| K3        | **Triggered** — H2 rejected (8/20 datasets lose > 2 points)      |
+| K4        | Held                                                             |
 
 ## The target claim, rewritten
 

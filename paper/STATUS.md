@@ -8,12 +8,12 @@ ______________________________________________________________________
 
 ## The headline
 
-| Kill criterion                          | Outcome                                                            |
-| --------------------------------------- | ------------------------------------------------------------------ |
-| **K1** — random search matches the GA   | **Not triggered.** GA ahead by +0.66 hypervolume, p_holm = 0.032, 15/20 datasets |
-| **K2** — GA fails to dominate CART      | **Triggered.** 45% dominance over CART's pruning path; threshold 60% |
-| **K3** — accuracy loss vs CART > 2%     | **Triggered.** 8/20 datasets lose > 2 points (threshold 6/20); H2 rejected |
-| **K4** — composite score as an outcome  | **Held.** It appears in no reported measure                       |
+| Kill criterion                         | Outcome                                                                          |
+| -------------------------------------- | -------------------------------------------------------------------------------- |
+| **K1** — random search matches the GA  | **Not triggered.** GA ahead by +0.66 hypervolume, p_holm = 0.032, 15/20 datasets |
+| **K2** — GA fails to dominate CART     | **Triggered.** 45% dominance over CART's pruning path; threshold 60%             |
+| **K3** — accuracy loss vs CART > 2%    | **Triggered.** 8/20 datasets lose > 2 points (threshold 6/20); H2 rejected       |
+| **K4** — composite score as an outcome | **Held.** It appears in no reported measure                                      |
 
 **What may be claimed:**
 
@@ -47,12 +47,12 @@ ______________________________________________________________________
 
 All added after K1/K2 were known; none can change a verdict, and none did.
 
-| Check                                       | Result                                                              |
-| ------------------------------------------- | ------------------------------------------------------------------- |
-| Constraint repair on (Phase 2 item 4)       | K1 +0.85 (p_holm 0.034), K2 45% — unchanged                         |
-| CART path capped at the GA's depth          | GA dominance 40% — the depth asymmetry does not explain K2          |
-| GOSDT regularisation path (19/20 datasets)  | Beats CART's path on 7/19; GA vs GOSDT not significant (p_holm 0.98) |
-| Reproduction of the committed frontier run  | Bit-identical on the datasets re-run, all 20 datasets' data verified |
+| Check                                      | Result                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| Constraint repair on (Phase 2 item 4)      | K1 +0.85 (p_holm 0.034), K2 45% — unchanged                          |
+| CART path capped at the GA's depth         | GA dominance 40% — the depth asymmetry does not explain K2           |
+| GOSDT regularisation path (19/20 datasets) | Beats CART's path on 7/19; GA vs GOSDT not significant (p_holm 0.98) |
+| Reproduction of the committed frontier run | Bit-identical on the datasets re-run, all 20 datasets' data verified |
 
 ______________________________________________________________________
 

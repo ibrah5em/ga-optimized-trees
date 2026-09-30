@@ -92,12 +92,12 @@ Pre-registered protocol (`paper/PREREGISTRATION.md`): 20 OpenML-CC18 datasets, n
 cross-validation, a random-search baseline matched to the GA's exact evaluation count,
 and CART's full cost-complexity pruning path as the comparator.
 
-| Question                                                     | Answer                                                        |
-| ------------------------------------------------------------ | ------------------------------------------------------------- |
-| Does evolution beat random search over the same tree space?  | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets   |
-| Does the GA's frontier beat CART's pruning path?             | **No** — larger hypervolume on 9/20 datasets (45%)            |
-| Is a tuned GA tree as accurate as tuned CART (±2 points)?    | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
-| Are the GA's trees smaller?                                  | Yes — 6.3 leaves vs 18.4, at the accuracy cost above          |
+| Question                                                    | Answer                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| Does evolution beat random search over the same tree space? | **Yes** — hypervolume +0.66, Holm p = 0.032, 15/20 datasets  |
+| Does the GA's frontier beat CART's pruning path?            | **No** — larger hypervolume on 9/20 datasets (45%)           |
+| Is a tuned GA tree as accurate as tuned CART (±2 points)?   | **No** — mean −3.9 points; loses > 2 points on 8/20 datasets |
+| Are the GA's trees smaller?                                 | Yes — 6.3 leaves vs 18.4, at the accuracy cost above         |
 
 The GA loses on problems where accuracy keeps rising with tree size (vowel, vehicle,
 eucalyptus, tic-tac-toe, …): its fronts stop at small trees. Run data for every number is

@@ -6,11 +6,11 @@
 **first 10 outer folds** (repeat 1) of the committed split. **Added after K2 was known;
 decides nothing.**
 
-| File               | Contents                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------- |
+| File               | Contents                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------ |
 | `gosdt-points.csv` | GOSDT test fronts, with per-fold fit time, timed-out fits and failed fits            |
 | `gosdt-folds.csv`  | Hypervolume for every method on those folds, one reference per dataset over all five |
-| `incomplete.txt`   | Datasets on which GOSDT did not complete                                              |
+| `incomplete.txt`   | Datasets on which GOSDT did not complete                                             |
 
 Outcome: GOSDT completed 19 of 20 datasets. On `qsar_biodeg` (41 features) its search
 queue outgrew memory within the time limit and the process segfaulted, under an 8 GB cap

@@ -6,12 +6,12 @@ It decides nothing and does not reopen K2.**
 
 One change per arm, everything else as `configs/paper.yaml`:
 
-| Arm              | Change                                                               |
-| ---------------- | -------------------------------------------------------------------- |
-| `base`           | none — control; reproduces the committed GA fronts exactly           |
-| `resubstitution` | `fitness.validation_fraction: 0`                                     |
+| Arm              | Change                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| `base`           | none — control; reproduces the committed GA fronts exactly               |
+| `resubstitution` | `fitness.validation_fraction: 0`                                         |
 | `grow-bias`      | `growth_stop_prob: 0`, `expand_leaf` and `prune_subtree` weights swapped |
-| `2x-budget`      | population and generations doubled                                   |
+| `2x-budget`      | population and generations doubled                                       |
 
 `folds.csv` has normalised hypervolume, largest delivered tree and best accuracy per
 (dataset, method, fold), scored against one reference per dataset over all arms and the

@@ -14,17 +14,17 @@ cost-complexity pruning (tuned over depth {3, 4, 5, 6, 8} × `ccp_alpha` on its 
 unconstrained CART, random forest. Both deviations (1 outer repeat; weight-only GA/RS grid)
 were recorded before the run.
 
-| File          | Contents                                                                                 |
-| ------------- | ---------------------------------------------------------------------------------------- |
-| `folds.csv`   | One row per (dataset, method, outer fold): accuracy, F1, selected params, nodes, leaves, depth, features used, mean path length, evaluations |
-| `k3-table.csv`| Per-dataset GA − CART difference, Nadeau–Bengio 90% interval, both K3 readings           |
-| `stats.csv`   | Across-dataset Wilcoxon and TOST from `benchmark.py`                                     |
-| `seeds.json`  | Per-(dataset, fold, method) seeds and protocol block                                     |
-| `config.yaml` | Resolved configuration                                                                   |
-| `run.log`     | Console output                                                                           |
+| File           | Contents                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `folds.csv`    | One row per (dataset, method, outer fold): accuracy, F1, selected params, nodes, leaves, depth, features used, mean path length, evaluations |
+| `k3-table.csv` | Per-dataset GA − CART difference, Nadeau–Bengio 90% interval, both K3 readings                                                               |
+| `stats.csv`    | Across-dataset Wilcoxon and TOST from `benchmark.py`                                                                                         |
+| `seeds.json`   | Per-(dataset, fold, method) seeds and protocol block                                                                                         |
+| `config.yaml`  | Resolved configuration                                                                                                                       |
+| `run.log`      | Console output                                                                                                                               |
 
 **Outcome:** K3 triggered (8/20 datasets lose > 2 points to tuned CART; the corrected TOST
-fails on 18/20). H2 rejected: GA − CART = −0.0385, 90% CI [−0.0694, −0.0076].
+fails on 18/20). H2 rejected: GA − CART = −0.0385, 90% CI \[−0.0694, −0.0076\].
 
 A first attempt at the full weight × depth grid was lost to a container restart after 5 of
 20 datasets (`benchmark.py` then wrote nothing until the end). It now checkpoints each

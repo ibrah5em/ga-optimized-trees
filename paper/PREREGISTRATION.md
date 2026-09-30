@@ -69,14 +69,14 @@ ______________________________________________________________________
 Any deviation from the above must be recorded here with a date and a reason, before the
 affected result is used.
 
-| Date       | Deviation                                                                                                                                                     | Reason                                                                                                                                                                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-07 | Split thresholds now drawn from observed midpoints of the samples reaching each node (`tree.split_strategy: midpoint`), for **both** the GA and random search | The previous `uniform(feature_min, feature_max)` draw is not the candidate set CART searches. Recorded because it changes the shared tree space both budget-matched methods sample from. See the note below — it moves K1 *against* the GA.       |
-| 2026-08-07 | Fitness scored on a 20% stratified holdout of the fitting data (`fitness.validation_fraction: 0.2`), for **both** the GA and random search                    | Fitness was resubstitution: leaf predictions were fitted on the rows they were then scored on, so selection rewarded memorisation. Applied identically to both methods so the budget-matched comparison is unaffected.                            |
-| 2026-08-07 | Random-search budget read as `pop + gens × (pop − n_elite)` rather than the `population_size × n_generations` fixed above                                     | The stated product is not what a GA run costs — elites carry their fitness across generations. Budget-matching to the product under-funded random search by ~9%, biasing K1 toward the GA. `verify_budget_match` reports realised counts per run. |
-| 2026-09-29 | K3 point-estimate run uses **10-fold × 1 repeat** outer CV instead of 10 × 3                                                                                  | Compute. The 10 × 3 run was paced at 9–11 h and was stopped after 2 of 20 datasets. The unit of across-dataset inference (20 datasets) is unchanged; per-dataset intervals are wider. Recorded before the run was started.                          |
-| 2026-09-29 | Loader maps missing categorical values to one token under both pandas 2 and pandas 3                                                                          | pandas 3 changed `astype(str)` on missing values, which silently re-encoded `dresses_sales` and `credit_approval`. After the fix all 20 datasets reproduce the committed CART pruning-path frontier exactly (`scripts/verify_dataset_identity.py`). |
-| 2026-09-29 | Constraint repair (`tree.repair_constraints`) implemented **after** K1/K2 were observed. It is **off** in `configs/paper.yaml`                               | A correctness fix (`paper/CLAIMS.md` lists the constraints as FALSE), not a pre-registered change. Primary results stay on the pre-registered configuration. Repair is reported only as a sensitivity analysis, in both directions, and cannot overturn a verdict. |
+| Date       | Deviation                                                                                                                                                                   | Reason                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-07 | Split thresholds now drawn from observed midpoints of the samples reaching each node (`tree.split_strategy: midpoint`), for **both** the GA and random search               | The previous `uniform(feature_min, feature_max)` draw is not the candidate set CART searches. Recorded because it changes the shared tree space both budget-matched methods sample from. See the note below — it moves K1 *against* the GA.                                                                                                                                     |
+| 2026-08-07 | Fitness scored on a 20% stratified holdout of the fitting data (`fitness.validation_fraction: 0.2`), for **both** the GA and random search                                  | Fitness was resubstitution: leaf predictions were fitted on the rows they were then scored on, so selection rewarded memorisation. Applied identically to both methods so the budget-matched comparison is unaffected.                                                                                                                                                          |
+| 2026-08-07 | Random-search budget read as `pop + gens × (pop − n_elite)` rather than the `population_size × n_generations` fixed above                                                   | The stated product is not what a GA run costs — elites carry their fitness across generations. Budget-matching to the product under-funded random search by ~9%, biasing K1 toward the GA. `verify_budget_match` reports realised counts per run.                                                                                                                               |
+| 2026-09-29 | K3 point-estimate run uses **10-fold × 1 repeat** outer CV instead of 10 × 3                                                                                                | Compute. The 10 × 3 run was paced at 9–11 h and was stopped after 2 of 20 datasets. The unit of across-dataset inference (20 datasets) is unchanged; per-dataset intervals are wider. Recorded before the run was started.                                                                                                                                                      |
+| 2026-09-29 | Loader maps missing categorical values to one token under both pandas 2 and pandas 3                                                                                        | pandas 3 changed `astype(str)` on missing values, which silently re-encoded `dresses_sales` and `credit_approval`. After the fix all 20 datasets reproduce the committed CART pruning-path frontier exactly (`scripts/verify_dataset_identity.py`).                                                                                                                             |
+| 2026-09-29 | Constraint repair (`tree.repair_constraints`) implemented **after** K1/K2 were observed. It is **off** in `configs/paper.yaml`                                              | A correctness fix (`paper/CLAIMS.md` lists the constraints as FALSE), not a pre-registered change. Primary results stay on the pre-registered configuration. Repair is reported only as a sensitivity analysis, in both directions, and cannot overturn a verdict.                                                                                                              |
 | 2026-09-29 | K3 run tunes the GA and random search over accuracy weight {0.5, 0.7, 0.9} only, at the configured depth 6, instead of weight × depth {4, 6, 8}. CART's tuning is unchanged | Compute. The first K3 attempt at the full grid finished 5 of 20 datasets in 4.3 h and was lost to a container restart (≈17 h projected). Direction: it removes a tuning option from the GA but not from CART, so it biases K3 **against** the GA — the conservative side for a criterion that exists to block an equivalence claim. Recorded before the second run was started. |
 
 **Note on the first deviation, recorded before the run.** A 2×2 ablation over three
@@ -210,12 +210,12 @@ searchers.
 
 **K3 — TRIGGERED under both readings.**
 
-| Reading                                   | Datasets against the GA | Threshold      | Verdict       |
-| ----------------------------------------- | ----------------------- | -------------- | ------------- |
-| Primary: mean loss to tuned CART > 0.02   | **8 / 20** (40%)        | > 6 (30%)      | **TRIGGERED** |
-| Secondary: corrected per-dataset TOST     | 18 / 20                 | > 6            | TRIGGERED     |
+| Reading                                 | Datasets against the GA | Threshold | Verdict       |
+| --------------------------------------- | ----------------------- | --------- | ------------- |
+| Primary: mean loss to tuned CART > 0.02 | **8 / 20** (40%)        | > 6 (30%) | **TRIGGERED** |
+| Secondary: corrected per-dataset TOST   | 18 / 20                 | > 6       | TRIGGERED     |
 
-**H2 — rejected.** Across datasets, GA − tuned CART = −0.0385, 90% CI [−0.0694, −0.0076],
+**H2 — rejected.** Across datasets, GA − tuned CART = −0.0385, 90% CI \[−0.0694, −0.0076\],
 TOST p = 0.843: not equivalent within ±0.02. The difference is also not significant
 (Wilcoxon, Holm p = 0.072) — the combination the original "p > 0.05, therefore equivalent"
 claim misread. **"Equivalent accuracy" may not appear in the paper.**
@@ -229,13 +229,12 @@ direction as K1.
 
 ### Final verdicts
 
-| Criterion | Outcome |
-| --------- | ------- |
-| K1 | Not triggered — evolution beats budget-matched random search (H3 holds) |
-| K2 | **Triggered** — H1 rejected |
-| K3 | **Triggered** — H2 rejected; no equivalence claim |
-| K4 | Held — the composite score appears in no reported outcome |
+| Criterion | Outcome                                                                 |
+| --------- | ----------------------------------------------------------------------- |
+| K1        | Not triggered — evolution beats budget-matched random search (H3 holds) |
+| K2        | **Triggered** — H1 rejected                                             |
+| K3        | **Triggered** — H2 rejected; no equivalence claim                       |
+| K4        | Held — the composite score appears in no reported outcome               |
 
 Per the kill criteria: no frontier claim, no equivalence claim. What may be claimed is the
 mechanism result (H3) and controllability of the operating point.
-
