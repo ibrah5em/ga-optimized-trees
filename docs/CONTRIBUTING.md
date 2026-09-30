@@ -115,9 +115,9 @@ def test_tree_crossover_creates_valid_offspring():
     child1, child2 = crossover(parent1, parent2)
 
     # Assert
-    assert child1.is_valid()
-    assert child2.is_valid()
-    assert child1.depth <= MAX_DEPTH
+    assert child1.validate()[0]
+    assert child2.validate()[0]
+    assert child1.get_depth() <= MAX_DEPTH
 ```
 
 ## 📝 Code Style

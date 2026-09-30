@@ -23,12 +23,17 @@ This framework evolves decision trees using genetic algorithms to balance **accu
 | Tree size        | Often large    | N/A (ensemble) | Controllable ✓        |
 | Training time    | Very fast      | Fast           | Moderate              |
 
-### What are the main achievements?
+### What can this framework do?
 
-- **46-82% smaller trees** than CART on benchmark datasets
-- **Statistically equivalent accuracy** (all p-values > 0.05)
-- **Explicit interpretability control** via multi-objective optimization
-- **Configuration-driven** experiments for reproducibility
+- **Explicit control of the accuracy–complexity trade-off** via multi-objective optimization,
+  including a Pareto mode (NSGA-II) that returns a whole frontier from one run
+- **Objectives that need not decompose over splits**, which greedy induction cannot express
+- **Configuration-driven** experiments, so a run is described by a YAML file
+
+Note what is *not* on that list: benchmark claims. Earlier versions of these docs advertised
+46–82% smaller trees at equivalent accuracy. Those claims have been withdrawn — they were not
+reproducible from the code on `main`, the size baseline was unpruned CART, and no equivalence
+test was ever run. See `paper/CLAIMS.md` for the audit and `paper/PLAN.md` for the re-run.
 
 ### Is this ready for production use?
 
@@ -326,29 +331,34 @@ n_generations: 30  # If plateaus by generation 25
 
 ### How do I interpret the results?
 
+The experiment script prints one row per model per dataset:
+
 ```
 Dataset          Model            Test Acc        Nodes
-iris             GA-Optimized     94.55 ± 8.07%   7.4
-iris             CART             92.41 ± 10.43%  16.4
+<name>           GA-Optimized     0.XXXX ± 0.XXXX  N.N
+<name>           CART             0.XXXX ± 0.XXXX  N.N
 ```
 
-**Interpretation:**
+Read the accuracy column together with the node column — a smaller tree at slightly lower
+accuracy may be the point, depending on your fitness weights. Two cautions:
 
-- GA accuracy: 94.55% (± 8.07% std)
-- GA produces 7.4 nodes on average
-- CART produces 16.4 nodes (55% larger)
-- GA has +2.1% higher accuracy
+- The node counts are only comparable if both models face the same constraints. An untuned
+  `DecisionTreeClassifier` is effectively unpruned, so it will always look large.
+- Dispersion across folds of a single CV is not a standard error you can build a test on;
+  folds share training data.
 
 ### What does "p > 0.05" mean?
 
-p-value > 0.05 means **no statistically significant difference**:
+It means the test failed to reject the null hypothesis of no difference. That is **not** the
+same as showing the two models are equivalent — a non-significant result is equally consistent
+with a real difference that the test lacked power to detect.
 
-```
-p = 0.640: No significant difference ✓
-p = 0.03:  Significant difference ✗
-```
+To claim equivalence you need an equivalence test against a margin fixed in advance, such as
+TOST. See [Statistical Testing](../advanced/statistical-tests.md).
 
-Our results show p > 0.05 for all datasets, meaning GA performs **equivalently** to CART statistically.
+Also: a paired t-test across CV folds is not valid, because folds are not independent
+(Dietterich 1998). Compare methods across datasets instead, one paired observation per
+dataset. This project's withdrawn results made both mistakes.
 
 ### Why is my GA accuracy lower than CART?
 
@@ -364,7 +374,10 @@ fitness:
 
 The trade-off:
 
-- **2-3% accuracy loss** for **50-80% smaller trees**
+- a smaller tree for some accuracy loss. How much depends on the dataset: in the
+  pre-registered benchmark a tuned GA tree had about a third of CART's leaves and was
+  within 2 points of tuned CART, or ahead of it, on 12 of 20 datasets, but 2–33 points
+  behind on the other 8 (see `paper/STATUS.md`).
 
 If unacceptable, increase accuracy weight:
 

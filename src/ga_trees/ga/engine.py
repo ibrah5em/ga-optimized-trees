@@ -17,6 +17,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 
 from ga_trees.ga.improved_crossover import safe_subtree_crossover
+from ga_trees.ga.split_points import (
+    MIDPOINT_STRATEGY,
+    UNIFORM_STRATEGY,
+    candidate_thresholds,
+    sample_threshold,
+    samples_reaching,
+    step_threshold,
+    validate_split_strategy,
+)
 from ga_trees.genotype.tree_genotype import (
     Node,
     TreeGenotype,
@@ -25,6 +34,23 @@ from ga_trees.genotype.tree_genotype import (
 )
 
 logger = logging.getLogger(__name__)
+
+#: Per-node probability that :class:`TreeInitializer` stops growing and emits a
+#: leaf, independent of the depth/sample stopping criteria. It controls how
+#: bushy the *initial* population is: 0.0 grows every branch to its structural
+#: limit, higher values bias the population toward stumps.
+DEFAULT_GROWTH_STOP_PROB = 0.3
+
+
+def _fitness_key(tree: TreeGenotype) -> float:
+    """Comparison key that ranks unevaluated individuals last.
+
+    A truthiness test (``t.fitness_ if t.fitness_ else -inf``) buckets a
+    legitimate fitness of exactly 0.0 with the unevaluated ones, which drops
+    those individuals out of elitism, tournaments and the generation
+    statistics. Only ``None`` means "not evaluated yet".
+    """
+    return tree.fitness_ if tree.fitness_ is not None else -np.inf
 
 
 @dataclass
@@ -78,7 +104,22 @@ class GAConfig:
 
 
 class TreeInitializer:
-    """Initialize random decision trees."""
+    """Initialize random decision trees.
+
+    Args:
+        n_features: Number of input features.
+        n_classes: Number of target classes (classification only).
+        max_depth: Maximum depth of a generated tree.
+        min_samples_split: Minimum samples required to split a node.
+        min_samples_leaf: Minimum samples required in each child of a split.
+        task_type: ``"classification"`` or ``"regression"``.
+        growth_stop_prob: Per-node probability of stopping growth early, in
+            [0, 1). Defaults to :data:`DEFAULT_GROWTH_STOP_PROB`.
+        split_strategy: Where thresholds come from — ``"midpoint"`` samples the
+            observed midpoints of the data reaching the node, ``"uniform"`` is
+            the pre-Phase-2 draw across the feature's range. See
+            :mod:`ga_trees.ga.split_points`.
+    """
 
     def __init__(
         self,
@@ -88,13 +129,20 @@ class TreeInitializer:
         min_samples_split: int,
         min_samples_leaf: int,
         task_type: str = "classification",
+        growth_stop_prob: float = DEFAULT_GROWTH_STOP_PROB,
+        split_strategy: str = MIDPOINT_STRATEGY,
     ):
+        if not (0.0 <= growth_stop_prob < 1.0):
+            raise ValueError(f"growth_stop_prob must be in [0, 1), got {growth_stop_prob}.")
+
         self.n_features = n_features
         self.n_classes = n_classes
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.task_type = task_type
+        self.growth_stop_prob = growth_stop_prob
+        self.split_strategy = validate_split_strategy(split_strategy)
 
     def create_random_tree(self, X: np.ndarray, y: np.ndarray) -> TreeGenotype:
         """Create a random valid tree."""
@@ -118,7 +166,7 @@ class TreeInitializer:
             depth >= self.max_depth
             or n_samples < self.min_samples_split
             or len(np.unique(y)) == 1
-            or random.random() < 0.3  # Random early stopping
+            or random.random() < self.growth_stop_prob
         )
 
         if should_stop:
@@ -126,25 +174,28 @@ class TreeInitializer:
             prediction = self._calculate_prediction(y)
             return create_leaf_node(prediction, depth)
 
-        # Create internal node
+        # Create internal node. The feature is drawn uniformly, as it always
+        # was — Phase 2 item 2 changes where the *threshold* comes from and
+        # nothing else, so the ablation attributes the effect to one change.
         feature_idx = random.randint(0, self.n_features - 1)
 
-        # Get threshold from data
-        feature_values = X[:, feature_idx]
-        unique_vals = np.unique(feature_values)
-        if len(unique_vals) > 1:
-            threshold = random.uniform(float(np.min(feature_values)), float(np.max(feature_values)))
-        else:
-            # All values same, create leaf
+        threshold = sample_threshold(
+            X[:, feature_idx],
+            min_samples_leaf=self.min_samples_leaf,
+            strategy=self.split_strategy,
+        )
+        if threshold is None:
+            # The feature is constant here, or no split of it leaves
+            # min_samples_leaf on both sides.
             prediction = self._calculate_prediction(y)
             return create_leaf_node(prediction, depth)
 
-        # Split data
         left_mask = X[:, feature_idx] <= threshold
         right_mask = ~left_mask
 
+        # Under the midpoint strategy the candidate set is pre-filtered on
+        # min_samples_leaf, so this only ever fires for the uniform strategy.
         if np.sum(left_mask) < self.min_samples_leaf or np.sum(right_mask) < self.min_samples_leaf:
-            # Split too small, create leaf
             prediction = self._calculate_prediction(y)
             return create_leaf_node(prediction, depth)
 
@@ -176,16 +227,14 @@ class Selection:
         selected = []
         for _ in range(n_select):
             tournament = random.sample(population, tournament_size)
-            winner = max(tournament, key=lambda t: t.fitness_ if t.fitness_ else -np.inf)
+            winner = max(tournament, key=_fitness_key)
             selected.append(winner.copy())
         return selected
 
     @staticmethod
     def elitism_selection(population: List[TreeGenotype], n_elite: int) -> List[TreeGenotype]:
         """Select top n individuals."""
-        sorted_pop = sorted(
-            population, key=lambda t: t.fitness_ if t.fitness_ else -np.inf, reverse=True
-        )
+        sorted_pop = sorted(population, key=_fitness_key, reverse=True)
         return [ind.copy() for ind in sorted_pop[:n_elite]]
 
 
@@ -265,11 +314,70 @@ class Crossover:
 
 
 class Mutation:
-    """Mutation operators."""
+    """Mutation operators.
 
-    def __init__(self, n_features: int, feature_ranges: Dict[int, Tuple[float, float]]):
+    Args:
+        n_features: Number of input features.
+        feature_ranges: Per-feature ``(min, max)``, used by the ``uniform``
+            strategy and as the fallback when no training matrix is supplied.
+        X: Training design matrix. Supplying it lets the threshold operators
+            draw from the values actually reaching the node being mutated
+            instead of the feature's global range (Phase 2 item 2). Pass the
+            GA-training split, never the validation split — a threshold chosen
+            from data the fitness is scored on leaks it into the search.
+        min_samples_leaf: Minimum samples a split must leave on each side.
+        split_strategy: ``"midpoint"`` or ``"uniform"``. See
+            :mod:`ga_trees.ga.split_points`.
+    """
+
+    def __init__(
+        self,
+        n_features: int,
+        feature_ranges: Dict[int, Tuple[float, float]],
+        X: Optional[np.ndarray] = None,
+        min_samples_leaf: int = 1,
+        split_strategy: str = MIDPOINT_STRATEGY,
+    ):
         self.n_features = n_features
         self.feature_ranges = feature_ranges
+        self.X = X
+        self.min_samples_leaf = min_samples_leaf
+        self.split_strategy = validate_split_strategy(split_strategy)
+
+    def _local_candidates(self, tree: TreeGenotype, node: Node, feature_idx: int) -> np.ndarray:
+        """Valid thresholds for *feature_idx* among the samples reaching *node*.
+
+        Falls back to the feature's marginal distribution when the node is
+        unreachable — crossover can graft a subtree behind a test that no sample
+        satisfies — and to an empty set when there is no training matrix to
+        consult.
+        """
+        if self.X is None or self.split_strategy != MIDPOINT_STRATEGY:
+            return np.empty(0, dtype=float)
+
+        indices = samples_reaching(tree.root, node, self.X)
+        if indices is not None and indices.size > 0:
+            candidates = candidate_thresholds(self.X[indices, feature_idx], self.min_samples_leaf)
+            if candidates.size:
+                return candidates
+
+        return candidate_thresholds(self.X[:, feature_idx], self.min_samples_leaf)
+
+    def _draw_threshold(self, tree: TreeGenotype, node: Node, feature_idx: int) -> float:
+        """Draw a fresh threshold for *feature_idx* at *node*."""
+        candidates = self._local_candidates(tree, node, feature_idx)
+        if candidates.size:
+            return float(candidates[random.randrange(candidates.size)])
+
+        if self.X is not None and self.split_strategy == UNIFORM_STRATEGY:
+            drawn = sample_threshold(self.X[:, feature_idx], strategy=UNIFORM_STRATEGY)
+            if drawn is not None:
+                return drawn
+
+        if feature_idx in self.feature_ranges:
+            min_val, max_val = self.feature_ranges[feature_idx]
+            return random.uniform(min_val, max_val)
+        return 0.0
 
     def mutate(self, tree: TreeGenotype, mutation_types: Dict[str, float]) -> TreeGenotype:
         """Apply mutation to tree based on probabilities."""
@@ -292,15 +400,27 @@ class Mutation:
         return tree
 
     def threshold_perturbation(self, tree: TreeGenotype) -> TreeGenotype:
-        """Perturb threshold of random internal node."""
+        """Perturb threshold of random internal node.
+
+        With training data available the perturbed value is snapped back onto an
+        observed split point, so the step always changes the partition. Without
+        it, this is the original Gaussian jitter clipped to the feature range.
+        """
         internal_nodes = tree.get_internal_nodes()
         if not internal_nodes:
             return tree
 
         node = random.choice(internal_nodes)
+        if node.feature_idx is None or node.threshold is None:
+            return tree
+
+        candidates = self._local_candidates(tree, node, node.feature_idx)
+        if candidates.size:
+            node.threshold = step_threshold(float(node.threshold), candidates)
+            return tree
+
         if node.feature_idx in self.feature_ranges:
             min_val, max_val = self.feature_ranges[node.feature_idx]
-            # Gaussian perturbation
             std = max((max_val - min_val) * 0.1, 1e-6)  # Minimum variance
             new_threshold = node.threshold + random.gauss(0, std)
             node.threshold = np.clip(new_threshold, min_val, max_val)
@@ -317,10 +437,9 @@ class Mutation:
         new_feature = random.randint(0, self.n_features - 1)
         node.feature_idx = new_feature
 
-        # Update threshold to valid range
-        if new_feature in self.feature_ranges:
-            min_val, max_val = self.feature_ranges[new_feature]
-            node.threshold = random.uniform(min_val, max_val)
+        # The old threshold belonged to the old feature and is meaningless on
+        # the new one, so it is redrawn rather than carried over.
+        node.threshold = self._draw_threshold(tree, node, new_feature)
 
         return tree
 
@@ -363,15 +482,16 @@ class Mutation:
             return tree
 
         node = random.choice(expandable_leaves)
+        feature_idx = random.randint(0, self.n_features - 1)
+
+        # Drawn while the node is still a leaf: samples_reaching stops at the
+        # target, so routing is unaffected, but the intent is clearer this way.
+        threshold = self._draw_threshold(tree, node, feature_idx)
+
         # Convert to internal
         node.node_type = "internal"
-        node.feature_idx = random.randint(0, self.n_features - 1)
-
-        if node.feature_idx in self.feature_ranges:
-            min_val, max_val = self.feature_ranges[node.feature_idx]
-            node.threshold = random.uniform(min_val, max_val)
-        else:
-            node.threshold = 0.0
+        node.feature_idx = feature_idx
+        node.threshold = threshold
 
         # Create children
         node.left_child = create_leaf_node(node.prediction, node.depth + 1)
@@ -390,11 +510,16 @@ class GAEngine:
         initializer: TreeInitializer,
         fitness_function: Callable[[TreeGenotype, np.ndarray, np.ndarray], float],
         mutation: Mutation,
+        repair: Optional[Callable[[TreeGenotype], TreeGenotype]] = None,
     ):
         self.config = config
         self.initializer = initializer
         self.fitness_function = fitness_function
         self.mutation = mutation
+        # Optional in-place repair applied to every offspring after variation
+        # (Phase 2 item 4, see ga_trees.ga.repair). None keeps the original
+        # behaviour, where the sample-count constraints hold only at init.
+        self.repair = repair
         self.population: List[TreeGenotype] = []
         self.best_individual: Optional[TreeGenotype] = None
         self.history: Dict[str, List] = {"best_fitness": [], "avg_fitness": [], "diversity": []}
@@ -406,24 +531,66 @@ class GAEngine:
             tree = self.initializer.create_random_tree(X, y)
             self.population.append(tree)
 
-    def evaluate_population(self, X: np.ndarray, y: np.ndarray):
+    def _score(
+        self,
+        tree: TreeGenotype,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: Optional[np.ndarray],
+        y_val: Optional[np.ndarray],
+    ) -> float:
+        """Score one individual, holding out the validation split if there is one.
+
+        The four-argument call is only made when a validation set exists, so
+        fitness functions written against the original three-argument signature
+        keep working unchanged.
+        """
+        if X_val is None or y_val is None:
+            return self.fitness_function(tree, X, y)
+        return self.fitness_function(tree, X, y, X_val, y_val)
+
+    def evaluate_population(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
+    ):
         """Evaluate fitness for entire population."""
         for individual in self.population:
             if individual.fitness_ is None:
-                individual.fitness_ = self.fitness_function(individual, X, y)
+                individual.fitness_ = self._score(individual, X, y, X_val, y_val)
 
-    def evolve(self, X: np.ndarray, y: np.ndarray, verbose: bool = True) -> TreeGenotype:
+    def evolve(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        verbose: bool = True,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
+    ) -> TreeGenotype:
         """
         Main evolution loop.
 
         Args:
-            X: Training features
-            y: Training labels
-            verbose: Print progress
+            X: Training features — leaf predictions are fitted on these.
+            y: Training labels.
+            verbose: Print progress.
+            X_val: Optional held-out features to score fitness on (Phase 2
+                item 1). Without them, fitness is resubstitution: leaves are
+                fitted and scored on the same rows, so the search rewards
+                memorisation and prefers whichever tree overfits hardest.
+                Structure and thresholds are chosen from ``X``/``y`` alone, so
+                the validation split stays genuinely unseen by the search.
+            y_val: Optional held-out labels.
 
         Returns:
-            Best individual found
+            Best individual found, selected by validation fitness when a
+            validation set is supplied.
         """
+        if (X_val is None) != (y_val is None):
+            raise ValueError("X_val and y_val must be supplied together.")
+
         # --- LDD-9: reproducibility ---
         if self.config.random_state is not None:
             random.seed(self.config.random_state)
@@ -431,14 +598,14 @@ class GAEngine:
 
         # Initialize
         self.initialize_population(X, y)
-        self.evaluate_population(X, y)
+        self.evaluate_population(X, y, X_val, y_val)
 
         stagnation_counter = 0
         previous_best_fitness = -np.inf
 
         for generation in range(self.config.n_generations):
             # Track statistics
-            fitnesses = [ind.fitness_ for ind in self.population if ind.fitness_]
+            fitnesses = [ind.fitness_ for ind in self.population if ind.fitness_ is not None]
             if fitnesses:
                 best_fitness = max(fitnesses)
                 avg_fitness = np.mean(fitnesses)
@@ -446,10 +613,9 @@ class GAEngine:
                 self.history["avg_fitness"].append(avg_fitness)
 
                 # Update best individual
-                best_ind = max(self.population, key=lambda t: t.fitness_ if t.fitness_ else -np.inf)
-                if (
-                    self.best_individual is None
-                    or best_ind.fitness_ > self.best_individual.fitness_
+                best_ind = max(self.population, key=_fitness_key)
+                if self.best_individual is None or _fitness_key(best_ind) > _fitness_key(
+                    self.best_individual
                 ):
                     self.best_individual = best_ind.copy()
 
@@ -504,6 +670,10 @@ class GAEngine:
                 if random.random() < self.config.mutation_prob:
                     child2 = self.mutation.mutate(child2, self.config.mutation_types)
 
+                if self.repair is not None:
+                    child1 = self.repair(child1)
+                    child2 = self.repair(child2)
+
                 # Reset fitness (will be evaluated next iteration)
                 child1.fitness_ = None
                 child2.fitness_ = None
@@ -515,7 +685,7 @@ class GAEngine:
             self.population = next_population
 
             # Evaluate new individuals
-            self.evaluate_population(X, y)
+            self.evaluate_population(X, y, X_val, y_val)
 
         return self.best_individual
 

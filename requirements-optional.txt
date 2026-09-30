@@ -13,6 +13,7 @@ mlflow>=2.8.0
 # Baseline model comparisons
 xgboost>=2.0.0
 lightgbm>=4.0.0
+gosdt>=1.0.4  # optimal sparse trees, exploratory frontier baseline
 
 # Model explainability
 shap>=0.43.0

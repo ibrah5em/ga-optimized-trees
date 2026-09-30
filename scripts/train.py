@@ -27,7 +27,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from ga_trees.fitness.calculator import FitnessCalculator
-from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.engine import (
+    DEFAULT_GROWTH_STOP_PROB,
+    GAConfig,
+    GAEngine,
+    Mutation,
+    TreeInitializer,
+)
 
 
 def load_dataset(name: str, label_column=None):
@@ -143,6 +149,7 @@ def merge_config_with_args(config, args, defaults):
         "max_depth": ("tree", "max_depth"),
         "min_samples_split": ("tree", "min_samples_split"),
         "min_samples_leaf": ("tree", "min_samples_leaf"),
+        "growth_stop_prob": ("tree", "growth_stop_prob"),
         "accuracy_weight": ("fitness", "weights", "accuracy"),
         "interpretability_weight": ("fitness", "weights", "interpretability"),
     }
@@ -220,6 +227,12 @@ Examples:
         "--min-samples-split", type=int, default=10, help="Minimum samples to split"
     )
     parser.add_argument("--min-samples-leaf", type=int, default=5, help="Minimum samples in leaf")
+    parser.add_argument(
+        "--growth-stop-prob",
+        type=float,
+        default=DEFAULT_GROWTH_STOP_PROB,
+        help="Per-node probability of stopping growth when seeding the population",
+    )
 
     # Fitness args
     parser.add_argument(
@@ -332,6 +345,7 @@ Examples:
         min_samples_split=args.min_samples_split,
         min_samples_leaf=args.min_samples_leaf,
         task_type="classification",
+        growth_stop_prob=args.growth_stop_prob,
     )
 
     # Get interpretability weights if available
@@ -346,7 +360,12 @@ Examples:
         interpretability_weights=interp_weights,
     )
 
-    mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+    mutation = Mutation(
+        n_features=n_features,
+        feature_ranges=feature_ranges,
+        X=X_train,
+        min_samples_leaf=args.min_samples_leaf,
+    )
 
     # Create GA engine
     ga_engine = GAEngine(

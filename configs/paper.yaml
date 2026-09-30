@@ -1,7 +1,21 @@
 # =============================================================================
-# Paper Configuration - Exact parameters from research paper
-# "Evolving Interpretable Decision Trees via Multi-Objective Genetic Algorithms"
-# Target: 24-77% smaller trees with statistically equivalent accuracy
+# Paper Configuration - the config the pre-registered benchmark ran with.
+#
+# scripts/frontier_benchmark.py and scripts/benchmark.py read it for the K1/K2
+# and K3 runs committed under paper/evidence/; see each run's README for the
+# exact command. Change it and those runs no longer reproduce.
+#
+# The "24-77% smaller trees at statistically equivalent accuracy" target that
+# used to sit on this line was never produced by any run - see paper/CLAIMS.md.
+#
+# Notes:
+#   - classification_metric now reaches FitnessCalculator, and the GA is seeded
+#     per fold. Both were silently dropped until 2026-08-06.
+#   - early_stopping_rounds is honoured if set, and absent means disabled. It is
+#     deliberately not set here: enabling it changes the search budget, which
+#     matters for the budget-matched random-search comparison (paper/PLAN.md).
+#   - semantic_coherence is weighted 0.30. It is an unvalidated search-guidance
+#     term (std of feature depths), not a measure of interpretability.
 # =============================================================================
 
 # Genetic Algorithm Parameters
@@ -24,10 +38,14 @@ tree:
   max_depth: 6
   min_samples_split: 8
   min_samples_leaf: 3
+  growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
 
 # Fitness Function
 fitness:
   mode: weighted_sum
+  validation_fraction: 0.2  # held out from the fitting data to score fitness on;
+                            # 0.0 restores resubstitution fitness
   classification_metric: accuracy    # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
   weights:
     accuracy: 0.68
@@ -41,9 +59,28 @@ fitness:
 
 # Experiment Settings
 experiment:
+  # The pre-registered CC-18 selection - see paper/DATASETS.md.
+  # Do not edit without recording a deviation in that file.
   datasets:
-    - iris
-    - wine
-    - breast_cancer
+    - dresses_sales
+    - kc2
+    - climate_crashes
+    - wdbc
+    - ilpd
+    - balance_scale
+    - credit_approval
+    - breast_w
+    - eucalyptus
+    - blood_transfusion
+    - diabetes_pima
+    - analcatdata_dmft
+    - vehicle
+    - tic_tac_toe
+    - vowel
+    - credit_g
+    - qsar_biodeg
+    - pc1
+    - banknote
+    - pc4
   cv_folds: 20
   random_state: 42

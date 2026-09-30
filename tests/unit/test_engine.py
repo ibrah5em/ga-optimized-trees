@@ -9,10 +9,21 @@ Covers:
 - GAEngine.evolve (random_state seeding, verbose logging)
 """
 
+import random
+
 import numpy as np
 import pytest
 
-from ga_trees.ga.engine import Crossover, GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.engine import (
+    DEFAULT_GROWTH_STOP_PROB,
+    Crossover,
+    GAConfig,
+    GAEngine,
+    Mutation,
+    Selection,
+    TreeInitializer,
+    _fitness_key,
+)
 from ga_trees.genotype.tree_genotype import TreeGenotype, create_internal_node, create_leaf_node
 
 # ---------------------------------------------------------------------------
@@ -353,3 +364,152 @@ class TestGAEngineEvolve:
         engine = self._make_engine(pop_size=10, n_gen=11)
         best = engine.evolve(X, y, verbose=True)
         assert best is not None
+
+
+# ---------------------------------------------------------------------------
+# Zero-fitness handling
+# ---------------------------------------------------------------------------
+
+
+def _tree_with_fitness(fitness):
+    tree = _leaf_tree()
+    tree.fitness_ = fitness
+    return tree
+
+
+class TestZeroFitnessIsNotTreatedAsUnevaluated:
+    """A fitness of exactly 0.0 is a real score, not a missing one.
+
+    The old truthiness guard (``t.fitness_ if t.fitness_ else -inf``) demoted
+    0.0-fitness individuals below every negative-fitness one and dropped them
+    from the generation statistics entirely.
+    """
+
+    def test_fitness_key_maps_zero_to_zero(self):
+        assert _fitness_key(_tree_with_fitness(0.0)) == 0.0
+
+    def test_fitness_key_maps_none_to_negative_infinity(self):
+        assert _fitness_key(_tree_with_fitness(None)) == -np.inf
+
+    def test_elitism_prefers_zero_over_negative(self):
+        population = [_tree_with_fitness(-1.0), _tree_with_fitness(0.0), _tree_with_fitness(-2.0)]
+        elite = Selection.elitism_selection(population, n_elite=1)
+        assert elite[0].fitness_ == 0.0
+
+    def test_elitism_ranks_unevaluated_last(self):
+        population = [_tree_with_fitness(None), _tree_with_fitness(-3.0)]
+        elite = Selection.elitism_selection(population, n_elite=1)
+        assert elite[0].fitness_ == -3.0
+
+    def test_tournament_prefers_zero_over_negative(self):
+        population = [_tree_with_fitness(0.0), _tree_with_fitness(-5.0)]
+        selected = Selection.tournament_selection(population, tournament_size=2, n_select=1)
+        assert selected[0].fitness_ == 0.0
+
+    def test_evolve_tracks_all_zero_fitness_population(self):
+        """With every fitness at 0.0 the run still records history and a best."""
+        X = np.random.rand(30, 4)
+        y = np.random.randint(0, 2, 30)
+        config = GAConfig(population_size=8, n_generations=3, elitism_ratio=0.25)
+        initializer = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        engine = GAEngine(config, initializer, lambda tree, X, y: 0.0, mutation)
+
+        best = engine.evolve(X, y, verbose=False)
+
+        assert best is not None
+        assert best.fitness_ == 0.0
+        assert engine.history["best_fitness"] == [0.0, 0.0, 0.0]
+
+    def test_evolve_elitism_carries_zero_fitness_forward(self):
+        """Elites scoring 0.0 must survive against negative-fitness offspring."""
+        X = np.random.rand(30, 4)
+        y = np.random.randint(0, 2, 30)
+        config = GAConfig(
+            population_size=8,
+            n_generations=2,
+            elitism_ratio=0.25,
+            crossover_prob=0.0,
+            mutation_prob=0.0,
+        )
+        initializer = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+
+        # First generation scores 0.0, later ones score worse.
+        calls = {"n": 0}
+
+        def _decaying_fitness(tree, X, y):
+            calls["n"] += 1
+            return 0.0 if calls["n"] <= config.population_size else -1.0
+
+        engine = GAEngine(config, initializer, _decaying_fitness, mutation)
+        best = engine.evolve(X, y, verbose=False)
+
+        assert best.fitness_ == 0.0
+        assert max(ind.fitness_ for ind in engine.population) == 0.0
+
+
+# ---------------------------------------------------------------------------
+# TreeInitializer.growth_stop_prob
+# ---------------------------------------------------------------------------
+
+
+class TestGrowthStopProb:
+    """The per-node stop probability used to be a hardcoded 0.3."""
+
+    def _mean_nodes(self, growth_stop_prob, n_trees=25, seed=0):
+        rng = np.random.RandomState(seed)
+        X = rng.rand(200, 4)
+        y = rng.randint(0, 2, 200)
+        initializer = TreeInitializer(
+            n_features=4,
+            n_classes=2,
+            max_depth=5,
+            min_samples_split=5,
+            min_samples_leaf=2,
+            growth_stop_prob=growth_stop_prob,
+        )
+        random.seed(seed)
+        return np.mean(
+            [initializer.create_random_tree(X, y).get_num_nodes() for _ in range(n_trees)]
+        )
+
+    def test_defaults_to_module_constant(self):
+        initializer = TreeInitializer(
+            n_features=4, n_classes=2, max_depth=5, min_samples_split=5, min_samples_leaf=2
+        )
+        assert initializer.growth_stop_prob == DEFAULT_GROWTH_STOP_PROB
+
+    def test_stored_when_provided(self):
+        initializer = TreeInitializer(
+            n_features=4,
+            n_classes=2,
+            max_depth=5,
+            min_samples_split=5,
+            min_samples_leaf=2,
+            growth_stop_prob=0.75,
+        )
+        assert initializer.growth_stop_prob == 0.75
+
+    @pytest.mark.parametrize("bad_value", [-0.1, 1.0, 1.5])
+    def test_out_of_range_raises(self, bad_value):
+        with pytest.raises(ValueError, match="growth_stop_prob"):
+            TreeInitializer(
+                n_features=4,
+                n_classes=2,
+                max_depth=5,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                growth_stop_prob=bad_value,
+            )
+
+    def test_zero_prob_never_stops_early(self):
+        """With p=0.0 only the structural criteria stop growth, so trees are bigger."""
+        assert self._mean_nodes(0.0) > self._mean_nodes(0.9)
+
+    def test_high_prob_produces_near_stumps(self):
+        assert self._mean_nodes(0.95) < 5.0

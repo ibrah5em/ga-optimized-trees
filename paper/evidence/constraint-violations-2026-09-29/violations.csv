@@ -1,0 +1,9 @@
+dataset,method,evaluated_trees,evaluated_share_violating,evaluated_internal_share_violating,delivered_trees,delivered_violating_nodes,delivered_internal_nodes
+wdbc,GA (NSGA-II),2603,0.19093353822512485,0.07684815428070517,8,0,25
+wdbc,Random Search,2603,0.0,0.0,6,0,37
+vehicle,GA (NSGA-II),2534,0.19968429360694553,0.08383075842696629,9,1,28
+vehicle,Random Search,2534,0.0,0.0,8,0,44
+credit_g,GA (NSGA-II),2540,0.08149606299212599,0.05340136054421769,3,0,3
+credit_g,Random Search,2540,0.0,0.0,5,0,39
+tic_tac_toe,GA (NSGA-II),2616,0.27102446483180426,0.07796911302446358,6,0,23
+tic_tac_toe,Random Search,2616,0.0,0.0,7,0,46

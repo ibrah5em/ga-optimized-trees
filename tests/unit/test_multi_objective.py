@@ -14,7 +14,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from deap import base, creator
+from deap import base, creator, tools
+from deap.tools.emo import assignCrowdingDist
 
 from ga_trees.ga.engine import Mutation, TreeInitializer
 from ga_trees.ga.multi_objective import ParetoOptimizer, _cleanup_deap_creator
@@ -274,48 +275,31 @@ class TestEvaluate:
 # ---------------------------------------------------------------------------
 
 
-def _assign_crowding_dist_stub(front):
-    """Stub for tools.assignCrowdingDist: sets crowding_dist=0.0 on each individual."""
-    for ind in front:
-        ind.fitness.crowding_dist = 0.0
-
-
-def _patch_deap_tools():
-    """Context manager that patches tools.assignCrowdingDist (missing in DEAP 1.4)."""
-    from deap import tools
-
-    return patch.object(tools, "assignCrowdingDist", _assign_crowding_dist_stub, create=True)
-
-
 class TestEvolveParetoFront:
     """Tests for ParetoOptimizer.evolve_pareto_front."""
 
     def test_returns_list(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert isinstance(result, list)
 
     def test_returns_nonempty_result(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert len(result) > 0
 
     def test_result_contains_tree_genotypes(self, pareto_optimizer, small_iris):
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         for tree in result:
             assert isinstance(tree, TreeGenotype)
 
     def test_verbose_gen_0_hits_print_branch(self, pareto_optimizer, small_iris):
         """verbose=True and 11 generations ensures gen%10==0 branch is hit."""
         X, y = small_iris
-        with _patch_deap_tools():
-            result = pareto_optimizer.evolve_pareto_front(
-                X, y, population_size=8, n_generations=11, verbose=True
-            )
+        result = pareto_optimizer.evolve_pareto_front(
+            X, y, population_size=8, n_generations=11, verbose=True
+        )
         assert len(result) > 0
 
     def test_random_state_reproducibility(self, small_iris, simple_fitness_fn):
@@ -325,12 +309,163 @@ class TestEvolveParetoFront:
         )
         opt1 = ParetoOptimizer(initializer, simple_fitness_fn, lambda t: t, random_state=0)
         opt2 = ParetoOptimizer(initializer, simple_fitness_fn, lambda t: t, random_state=0)
-        # population_size must be divisible by 4 for selTournamentDCD
-        with _patch_deap_tools():
-            r1 = opt1.evolve_pareto_front(X, y, population_size=8, n_generations=2)
-        with _patch_deap_tools():
-            r2 = opt2.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        r1 = opt1.evolve_pareto_front(X, y, population_size=8, n_generations=2)
+        r2 = opt2.evolve_pareto_front(X, y, population_size=8, n_generations=2)
         assert len(r1) == len(r2)
+
+    @pytest.mark.parametrize("population_size", [5, 6, 7, 50])
+    def test_population_size_not_divisible_by_four(
+        self, pareto_optimizer, small_iris, population_size
+    ):
+        """selTournamentDCD rejects k == len(pop) unless divisible by 4.
+
+        configs/fast.yaml ships population_size=50, so this used to be a hard
+        crash for a shipped config.
+        """
+        X, y = small_iris
+        result = pareto_optimizer.evolve_pareto_front(
+            X, y, population_size=population_size, n_generations=2
+        )
+        assert len(result) > 0
+
+    def test_tiny_population_below_pad_width(self, pareto_optimizer, small_iris):
+        """Populations smaller than the pad width (4) still evolve."""
+        X, y = small_iris
+        result = pareto_optimizer.evolve_pareto_front(X, y, population_size=2, n_generations=2)
+        assert len(result) > 0
+
+    def test_mating_pool_keeps_population_size(self, pareto_optimizer, small_iris):
+        """Padding must not leak extra individuals into the offspring list."""
+        X, y = small_iris
+        population = pareto_optimizer._create_population(X, y, 10)
+        pareto_optimizer._evaluate(population, X, y)
+        for front in tools.sortNondominated(population, len(population)):
+            assignCrowdingDist(front)
+        assert len(pareto_optimizer._select_mating_pool(population)) == 10
+
+    def test_zero_population_size_raises(self, pareto_optimizer, small_iris):
+        X, y = small_iris
+        with pytest.raises(ValueError, match="population_size"):
+            pareto_optimizer.evolve_pareto_front(X, y, population_size=0, n_generations=2)
+
+    def test_zero_generations_raises(self, pareto_optimizer, small_iris):
+        X, y = small_iris
+        with pytest.raises(ValueError, match="n_generations"):
+            pareto_optimizer.evolve_pareto_front(X, y, population_size=8, n_generations=0)
+
+
+# ---------------------------------------------------------------------------
+# ParetoOptimizer duplicate elimination
+# ---------------------------------------------------------------------------
+
+
+class TestDeduplicate:
+    """Crowding distance does not remove clones; _deduplicate does."""
+
+    def _individual(self, feature=0, threshold=0.5):
+        left = create_leaf_node(0, 1)
+        right = create_leaf_node(1, 1)
+        root = create_internal_node(feature, threshold, left, right, 0)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        return ParetoOptimizer._wrap_individual(tree)
+
+    def test_removes_structurally_identical_individuals(self, pareto_optimizer):
+        candidates = [self._individual(), self._individual(), self._individual()]
+        assert len(ParetoOptimizer._deduplicate(candidates, minimum=1)) == 1
+
+    def test_keeps_distinct_individuals(self, pareto_optimizer):
+        candidates = [self._individual(threshold=0.1), self._individual(threshold=0.9)]
+        assert len(ParetoOptimizer._deduplicate(candidates, minimum=1)) == 2
+
+    def test_keeps_the_first_occurrence(self, pareto_optimizer):
+        first = self._individual()
+        candidates = [first, self._individual()]
+        assert ParetoOptimizer._deduplicate(candidates, minimum=1)[0] is first
+
+    def test_tops_up_when_below_minimum(self, pareto_optimizer):
+        """selNSGA2 silently returns a short population, so the size must hold."""
+        candidates = [self._individual() for _ in range(6)]
+        assert len(ParetoOptimizer._deduplicate(candidates, minimum=4)) == 4
+
+    def test_never_exceeds_available_candidates(self, pareto_optimizer):
+        candidates = [self._individual() for _ in range(3)]
+        assert len(ParetoOptimizer._deduplicate(candidates, minimum=10)) == 3
+
+    def test_empty_pool(self, pareto_optimizer):
+        assert ParetoOptimizer._deduplicate([], minimum=5) == []
+
+
+class TestEliminateDuplicatesFlag:
+    """The flag is on by default and reaches the evolution loop."""
+
+    def test_defaults_to_enabled(self, pareto_optimizer):
+        assert pareto_optimizer.eliminate_duplicates is True
+
+    def test_can_be_disabled(self, small_iris, simple_fitness_fn):
+        X, _ = small_iris
+        initializer = TreeInitializer(
+            n_features=4, n_classes=3, max_depth=3, min_samples_split=5, min_samples_leaf=2
+        )
+        opt = ParetoOptimizer(
+            initializer, simple_fitness_fn, lambda t: t, eliminate_duplicates=False
+        )
+        assert opt.eliminate_duplicates is False
+
+    def test_front_never_contains_duplicate_trees(self, small_iris):
+        """The regression this guards: a 'front' that is N copies of one tree.
+
+        Holds even when the search collapses — the population may carry clones
+        to keep its size fixed, but the returned front may not.
+        """
+        X, y = small_iris
+        n_features = X.shape[1]
+        initializer = TreeInitializer(
+            n_features=n_features,
+            n_classes=len(np.unique(y)),
+            max_depth=4,
+            min_samples_split=5,
+            min_samples_leaf=2,
+        )
+        feature_ranges = {
+            j: (float(X[:, j].min()), float(X[:, j].max())) for j in range(n_features)
+        }
+        mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+        mutation_types = {
+            "threshold_perturbation": 0.4,
+            "feature_replacement": 0.3,
+            "prune_subtree": 0.2,
+            "expand_leaf": 0.1,
+        }
+
+        def fitness_fn(tree, X_, y_):
+            # Genuinely conflicting objectives, so a real front should exist.
+            return (float(tree.get_num_leaves()), -float(tree.get_num_nodes()))
+
+        opt = ParetoOptimizer(
+            initializer,
+            fitness_fn,
+            lambda t: mutation.mutate(t, mutation_types),
+            random_state=7,
+        )
+        front = opt.evolve_pareto_front(X, y, population_size=12, n_generations=6)
+        signatures = [t.structural_signature() for t in front]
+        assert len(signatures) == len(set(signatures))
+
+    def test_population_size_holds_when_diversity_collapses(self, small_iris):
+        """Deduplication must not shrink the run when uniques fall short."""
+        X, y = small_iris
+        initializer = TreeInitializer(
+            n_features=X.shape[1],
+            n_classes=len(np.unique(y)),
+            max_depth=2,
+            min_samples_split=5,
+            min_samples_leaf=2,
+            growth_stop_prob=0.95,  # seeds almost nothing but stumps
+        )
+        opt = ParetoOptimizer(initializer, lambda t, a, b: (0.5, 0.5), lambda t: t, random_state=3)
+        population = opt._create_population(X, y, 10)
+        opt._evaluate(population, X, y)
+        assert len(ParetoOptimizer._deduplicate(population + population, minimum=10)) == 10
 
 
 # ---------------------------------------------------------------------------

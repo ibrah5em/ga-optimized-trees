@@ -114,14 +114,25 @@ for train_idx, test_idx in skf.split(X, y):
     cart.fit(X_train, y_train)
     cart_scores.append(evaluate_cart(cart, X_test, y_test))
 
-# Statistical test
-t_stat, p_value = stats.ttest_rel(ga_scores, cart_scores)
-print(f"p-value: {p_value:.4f}")
+# Descriptive only - these are folds of one dataset, and folds share training
+# data, so a paired test over them is not interpretable (Dietterich 1998).
+print(f"mean difference: {np.mean(ga_scores) - np.mean(cart_scores):+.4f}")
+print(
+    f"GA sd={np.std(ga_scores, ddof=1):.4f}, CART sd={np.std(cart_scores, ddof=1):.4f}"
+)
+```
 
-if p_value > 0.05:
-    print("No significant difference (statistically equivalent)")
-else:
-    print("Significant difference detected")
+To make a claim, repeat this over several datasets and test across them:
+
+```python
+from ga_trees.evaluation.statistics import compare_across_datasets, equivalence_test
+
+# One mean score per dataset
+result = compare_across_datasets(ga_per_dataset, cart_per_dataset, "GA", "CART")
+print(result.p_value, result.underpowered)
+
+# "No significant difference" is not equivalence - test for it directly
+print(equivalence_test(ga_per_dataset, cart_per_dataset, margin=0.02).equivalent)
 ```
 
 ## Comparison Metrics
@@ -201,19 +212,24 @@ plt.savefig("results/figures/size_comparison.png")
 
 ## Benchmark Results
 
-### Target Results (configs/paper.yaml)
+> **⚠️ Withdrawn pending re-run.** The result table that stood here is not reproducible from
+> the code on `main`, and its size comparison used unpruned CART as the baseline. See
+> `paper/CLAIMS.md` for the audit and `paper/PLAN.md` for the replacement protocol.
 
-| Dataset       | GA Acc | CART Acc | p-value | GA Nodes | CART Nodes | Reduction |
-| ------------- | ------ | -------- | ------- | -------- | ---------- | --------- |
-| Iris          | 94.55% | 92.41%   | 0.186   | 7.4      | 16.4       | 55%       |
-| Wine          | 88.19% | 87.22%   | 0.683   | 10.7     | 20.7       | 48%       |
-| Breast Cancer | 91.05% | 91.57%   | 0.640   | 6.5      | 35.5       | 82%       |
+### Making the CART comparison fair
 
-**Key Findings:**
+Worth stating plainly, because it is the flaw that inflated every size claim on this project:
+`DecisionTreeClassifier(max_depth=6)` is not a pruned tree. Comparing an evolved tree that is
+explicitly penalised for node count against a greedy tree that is not penalised at all
+measures the absence of pruning.
 
-- All p-values > 0.05 → Statistical equivalence ✓
-- GA produces 46-82% smaller trees
-- Minimal accuracy loss for significant size reduction
+A defensible comparison needs, at minimum:
+
+- `ccp_alpha` selected by inner cross-validation, not left at `0.0`
+- `min_samples_split` and `min_samples_leaf` matched to the GA's tree constraints
+- the same preprocessing applied to both
+- the full `ccp_alpha` pruning path retained, so the comparison is frontier against frontier
+  rather than one operating point against another
 
 ## Custom Baseline Addition
 

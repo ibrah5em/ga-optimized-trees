@@ -143,6 +143,43 @@ class TreeGenotype:
         """Get number of leaf nodes."""
         return len(self.get_all_leaves())
 
+    def structural_signature(self, threshold_decimals: int = 9) -> tuple:
+        """Hashable fingerprint of the tree's structure and split values.
+
+        Two trees with the same signature encode the same decision function and
+        are the same point in the search space, whatever their node IDs or
+        object identity. Used to detect duplicate individuals, which crowding
+        distance alone does not remove.
+
+        Thresholds are rounded because crossover and mutation move them through
+        float arithmetic, so bitwise-identical trees can otherwise differ in the
+        last ulp.
+
+        Args:
+            threshold_decimals: Decimal places to round split thresholds to.
+
+        Returns:
+            A nested tuple suitable for use in a ``set`` or as a dict key.
+        """
+
+        def encode(node: Node) -> tuple:
+            if node is None:
+                return ("none",)
+            if node.is_leaf():
+                prediction = node.prediction
+                if isinstance(prediction, np.ndarray):
+                    prediction = tuple(np.round(prediction, threshold_decimals).tolist())
+                return ("leaf", prediction)
+            return (
+                "internal",
+                node.feature_idx,
+                round(float(node.threshold), threshold_decimals),
+                encode(node.left_child),
+                encode(node.right_child),
+            )
+
+        return encode(self.root)
+
     def get_all_nodes(self) -> List[Node]:
         """Get list of all nodes in tree."""
         nodes = []

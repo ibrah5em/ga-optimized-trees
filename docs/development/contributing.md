@@ -137,7 +137,7 @@ import numpy as np
 import pandas as pd
 
 # Local
-from src.ga_trees.genotype.tree import TreeGenotype
+from ga_trees.genotype import TreeGenotype
 ```
 
 **Naming Conventions**:

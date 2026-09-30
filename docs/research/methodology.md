@@ -1,22 +1,41 @@
 # Research Methodology
 
-## Experimental Design
+> **This is not the paper's protocol.** It describes `scripts/experiment.py`, the original
+> quick-comparison script, annotated with what is wrong with it as a basis for claims. The
+> pre-registered benchmark uses nested CV on 20 CC-18 datasets instead: see
+> [Benchmarks](benchmarks.md) for the protocol and [Results](results.md) for what it found.
+
+## Current protocol, and its defects
 
 ### Datasets
 
-- **Iris**: 150 samples, 4 features, 3 classes (simple)
-- **Wine**: 178 samples, 13 features, 3 classes (medium)
-- **Breast Cancer**: 569 samples, 30 features, 2 classes (complex)
+- **Iris**: 150 samples, 4 features, 3 classes
+- **Wine**: 178 samples, 13 features, 3 classes
+- **Breast Cancer**: 569 samples, 30 features, 2 classes
+
+All three are saturated — accuracy differences between reasonable methods sit inside fold
+noise, so the suite cannot separate methods. The replacement suite is roughly 20 datasets
+from OpenML CC-18, frozen before any run.
 
 ### Cross-Validation
 
-- **20-fold stratified CV** for statistical rigor
-- Same folds for GA and baselines (paired testing)
-- Random seed: 42 (reproducibility)
+- **20-fold stratified CV**, same folds for the GA and the baselines
+
+The shared folds are real, and paired comparison across them is the right intent. The
+remaining problem is that there is no inner loop, so nothing is tuned and model selection
+happens on the same folds used for reporting.
+
+**Seeding was fixed on 2026-08-06.** Until then `scripts/experiment.py` built `GAConfig`
+without `random_state`, so seed 42 reached only the CV splitter and no GA run was
+reproducible. Each fold now gets a distinct seed derived deterministically from
+`(base_seed, dataset, method, fold)` via `ga_trees.reproducibility.derive_fold_seed`, and the
+seeds actually used are written to `results/seeds-{config}-{date}.json` beside every run.
+Per-fold derivation matters because `GAEngine.evolve` seeds `random` and `numpy.random`
+globally — one seed shared across folds would make every fold repeat the same search.
 
 ### Hyperparameters
 
-**GA (configs/paper.yaml)**:
+**GA (`configs/paper.yaml`)**:
 
 ```yaml
 population_size: 80
@@ -28,14 +47,50 @@ interpretability_weight: 0.32
 max_depth: 6
 ```
 
+Nothing here is tuned; the values were fixed by hand.
+
+`classification_metric` was read from the config and silently discarded until 2026-08-06; it
+now reaches `FitnessCalculator`, and an unrecognised value raises instead of falling back to
+accuracy. `early_stopping_rounds` is honoured when present and disabled when absent.
+
+Still outstanding: the tree constraints (`min_samples_split`, `min_samples_leaf`) are enforced
+only at initialization. Neither crossover nor `expand_leaf` re-checks them against data, so
+evolved trees can violate the constraints the config advertises.
+
+Fitness is **resubstitution accuracy**. Leaf predictions are fit on `X` and then scored on
+the same `X`, and the champion is selected on training fit. A validation split is supported
+by `FitnessCalculator` but never supplied.
+
 **CART Baseline**:
 
 ```python
 DecisionTreeClassifier(max_depth=6, random_state=42)
 ```
 
+Untuned, with no `ccp_alpha` and no `min_samples_*` matched to the GA's constraints. This is
+the central flaw in the size comparison: it is effectively an unpruned baseline, so any tree
+penalised for node count looks small next to it.
+
 ### Statistical Tests
 
-- **Paired t-test**: Compare GA vs CART on same folds
-- **Cohen's d**: Measure effect size
-- **Significance level**: α = 0.05
+- **Paired t-test** across folds, **Cohen's d**, α = 0.05
+
+The t-test across cross-validation folds is invalid — folds share training data and are not
+independent (Dietterich 1998). Standard deviations use `np.std` at default `ddof=0`. And a
+non-significant result was reported as equivalence, which does not follow.
+
+## Replacement protocol
+
+Specified in `paper/PLAN.md`, pre-registered in `paper/PREREGISTRATION.md`:
+
+| Item             | Value                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| Outer evaluation | 10-fold stratified CV × 3 repeats                                                  |
+| Inner tuning     | 5-fold CV, applied identically to every method                                     |
+| Baselines        | inner-CV-tuned CART, unconstrained CART, budget-matched random search, RF, XGBoost |
+| Fitness          | fit leaves on a GA-train split, score on a held-out GA-validation split            |
+| Across-dataset   | Wilcoxon signed-rank; Friedman + Nemenyi with critical-difference diagrams         |
+| Equivalence      | TOST against a pre-registered 2% absolute-accuracy margin                          |
+| Multiplicity     | Holm correction across datasets, α = 0.05                                          |
+| Complexity axis  | node count                                                                         |
+| Seeding          | `random_state` into `GAConfig`, deterministic per-fold seeds, `seeds.json`         |

@@ -1,918 +1,184 @@
-"""
-Comprehensive visualization of GA experiment results.
+#!/usr/bin/env python
+"""Publication figures, generated from committed benchmark output.
 
-Creates publication-quality figures showing:
-1. Accuracy comparison (bar chart)
-2. Tree size comparison (bar chart)
-3. Accuracy vs Interpretability trade-off (scatter)
-4. Speed comparison (bar chart)
-5. Summary statistics table
+Reads the fold-level CSV written by ``scripts/benchmark.py`` and draws only
+figures the pre-registration licenses. There are no numbers in this file. Given
+no result file it exits with an error rather than drawing anything.
 
-Usage:
+The previous version of this script carried two module-level dicts, ``RESULTS``
+and ``PAPER_RESULTS``, and rendered them into figures captioned "GA Achieves
+46-82% Tree Size Reduction" and "Statistical Equivalence to CART (All p > 0.05 =
+No Significant Difference)". Those numbers were never produced by any run
+(``paper/CLAIMS.md``), and that second caption is the cross-fold paired t-test
+the project retired in ``0d446e7`` as invalid. It was the last thing in the repo
+able to regenerate the withdrawn claims.
+
+Examples
+--------
     python scripts/visualize_comprehensive.py
+    python scripts/visualize_comprehensive.py --results results/nested/folds-paper-2026-08-07.csv
 """
 
+import argparse
+import sys
 from pathlib import Path
 
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
+import matplotlib
 
-# Set style for publication-quality plots
-sns.set_style("whitegrid")
-sns.set_context("paper", font_scale=1.3)
-plt.rcParams["figure.dpi"] = 100
-plt.rcParams["savefig.dpi"] = 300
-plt.rcParams["font.family"] = "sans-serif"
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
 
-# our results
-RESULTS = {
-    "iris": {
-        "GA": {"acc": 95.33, "std": 3.40, "nodes": 7.4, "depth": 2.4, "time": 3.41},
-        "CART": {"acc": 94.67, "std": 2.67, "nodes": 13.8, "depth": 4.4, "time": 0.00},
-        "RF": {"acc": 95.33, "std": 3.40, "time": 0.46},
-    },
-    "wine": {
-        "GA": {"acc": 87.60, "std": 3.96, "nodes": 9.0, "depth": 3.0, "time": 5.50},
-        "CART": {"acc": 89.32, "std": 3.80, "nodes": 17.8, "depth": 4.4, "time": 0.00},
-        "RF": {"acc": 97.75, "std": 2.13, "time": 0.53},
-    },
-    "breast_cancer": {
-        "GA": {"acc": 90.34, "std": 3.36, "nodes": 4.2, "depth": 1.4, "time": 7.12},
-        "CART": {"acc": 92.80, "std": 2.30, "nodes": 27.4, "depth": 5.0, "time": 0.02},
-        "RF": {"acc": 95.08, "std": 1.18, "time": 0.50},
-    },
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from ga_trees.evaluation.figures import (  # noqa: E402
+    accuracy_complexity_frontier,
+    accuracy_delta_bars,
+    critical_difference_diagram,
+    load_fold_results,
+    load_frontier_results,
+    method_scores_by_dataset,
+    summary_table,
+)
+from ga_trees.evaluation.statistics import friedman_nemenyi  # noqa: E402
 
-# Results from 20-fold CV using configs/paper.yaml — used for paper/thesis figures.
-# These differ from RESULTS above, which come from the default 5-fold CV run.
-PAPER_RESULTS = {
-    "iris": {
-        "ga_acc": 94.55,
-        "cart_acc": 92.41,
-        "ga_nodes": 7.4,
-        "cart_nodes": 16.4,
-        "p_val": 0.186,
-        "size_reduction_pct": 55,
-    },
-    "wine": {
-        "ga_acc": 88.19,
-        "cart_acc": 87.22,
-        "ga_nodes": 10.7,
-        "cart_nodes": 20.7,
-        "p_val": 0.683,
-        "size_reduction_pct": 48,
-    },
-    "breast_cancer": {
-        "ga_acc": 91.05,
-        "cart_acc": 91.57,
-        "ga_nodes": 6.5,
-        "cart_nodes": 35.5,
-        "p_val": 0.640,
-        "size_reduction_pct": 82,
-    },
-}
+#: The three methods the frontier scatter draws, in palette order. Capped at
+#: three because the categorical palette only validates all-pairs separation at
+#: three slots — see ga_trees.evaluation.figures.SERIES_COLORS.
+FRONTIER_METHODS = ("GA-Optimized", "Random Search", "CART (pruned)")
+
+plt.rcParams.update(
+    {
+        "figure.dpi": 110,
+        "savefig.dpi": 300,
+        "font.family": "sans-serif",
+        "axes.facecolor": "#fcfcfb",
+        "figure.facecolor": "#fcfcfb",
+    }
+)
 
 
-def create_statistical_equivalence():
-    """Create p-value horizontal bar chart showing statistical equivalence to CART.
-
-    Highlights that all p-values exceed the 0.05 threshold, meaning GA and
-    CART accuracy are statistically indistinguishable on all three datasets.
-    Saved as both PNG and PDF for use in papers and presentations.
-    """
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    datasets = ["Iris", "Wine", "Breast Cancer"]
-    p_values = [PAPER_RESULTS[k]["p_val"] for k in ["iris", "wine", "breast_cancer"]]
-    colors = ["#3498db", "#3498db", "#27ae60"]  # Green highlights the target achievement
-
-    ax.barh(datasets, p_values, color=colors, edgecolor="black", linewidth=1.2, alpha=0.9)
-
-    ax.axvline(
-        0.05, color="red", linestyle="--", linewidth=1.8, label="α = 0.05 (significance threshold)"
-    )
-    ax.axvline(
-        0.55, color="orange", linestyle=":", linewidth=1.8, alpha=0.8, label="Target p-value (0.55)"
-    )
-
-    for i, (dataset, p) in enumerate(zip(datasets, p_values)):
-        ax.text(p + 0.03, i, f"p = {p:.3f}", va="center", fontsize=11, fontweight="bold")
-
-    ax.set_xlabel("p-value (Paired t-test, 20-fold CV)", fontsize=12, fontweight="bold")
-    ax.set_title(
-        "Statistical Equivalence to CART\n(All p > 0.05 = No Significant Difference)",
-        fontsize=13,
-        fontweight="bold",
-        pad=12,
-    )
-    ax.legend(loc="lower right", fontsize=10)
-    ax.set_xlim(0, 0.75)
-    ax.grid(axis="x", alpha=0.25, linestyle="--")
-
-    output_dir = Path("results/figures")
+def _save(fig, output_dir: Path, stem: str) -> None:
+    """Write a figure as PNG and PDF."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(output_dir / "paper_fig2_statistical_equiv.png", dpi=300, bbox_inches="tight")
-    plt.savefig(output_dir / "paper_fig2_statistical_equiv.pdf", bbox_inches="tight")
-    print("✓ Saved: paper_fig2_statistical_equiv.png / .pdf")
-    plt.close()
+    for suffix in ("png", "pdf"):
+        fig.savefig(output_dir / f"{stem}.{suffix}", bbox_inches="tight")
+    plt.close(fig)
+    print(f"  wrote {output_dir / stem}.png / .pdf")
 
 
-def create_publication_figures():
-    """Generate all four publication-quality figures for the research paper/thesis.
-
-    Uses PAPER_RESULTS (20-fold CV, paper.yaml config) and saves each figure
-    as both PNG (300 dpi) and PDF.  Run experiment.py with configs/paper.yaml
-    first to reproduce the underlying results.
-
-    Figures produced:
-        paper_fig1_size_reduction   — GA vs CART node-count bar chart
-        paper_fig2_statistical_equiv — p-value horizontal bar chart (unique to paper)
-        paper_fig3_pareto_tradeoff  — accuracy vs nodes scatter with arrows
-        paper_table_summary         — results summary rendered as an image
-    """
-    output_dir = Path("results/figures")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Publication style overrides (serif font, higher DPI) applied locally so
-    # they do not bleed into the comprehensive figures generated by main().
-    orig_family = plt.rcParams["font.family"]
-    orig_size = plt.rcParams["font.size"]
-    plt.rcParams["font.family"] = "serif"
-    plt.rcParams["font.size"] = 10
-    sns.set_palette("colorblind")
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument(
+        "--results",
+        default="results/nested",
+        help="folds-*.csv from scripts/benchmark.py, or a directory holding one",
+    )
+    parser.add_argument("--output-dir", default="results/figures", help="Where to write figures")
+    parser.add_argument(
+        "--reference",
+        default="CART (pruned)",
+        help="Baseline for the per-dataset accuracy difference figure",
+    )
+    parser.add_argument(
+        "--frontier-results",
+        default="results/frontiers",
+        help=(
+            "frontier-folds-*.csv from scripts/frontier_benchmark.py, or a directory. "
+            "Drives the hypervolume figures that K1 and H1 are stated on."
+        ),
+    )
+    args = parser.parse_args()
 
     try:
-        # --- Figure 1: Size Reduction ---
-        fig, ax = plt.subplots(figsize=(8, 5))
-        datasets_labels = ["Iris", "Wine", "Breast\nCancer"]
-        keys = ["iris", "wine", "breast_cancer"]
-        ga_nodes = [PAPER_RESULTS[k]["ga_nodes"] for k in keys]
-        cart_nodes = [PAPER_RESULTS[k]["cart_nodes"] for k in keys]
-        reductions = [PAPER_RESULTS[k]["size_reduction_pct"] for k in keys]
+        frame = load_fold_results(args.results)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
-        x = np.arange(len(datasets_labels))
-        width = 0.35
-        ax.bar(
-            x - width / 2,
-            ga_nodes,
-            width,
-            label="GA",
-            color="#2ecc71",
-            edgecolor="black",
-            linewidth=1.2,
+    output_dir = Path(args.output_dir)
+    datasets = sorted(frame["dataset"].unique())
+    methods = sorted(frame["method"].unique())
+    print(f"Source   : {frame.attrs['source']}")
+    print(f"Datasets : {len(datasets)} — {', '.join(datasets)}")
+    print(f"Methods  : {', '.join(methods)}\n")
+
+    fig, ax = plt.subplots(figsize=(7.2, 5.0))
+    accuracy_complexity_frontier(frame, ax, methods=FRONTIER_METHODS)
+    _save(fig, output_dir, "fig1_accuracy_complexity")
+
+    if args.reference in methods and "GA-Optimized" in methods:
+        fig, ax = plt.subplots(figsize=(7.2, max(3.0, 0.42 * len(datasets) + 1.6)))
+        accuracy_delta_bars(frame, ax, method="GA-Optimized", reference=args.reference)
+        _save(fig, output_dir, "fig2_accuracy_delta")
+    else:
+        print(f"  skipped fig2: needs 'GA-Optimized' and '{args.reference}' in the results")
+
+    scores = method_scores_by_dataset(frame)
+    friedman = friedman_nemenyi(scores)
+    if friedman.critical_difference is None:
+        print(
+            f"  skipped fig3 (critical difference): {friedman.note or 'omnibus test did not run'}"
         )
-        ax.bar(
-            x + width / 2,
-            cart_nodes,
-            width,
-            label="CART",
-            color="#e74c3c",
-            alpha=0.85,
-            edgecolor="black",
-            linewidth=1.2,
-        )
+    else:
+        fig, ax = plt.subplots(figsize=(8.0, 1.1 + 0.42 * len(scores)))
+        critical_difference_diagram(friedman, ax)
+        _save(fig, output_dir, "fig3_critical_difference")
 
-        for i, (ga, cart, red) in enumerate(zip(ga_nodes, cart_nodes, reductions)):
-            color = "#27ae60" if 46 <= red <= 49 else "#2c3e50"
-            ax.text(
-                i,
-                max(ga, cart) + 2,
-                f"{red}%",
-                ha="center",
-                fontsize=11,
-                fontweight="bold",
-                color=color,
-            )
-
-        ax.set_ylabel("Number of Nodes", fontsize=12, fontweight="bold")
-        ax.set_xlabel("Dataset", fontsize=12, fontweight="bold")
-        ax.set_title(
-            "GA Achieves 46–82% Tree Size Reduction", fontsize=13, fontweight="bold", pad=12
-        )
-        ax.set_xticks(x)
-        ax.set_xticklabels(datasets_labels, fontsize=11)
-        ax.legend(loc="upper left", fontsize=10, framealpha=0.95)
-        ax.grid(axis="y", alpha=0.25, linestyle="--")
-        ax.set_ylim(0, 40)
-        plt.tight_layout()
-        plt.savefig(output_dir / "paper_fig1_size_reduction.png", dpi=300, bbox_inches="tight")
-        plt.savefig(output_dir / "paper_fig1_size_reduction.pdf", bbox_inches="tight")
-        print("✓ Saved: paper_fig1_size_reduction.png / .pdf")
-        plt.close()
-
-        # --- Figure 2: Statistical Equivalence ---
-        create_statistical_equivalence()
-
-        # --- Figure 3: Pareto Trade-off Scatter ---
-        fig, ax = plt.subplots(figsize=(8, 6))
-        for key, display in [
-            ("iris", "Iris"),
-            ("wine", "Wine"),
-            ("breast_cancer", "Breast Cancer"),
-        ]:
-            d = PAPER_RESULTS[key]
-            ax.scatter(
-                d["ga_nodes"],
-                d["ga_acc"],
-                s=200,
-                alpha=0.85,
-                color="#2ecc71",
-                marker="o",
-                edgecolors="black",
-                linewidth=1.2,
-            )
-            ax.scatter(
-                d["cart_nodes"],
-                d["cart_acc"],
-                s=140,
-                alpha=0.8,
-                color="#e74c3c",
-                marker="s",
-                edgecolors="black",
-                linewidth=1.2,
-            )
-            ax.annotate(
-                "",
-                xy=(d["ga_nodes"], d["ga_acc"]),
-                xytext=(d["cart_nodes"], d["cart_acc"]),
-                arrowprops=dict(arrowstyle="->", lw=1.2, color="gray", alpha=0.6),
-            )
-
-        ax.axhspan(90, 95, alpha=0.03, color="green", zorder=0)
-        ax.axvspan(0, 15, alpha=0.03, color="blue", zorder=0)
-        ax.text(8.0, 94.5, "Ideal region", fontsize=10, color="darkgreen", fontweight="bold")
-
-        legend_elements = [
-            plt.Line2D(
-                [0],
-                [0],
-                marker="o",
-                color="w",
-                markerfacecolor="#2ecc71",
-                markersize=10,
-                label="GA (Smaller)",
-                markeredgecolor="black",
-                markeredgewidth=1.2,
-            ),
-            plt.Line2D(
-                [0],
-                [0],
-                marker="s",
-                color="w",
-                markerfacecolor="#e74c3c",
-                markersize=8,
-                label="CART (Baseline)",
-                markeredgecolor="black",
-                markeredgewidth=1.2,
-            ),
-        ]
-        ax.legend(handles=legend_elements, loc="lower right", fontsize=11, framealpha=0.95)
-        ax.set_xlabel("Tree Size (Number of Nodes)", fontsize=12, fontweight="bold")
-        ax.set_ylabel("Accuracy (%)", fontsize=12, fontweight="bold")
-        ax.set_title(
-            "GA Finds Pareto-Optimal Solutions\n(Smaller trees, competitive accuracy)",
-            fontsize=13,
-            fontweight="bold",
-            pad=12,
-        )
-        ax.grid(True, alpha=0.25, linestyle="--")
-        ax.set_xlim(0, 40)
-        ax.set_ylim(85, 96)
-        plt.tight_layout()
-        plt.savefig(output_dir / "paper_fig3_pareto_tradeoff.png", dpi=300, bbox_inches="tight")
-        plt.savefig(output_dir / "paper_fig3_pareto_tradeoff.pdf", bbox_inches="tight")
-        print("✓ Saved: paper_fig3_pareto_tradeoff.png / .pdf")
-        plt.close()
-
-        # --- Summary Table ---
-        fig, ax = plt.subplots(figsize=(12, 4))
-        ax.axis("off")
-        table_data = [
-            ["Iris", "94.55 ± 8.07%", "92.41 ± 10.43%", "0.186", "7.4", "16.4", "55%"],
-            ["Wine", "88.19 ± 10.39%", "87.22 ± 10.70%", "0.683", "10.7", "20.7", "48%"],
-            ["Breast Cancer", "91.05 ± 5.60%", "91.57 ± 3.92%", "0.640", "6.5", "35.5", "82%"],
-        ]
-        headers = [
-            "Dataset",
-            "GA Accuracy",
-            "CART Accuracy",
-            "p-value",
-            "GA Nodes",
-            "CART Nodes",
-            "Reduction",
-        ]
-        table = ax.table(
-            cellText=table_data,
-            colLabels=headers,
-            cellLoc="center",
-            loc="center",
-            colWidths=[0.15, 0.15, 0.15, 0.12, 0.12, 0.12, 0.12],
-        )
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.scale(1, 2.5)
-        for col_idx in range(len(headers)):
-            cell = table[(0, col_idx)]
-            cell.set_facecolor("#34495e")
-            cell.set_text_props(weight="bold", color="white")
-        for row_idx in range(1, len(table_data) + 1):
-            p_val = float(table_data[row_idx - 1][3])
-            if p_val > 0.05:
-                table[(row_idx, 3)].set_facecolor("#d5f4e6")
-            reduction = int(table_data[row_idx - 1][6].replace("%", ""))
-            table[(row_idx, 6)].set_facecolor("#f9e79f" if 46 <= reduction <= 49 else "#d5f4e6")
-        ax.set_title(
-            "Complete Results Summary (20-fold CV)", fontsize=14, fontweight="bold", pad=12
-        )
-        plt.tight_layout()
-        plt.savefig(output_dir / "paper_table_summary.png", dpi=300, bbox_inches="tight")
-        print("✓ Saved: paper_table_summary.png")
-        plt.close()
-
-    finally:
-        # Restore original rcParams so callers aren't affected.
-        plt.rcParams["font.family"] = orig_family
-        plt.rcParams["font.size"] = orig_size
-
-
-def create_accuracy_comparison():
-    """Create accuracy comparison bar chart."""
-    fig, ax = plt.subplots(figsize=(12, 6))
-
-    datasets = ["Iris", "Wine", "Breast Cancer"]
-    x = np.arange(len(datasets))
-    width = 0.25
-
-    # Extract data
-    ga_acc = [
-        RESULTS["iris"]["GA"]["acc"],
-        RESULTS["wine"]["GA"]["acc"],
-        RESULTS["breast_cancer"]["GA"]["acc"],
-    ]
-    ga_std = [
-        RESULTS["iris"]["GA"]["std"],
-        RESULTS["wine"]["GA"]["std"],
-        RESULTS["breast_cancer"]["GA"]["std"],
-    ]
-
-    cart_acc = [
-        RESULTS["iris"]["CART"]["acc"],
-        RESULTS["wine"]["CART"]["acc"],
-        RESULTS["breast_cancer"]["CART"]["acc"],
-    ]
-    cart_std = [
-        RESULTS["iris"]["CART"]["std"],
-        RESULTS["wine"]["CART"]["std"],
-        RESULTS["breast_cancer"]["CART"]["std"],
-    ]
-
-    rf_acc = [
-        RESULTS["iris"]["RF"]["acc"],
-        RESULTS["wine"]["RF"]["acc"],
-        RESULTS["breast_cancer"]["RF"]["acc"],
-    ]
-    rf_std = [
-        RESULTS["iris"]["RF"]["std"],
-        RESULTS["wine"]["RF"]["std"],
-        RESULTS["breast_cancer"]["RF"]["std"],
-    ]
-
-    # Plot bars
-    bars1 = ax.bar(
-        x - width,
-        ga_acc,
-        width,
-        yerr=ga_std,
-        label="GA-Optimized",
-        color="#FF6B6B",
-        alpha=0.85,
-        capsize=5,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-    bars2 = ax.bar(
-        x,
-        cart_acc,
-        width,
-        yerr=cart_std,
-        label="CART",
-        color="#4ECDC4",
-        alpha=0.85,
-        capsize=5,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-    bars3 = ax.bar(
-        x + width,
-        rf_acc,
-        width,
-        yerr=rf_std,
-        label="Random Forest",
-        color="#95E1D3",
-        alpha=0.85,
-        capsize=5,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-
-    # Customize
-    ax.set_ylabel("Test Accuracy (%)", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Dataset", fontsize=14, fontweight="bold")
-    ax.set_title("Model Accuracy Comparison", fontsize=16, fontweight="bold", pad=20)
-    ax.set_xticks(x)
-    ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc="lower right", fontsize=11, framealpha=0.95)
-    ax.set_ylim([82, 100])
-    ax.grid(axis="y", alpha=0.3, linestyle="--")
-
-    # Add value labels
-    def autolabel(bars, values):
-        for bar, val in zip(bars, values):
-            height = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width() / 2.0,
-                height + 1,
-                f"{val:.1f}%",
-                ha="center",
-                va="bottom",
-                fontsize=9,
-                fontweight="bold",
-            )
-
-    autolabel(bars1, ga_acc)
-    autolabel(bars2, cart_acc)
-    autolabel(bars3, rf_acc)
-
-    plt.tight_layout()
-
-    output_dir = Path("results/figures")
+    table = summary_table(frame)
+    table_path = output_dir / "summary-table.csv"
     output_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_dir / "accuracy_comparison.png", bbox_inches="tight")
-    print("✓ Saved: accuracy_comparison.png")
-    plt.close()
+    table.to_csv(table_path)
+    print(f"  wrote {table_path}\n")
+    print(table.round(4).to_string())
+
+    _frontier_figures(args.frontier_results, output_dir)
+    return 0
 
 
-def create_tree_size_comparison():
-    """Create tree size comparison - THE WINNING CHART."""
-    fig, ax = plt.subplots(figsize=(12, 6))
+def _frontier_figures(source: str, output_dir: Path) -> None:
+    """Hypervolume figures — the quantity K1 and H1 are actually stated on."""
+    try:
+        frame = load_frontier_results(source)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"\n  skipped frontier figures: {exc}")
+        return
 
-    datasets = ["Iris", "Wine", "Breast Cancer"]
-    x = np.arange(len(datasets))
-    width = 0.35
+    print(f"\nFrontier source: {frame.attrs['source']}")
+    methods = sorted(frame["method"].unique())
+    ga = next((m for m in methods if m.startswith("GA") and "archived" not in m), None)
+    if ga is None:
+        print("  skipped: no GA method in the frontier results")
+        return
 
-    ga_nodes = [
-        RESULTS["iris"]["GA"]["nodes"],
-        RESULTS["wine"]["GA"]["nodes"],
-        RESULTS["breast_cancer"]["GA"]["nodes"],
-    ]
-    cart_nodes = [
-        RESULTS["iris"]["CART"]["nodes"],
-        RESULTS["wine"]["CART"]["nodes"],
-        RESULTS["breast_cancer"]["CART"]["nodes"],
-    ]
-
-    # Plot bars
-    ax.bar(
-        x - width / 2,
-        ga_nodes,
-        width,
-        label="GA-Optimized",
-        color="#FF6B6B",
-        alpha=0.85,
-        edgecolor="black",
-        linewidth=1.5,
-    )
-    ax.bar(
-        x + width / 2,
-        cart_nodes,
-        width,
-        label="CART",
-        color="#4ECDC4",
-        alpha=0.85,
-        edgecolor="black",
-        linewidth=1.5,
-    )
-
-    # Customize
-    ax.set_ylabel("Number of Nodes", fontsize=14, fontweight="bold")
-    ax.set_xlabel("Dataset", fontsize=14, fontweight="bold")
-    ax.set_title(
-        "Tree Complexity: GA Produces 2-7× Smaller Trees", fontsize=16, fontweight="bold", pad=20
-    )
-    ax.set_xticks(x)
-    ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc="upper left", fontsize=11, framealpha=0.95)
-    ax.grid(axis="y", alpha=0.3, linestyle="--")
-
-    # Add value labels with reduction percentage
-    for i, (ga, cart) in enumerate(zip(ga_nodes, cart_nodes)):
-        # GA bar
-        ax.text(
-            i - width / 2,
-            ga + 1,
-            f"{ga:.1f}",
-            ha="center",
-            va="bottom",
-            fontsize=10,
-            fontweight="bold",
+    for reference, stem in (
+        ("Random Search", "fig4_hypervolume_vs_random"),
+        ("CART (ccp path)", "fig5_hypervolume_vs_cart"),
+    ):
+        if reference not in methods:
+            continue
+        datasets = frame["dataset"].nunique()
+        fig, ax = plt.subplots(figsize=(7.6, max(3.0, 0.42 * datasets + 1.6)))
+        accuracy_delta_bars(
+            frame, ax, method=ga, reference=reference, column="hypervolume", label="Hypervolume"
         )
-        # CART bar
-        ax.text(
-            i + width / 2,
-            cart + 1,
-            f"{cart:.1f}",
-            ha="center",
-            va="bottom",
-            fontsize=10,
-            fontweight="bold",
-        )
+        _save(fig, output_dir, stem)
 
-        # Add reduction arrow and percentage
-        reduction = (1 - ga / cart) * 100
-        mid_x = i
-        mid_y = max(ga, cart) + 3
-        ax.annotate(
-            f"{reduction:.0f}% smaller",
-            xy=(mid_x, mid_y),
-            fontsize=10,
-            ha="center",
-            color="green",
-            fontweight="bold",
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="yellow", alpha=0.7),
-        )
-
-    plt.tight_layout()
-    plt.savefig(Path("results/figures") / "tree_size_comparison.png", bbox_inches="tight")
-    print("✓ Saved: tree_size_comparison.png")
-    plt.close()
-
-
-def create_tradeoff_scatter():
-    """Create accuracy vs interpretability scatter plot."""
-    fig, ax = plt.subplots(figsize=(10, 8))
-
-    # Prepare data
-    colors = {"GA": "#FF6B6B", "CART": "#4ECDC4"}
-    markers = {"GA": "o", "CART": "s"}
-    sizes = {"GA": 300, "CART": 200}
-
-    for dataset, display_name in [
-        ("iris", "Iris"),
-        ("wine", "Wine"),
-        ("breast_cancer", "Breast Cancer"),
-    ]:
-        for model in ["GA", "CART"]:
-            acc = RESULTS[dataset][model]["acc"]
-            nodes = RESULTS[dataset][model]["nodes"]
-            interpretability = 100.0 / nodes  # Inverse of nodes
-
-            ax.scatter(
-                interpretability,
-                acc,
-                s=sizes[model],
-                alpha=0.7,
-                color=colors[model],
-                marker=markers[model],
-                edgecolors="black",
-                linewidth=2,
-                label=f"{model}" if dataset == "iris" else "",
-            )
-
-            # Add labels
-            offset = 0.3 if model == "GA" else -0.3
-            ax.annotate(
-                f"{model}\n({display_name})",
-                xy=(interpretability, acc),
-                xytext=(10 * np.sign(offset), offset),
-                textcoords="offset points",
-                fontsize=9,
-                ha="left" if offset > 0 else "right",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor=colors[model], alpha=0.3),
-            )
-
-    # Add ideal region
-    ax.axhspan(92, 100, alpha=0.1, color="green", label="High Accuracy Zone")
-    ax.axvspan(5, 25, alpha=0.1, color="blue", label="High Interpretability Zone")
-
-    ax.set_xlabel("Interpretability Score", fontsize=13, fontweight="bold")
-    ax.set_ylabel("Test Accuracy (%)", fontsize=13, fontweight="bold", labelpad=30)
-    ax.set_title("Accuracy-Interpretability Trade-off", fontsize=15, fontweight="bold", pad=20)
-    ax.grid(True, alpha=0.3, linestyle="--")
-
-    # Custom legend
-    from matplotlib.lines import Line2D
-
-    legend_elements = [
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="w",
-            markerfacecolor="#FF6B6B",
-            markersize=12,
-            label="GA-Optimized",
-            markeredgecolor="black",
-            markeredgewidth=1.5,
+    scores = method_scores_by_dataset(frame, column="hypervolume")
+    friedman = friedman_nemenyi(scores)
+    if friedman.critical_difference is None:
+        print(f"  skipped fig6: {friedman.note or 'omnibus test did not run'}")
+        return
+    fig, ax = plt.subplots(figsize=(8.6, 1.1 + 0.42 * len(scores)))
+    critical_difference_diagram(
+        friedman,
+        ax,
+        title=(
+            f"Hypervolume ranks over {friedman.n_datasets} datasets "
+            f"(Friedman p = {friedman.p_value:.4f})"
         ),
-        Line2D(
-            [0],
-            [0],
-            marker="s",
-            color="w",
-            markerfacecolor="#4ECDC4",
-            markersize=10,
-            label="CART",
-            markeredgecolor="black",
-            markeredgewidth=1.5,
-        ),
-    ]
-    ax.legend(handles=legend_elements, loc="lower left", fontsize=11, framealpha=0.95)
-
-    # Add annotation for sweet spot
-    ax.annotate(
-        "GA Sweet Spot:\nHigh Interpretability\n+ Good Accuracy",
-        xy=(13.5, 90.34),
-        xytext=(18, 85),
-        arrowprops=dict(arrowstyle="->", lw=2, color="darkgreen"),
-        fontsize=10,
-        fontweight="bold",
-        color="darkgreen",
-        bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgreen", alpha=0.8),
     )
-
-    plt.tight_layout()
-    plt.savefig(Path("results/figures") / "tradeoff_scatter.png", bbox_inches="tight")
-    print("✓ Saved: tradeoff_scatter.png")
-    plt.close()
-
-
-def create_speed_comparison():
-    """Create training speed comparison."""
-    fig, ax = plt.subplots(figsize=(12, 6))
-
-    datasets = ["Iris", "Wine", "Breast Cancer"]
-    x = np.arange(len(datasets))
-    width = 0.25
-
-    ga_time = [
-        RESULTS["iris"]["GA"]["time"],
-        RESULTS["wine"]["GA"]["time"],
-        RESULTS["breast_cancer"]["GA"]["time"],
-    ]
-    cart_time = [
-        RESULTS["iris"]["CART"]["time"] + 0.01,
-        RESULTS["wine"]["CART"]["time"] + 0.01,
-        RESULTS["breast_cancer"]["CART"]["time"] + 0.01,
-    ]  # Add 0.01 to show on log scale
-    rf_time = [
-        RESULTS["iris"]["RF"]["time"],
-        RESULTS["wine"]["RF"]["time"],
-        RESULTS["breast_cancer"]["RF"]["time"],
-    ]
-
-    # Plot bars
-    bars1 = ax.bar(
-        x - width,
-        ga_time,
-        width,
-        label="GA-Optimized",
-        color="#FF6B6B",
-        alpha=0.85,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-    bars2 = ax.bar(
-        x,
-        cart_time,
-        width,
-        label="CART",
-        color="#4ECDC4",
-        alpha=0.85,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-    bars3 = ax.bar(
-        x + width,
-        rf_time,
-        width,
-        label="Random Forest",
-        color="#95E1D3",
-        alpha=0.85,
-        edgecolor="black",
-        linewidth=1.2,
-    )
-
-    ax.set_ylabel("Training Time (seconds, log scale)", fontsize=13, fontweight="bold")
-    ax.set_xlabel("Dataset", fontsize=13, fontweight="bold")
-    ax.set_title("Training Speed Comparison", fontsize=15, fontweight="bold", pad=20)
-    ax.set_xticks(x)
-    ax.set_xticklabels(datasets, fontsize=12)
-    ax.legend(loc="upper left", fontsize=11, framealpha=0.95)
-    ax.set_yscale("log")
-    ax.grid(axis="y", alpha=0.3, linestyle="--", which="both")
-
-    # Add value labels
-    for bars, times in [(bars1, ga_time), (bars2, cart_time), (bars3, rf_time)]:
-        for bar, time in zip(bars, times):
-            height = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width() / 2.0,
-                height * 1.2,
-                f"{time:.2f}s",
-                ha="center",
-                va="bottom",
-                fontsize=9,
-            )
-
-    plt.tight_layout()
-    plt.savefig(Path("results/figures") / "speed_comparison.png", bbox_inches="tight")
-    print("✓ Saved: speed_comparison.png")
-    plt.close()
-
-
-def create_summary_table():
-    """Create comprehensive summary table as image."""
-    fig, ax = plt.subplots(figsize=(14, 8))
-    ax.axis("off")
-
-    # Prepare data
-    table_data = []
-    headers = ["Dataset", "Model", "Accuracy", "Nodes", "Depth", "Time (s)", "Size Ratio"]
-
-    for dataset, display_name in [
-        ("iris", "Iris"),
-        ("wine", "Wine"),
-        ("breast_cancer", "Breast\nCancer"),
-    ]:
-        for model in ["GA", "CART", "RF"]:
-            if model == "RF":
-                row = [
-                    display_name if model == "GA" else "",
-                    "Random Forest",
-                    f"{RESULTS[dataset][model]['acc']:.2f}%",
-                    "N/A",
-                    "N/A",
-                    f"{RESULTS[dataset][model]['time']:.2f}",
-                    "N/A",
-                ]
-            else:
-                ga_nodes = RESULTS[dataset]["GA"]["nodes"]
-                cart_nodes = RESULTS[dataset]["CART"]["nodes"]
-                ratio = ga_nodes / cart_nodes
-
-                row = [
-                    display_name if model == "GA" else "",
-                    "GA-Optimized" if model == "GA" else "CART",
-                    f"{RESULTS[dataset][model]['acc']:.2f}%",
-                    f"{RESULTS[dataset][model]['nodes']:.1f}",
-                    f"{RESULTS[dataset][model]['depth']:.1f}",
-                    f"{RESULTS[dataset][model]['time']:.2f}",
-                    f"{ratio:.2f}×" if model == "GA" else "1.00×",
-                ]
-            table_data.append(row)
-
-    # Create table
-    table = ax.table(
-        cellText=table_data,
-        colLabels=headers,
-        cellLoc="center",
-        loc="center",
-        colWidths=[0.12, 0.16, 0.12, 0.10, 0.10, 0.12, 0.12],
-    )
-
-    table.auto_set_font_size(False)
-    table.set_fontsize(10)
-    table.scale(1, 2.5)
-
-    # Style header
-    for i in range(len(headers)):
-        cell = table[(0, i)]
-        cell.set_facecolor("#4ECDC4")
-        cell.set_text_props(weight="bold", color="white")
-
-    # Style cells - highlight GA rows
-    for i, row in enumerate(table_data, start=1):
-        if "GA-Optimized" in row[1]:
-            for j in range(len(headers)):
-                table[(i, j)].set_facecolor("#FFE5E5")
-        elif "CART" in row[1]:
-            for j in range(len(headers)):
-                table[(i, j)].set_facecolor("#E5F5F5")
-
-        # Highlight best accuracy
-        # ... (styling continues)
-
-    ax.set_title("Comprehensive Results Summary", fontsize=16, fontweight="bold", pad=20)
-
-    plt.tight_layout()
-    plt.savefig(Path("results/figures") / "summary_table.png", bbox_inches="tight")
-    print("✓ Saved: summary_table.png")
-    plt.close()
-
-
-def create_key_findings():
-    """Create key findings summary image."""
-    fig, ax = plt.subplots(figsize=(12, 10))
-    ax.axis("off")
-
-    findings_text = """
-    🏆 KEY FINDINGS 🏆
-
-    1. INTERPRETABILITY WIN
-       • GA produces 2-7× SMALLER trees than CART
-       • Iris: 7.4 nodes vs 13.8 (46% smaller)
-       • Wine: 9.0 nodes vs 17.8 (49% smaller)
-       • Breast Cancer: 4.2 nodes vs 27.4 (85% smaller!) ⭐
-
-    2. ACCURACY TRADE-OFF
-       • Iris: 95.33% (GA) vs 94.67% (CART) → +0.7% BETTER! ✓
-       • Wine: 87.60% (GA) vs 89.32% (CART) → -1.7% loss
-       • Breast Cancer: 90.34% (GA) vs 92.80% (CART) → -2.5% loss
-       • Average loss: -1.2% for 4.7× smaller trees
-
-    3. SPEED
-       • GA: 3-7 seconds per dataset (fast enough!)
-       • CART: <0.1 seconds (baseline)
-       • Trade-off acceptable for offline training
-
-    4. STATISTICAL SIGNIFICANCE
-       • All differences p > 0.05 (not significant)
-       • Breast Cancer: p = 0.0513 (borderline!)
-       • Cohen's d = -0.853 (large effect size)
-
-    5. PRACTICAL VALUE
-       ✓ Medical: Explainable diagnosis (4 nodes = 2-3 rules)
-       ✓ Finance: Regulatory compliance
-       ✓ Legal: Defendable decisions
-       ✓ Trust: Human-understandable models
-
-    6. COMPARISON TO ENSEMBLE
-       • Random Forest: 95-98% accuracy (best)
-       • BUT: Black box, 100+ trees
-       • GA: Interpretable single tree with competitive accuracy
-
-    CONCLUSION: GA successfully optimizes for interpretability
-    with minimal accuracy loss. Ideal for domains where
-    explanation matters more than 1-2% accuracy gain.
-    """
-
-    ax.text(
-        0.05,
-        0.95,
-        findings_text,
-        transform=ax.transAxes,
-        fontsize=11,
-        verticalalignment="top",
-        fontfamily="monospace",
-        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
-    )
-
-    plt.tight_layout()
-    plt.savefig(Path("results/figures") / "key_findings.png", bbox_inches="tight")
-    print("✓ Saved: key_findings.png")
-    plt.close()
-
-
-def main():
-    """Generate all visualizations."""
-    print("\n" + "=" * 70)
-    print("Creating Comprehensive Visualizations")
-    print("=" * 70 + "\n")
-
-    create_accuracy_comparison()
-    create_tree_size_comparison()
-    create_tradeoff_scatter()
-    create_speed_comparison()
-    create_summary_table()
-    create_key_findings()
-
-    print("\n" + "=" * 70)
-    print("Creating Publication Figures (paper/thesis quality)")
-    print("=" * 70 + "\n")
-
-    create_publication_figures()
-
-    print("\n" + "=" * 70)
-    print("All Visualizations Created!")
-    print("=" * 70)
-    print("\nSaved to: results/figures/")
-    print("\nComprehensive figures:")
-    print("  1. accuracy_comparison.png")
-    print("  2. tree_size_comparison.png")
-    print("  3. tradeoff_scatter.png")
-    print("  4. speed_comparison.png")
-    print("  5. summary_table.png")
-    print("  6. key_findings.png")
-    print("\nPublication figures (PNG + PDF):")
-    print("  7. paper_fig1_size_reduction.png / .pdf")
-    print("  8. paper_fig2_statistical_equiv.png / .pdf")
-    print("  9. paper_fig3_pareto_tradeoff.png / .pdf")
-    print(" 10. paper_table_summary.png")
-    print("\n" + "=" * 70 + "\n")
+    _save(fig, output_dir, "fig6_hypervolume_critical_difference")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

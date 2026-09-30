@@ -152,6 +152,19 @@ class DataValidator:
         return X, y
 
 
+def _categorical_as_str(column: pd.Series) -> pd.Series:
+    """String view of a categorical column with missing values as ``"missing_value"``.
+
+    pandas 2 turned a missing category into the string ``"nan"`` under
+    ``astype(str)``; pandas 3 keeps it missing. The committed benchmark runs
+    were produced under pandas 2, so both paths are mapped to the same token —
+    otherwise the label encoding, and with it every tree, shifts with the
+    pandas version on any dataset that has a missing categorical value.
+    """
+    as_str = column.astype(object).where(column.notna(), "missing_value").astype(str)
+    return as_str.replace("nan", "missing_value")
+
+
 class DatasetLoader:
     """
     Comprehensive dataset loader supporting multiple sources.
@@ -160,26 +173,54 @@ class DatasetLoader:
     # Built-in scikit-learn datasets
     SKLEARN_DATASETS = {"iris", "wine", "breast_cancer", "digits", "diabetes"}
 
-    # OpenML dataset IDs (curated selection)
-    OPENML_DATASETS = {
-        # Classification
-        "credit_g": 31,  # German Credit
-        "heart": 4,  # Heart Disease
-        "diabetes_pima": 37,  # Diabetes
-        "ionosphere": 59,  # Ionosphere
-        "sonar": 40,  # Sonar
-        "hepatitis": 55,  # Hepatitis
-        "titanic": 40945,  # Titanic
-        "adult": 1590,  # Adult Income
-        "mnist": 554,  # MNIST (small version)
-        "credit_fraud": 1597,  # Credit Card Fraud
-        # Additional datasets
-        "vehicle": 54,  # Vehicle Silhouettes
-        "balance_scale": 11,  # Balance Scale
-        "blood_transfusion": 1464,  # Blood Transfusion
-        "banknote": 1462,  # Banknote Authentication
-        "mammographic": 310,  # Mammographic Mass
+    # The 20 OpenML-CC18 datasets pre-registered in paper/DATASETS.md. Every ID
+    # was resolved against the live OpenML API on 2026-08-07 and confirmed to be
+    # a member of study 99 (OpenML-CC18); names here match `details["name"]`.
+    CC18_BENCHMARK = {
+        "dresses_sales": 23381,
+        "kc2": 1063,
+        "climate_crashes": 40994,
+        "wdbc": 1510,
+        "ilpd": 1480,
+        "balance_scale": 11,
+        "credit_approval": 29,
+        "breast_w": 15,
+        "eucalyptus": 188,
+        "blood_transfusion": 1464,
+        "diabetes_pima": 37,
+        "analcatdata_dmft": 469,
+        "vehicle": 54,
+        "tic_tac_toe": 50,
+        "vowel": 307,
+        "credit_g": 31,
+        "qsar_biodeg": 1494,
+        "pc1": 1068,
+        "banknote": 1462,
+        "pc4": 1049,
     }
+
+    # OpenML dataset IDs (curated selection).
+    #
+    # Two entries here were wrong until 2026-08-07 and had been silently serving
+    # the wrong data: "heart" pointed at ID 4, which is `labor`, not heart
+    # disease; "mammographic" pointed at ID 310, which is `mammography` (11183
+    # rows), not Mammographic Mass (~960 rows). Both are corrected below.
+    # Neither is in CC-18, so neither is used by the pre-registered benchmark.
+    OPENML_DATASETS = dict(
+        CC18_BENCHMARK,
+        **{
+            # Not CC-18 — available for exploration, not for the paper.
+            "heart": 53,  # heart-statlog (was 4 = labor)
+            "mammography": 310,  # mammography (was keyed "mammographic")
+            "ionosphere": 59,
+            "sonar": 40,
+            "hepatitis": 55,
+            "titanic": 40945,
+            "adult": 1590,
+            "mnist": 554,
+            "credit_fraud": 1597,
+        },
+    )
 
     def __init__(self, cache_dir: Optional[str] = None):
         """
@@ -376,8 +417,7 @@ class DatasetLoader:
             # Encode categorical features
             for col in df.columns:
                 if not pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].astype(str)
-                    df[col] = df[col].replace("nan", "missing_value")
+                    df[col] = _categorical_as_str(df[col])
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
                 else:
@@ -415,8 +455,7 @@ class DatasetLoader:
             # Encode categorical features
             for col in df.columns:
                 if not pd.api.types.is_numeric_dtype(df[col]):
-                    df[col] = df[col].astype(str)
-                    df[col] = df[col].replace("nan", "missing_value")
+                    df[col] = _categorical_as_str(df[col])
                     le = LabelEncoder()
                     df[col] = le.fit_transform(df[col])
                 else:

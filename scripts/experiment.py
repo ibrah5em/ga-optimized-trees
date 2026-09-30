@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import csv
+import json
 import time
 from datetime import datetime
 from pathlib import Path
@@ -17,7 +18,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from scipy import stats
 from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
@@ -27,8 +27,26 @@ from sklearn.tree import DecisionTreeClassifier
 
 from ga_trees.baselines import XGBoostBaseline
 from ga_trees.data.dataset_loader import DatasetLoader
+from ga_trees.evaluation.statistics import (
+    ALPHA,
+    DEFAULT_EQUIVALENCE_MARGIN,
+    MIN_DATASETS_FOR_INFERENCE,
+    compare_all_to_reference,
+    equivalence_test,
+    friedman_nemenyi,
+    per_dataset_means,
+    summarize,
+)
 from ga_trees.fitness.calculator import FitnessCalculator, TreePredictor
-from ga_trees.ga.engine import GAConfig, GAEngine, Mutation, TreeInitializer
+from ga_trees.ga.engine import (
+    DEFAULT_GROWTH_STOP_PROB,
+    GAConfig,
+    GAEngine,
+    Mutation,
+    TreeInitializer,
+)
+from ga_trees.ga.split_points import MIDPOINT_STRATEGY
+from ga_trees.reproducibility import build_seed_manifest, derive_fold_seed
 
 
 def load_config(config_path=None):
@@ -175,7 +193,17 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
     skf = StratifiedKFold(
         n_splits=n_folds, shuffle=True, random_state=config["experiment"]["random_state"]
     )
-    results = {"test_acc": [], "test_f1": [], "nodes": [], "depth": [], "features": [], "time": []}
+    results = {
+        "test_acc": [],
+        "test_f1": [],
+        "nodes": [],
+        "depth": [],
+        "features": [],
+        "time": [],
+        "seeds": [],
+    }
+
+    base_seed = config["experiment"]["random_state"]
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
         print(f"  Fold {fold}/{n_folds}...", end=" ", flush=True)
@@ -193,6 +221,12 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         n_classes = len(np.unique(y))
         feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)}
 
+        # Distinct per fold, but fixed across invocations. Reusing base_seed for
+        # every fold would make all folds repeat one search, because
+        # GAEngine.evolve seeds random/numpy globally.
+        fold_seed = derive_fold_seed(base_seed, dataset_name, fold, method="ga")
+        results["seeds"].append(fold_seed)
+
         # Use configuration
         ga_config = GAConfig(
             population_size=config["ga"]["population_size"],
@@ -202,6 +236,9 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             tournament_size=config["ga"]["tournament_size"],
             elitism_ratio=config["ga"]["elitism_ratio"],
             mutation_types=config["ga"]["mutation_types"],
+            random_state=fold_seed,
+            early_stopping_rounds=config["ga"].get("early_stopping_rounds"),
+            early_stopping_tol=config["ga"].get("early_stopping_tol", 1e-6),
         )
 
         initializer = TreeInitializer(
@@ -210,6 +247,8 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             max_depth=config["tree"]["max_depth"],
             min_samples_split=config["tree"]["min_samples_split"],
             min_samples_leaf=config["tree"]["min_samples_leaf"],
+            growth_stop_prob=config["tree"].get("growth_stop_prob", DEFAULT_GROWTH_STOP_PROB),
+            split_strategy=config["tree"].get("split_strategy", MIDPOINT_STRATEGY),
         )
 
         # Fitness configuration
@@ -226,9 +265,17 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             accuracy_weight=acc_w,
             interpretability_weight=interp_w,
             interpretability_weights=fitness_config["interpretability_weights"],
+            classification_metric=fitness_config.get("classification_metric", "accuracy"),
+            regression_metric=fitness_config.get("regression_metric", "neg_mse"),
         )
 
-        mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+        mutation = Mutation(
+            n_features=n_features,
+            feature_ranges=feature_ranges,
+            X=X_train,
+            min_samples_leaf=config["tree"]["min_samples_leaf"],
+            split_strategy=config["tree"].get("split_strategy", MIDPOINT_STRATEGY),
+        )
 
         # Train
         start = time.time()
@@ -387,6 +434,195 @@ def run_xgboost_experiment(X, y, dataset_name, config, n_folds=5):
     return results
 
 
+#: Method every other method is tested against.
+REFERENCE_MODEL = "GA-Optimized"
+
+#: Baseline for the H2 equivalence claim in paper/PREREGISTRATION.md.
+EQUIVALENCE_BASELINE = "CART"
+
+#: Columns of results/stats-*.csv. Wider than the old (t, p, d) schema because
+#: a reader has to be able to tell which test produced a number and whether it
+#: was powered enough to mean anything.
+STATS_CSV_FIELDS = [
+    "test",
+    "scope",
+    "comparison",
+    "n_datasets",
+    "statistic",
+    "p_value",
+    "p_adjusted",
+    "effect_size",
+    "effect_type",
+    "significant",
+    "note",
+]
+
+
+def run_statistical_analysis(
+    all_results, metric="test_acc", reference=None, equivalence_baseline=None
+):
+    """Compare methods across datasets and print the results.
+
+    Every test pairs on *datasets*, using each dataset's mean over outer folds
+    as a single observation. Fold-level paired tests are not reported at all:
+    folds share training data, so their p-values are not interpretable
+    (Dietterich 1998).
+
+    Args:
+        all_results: ``{dataset: {method: {metric: [per-fold values]}}}``.
+        metric: Per-fold metric to aggregate and test on.
+        reference: Method every other method is tested against. Defaults to
+            ``REFERENCE_MODEL``.
+        equivalence_baseline: Baseline for the H2 TOST. Defaults to
+            ``EQUIVALENCE_BASELINE``. The nested harness names its tuned CART
+            "CART (pruned)", so callers must say which baseline they mean
+            rather than have the equivalence test silently skip.
+
+    Returns:
+        List of dicts matching ``STATS_CSV_FIELDS``, ready for CSV export.
+    """
+    reference = reference or REFERENCE_MODEL
+    equivalence_baseline = equivalence_baseline or EQUIVALENCE_BASELINE
+    print(f"\n{'='*70}")
+    print("Statistical Analysis (paired across datasets)")
+    print(f"{'='*70}\n")
+
+    dataset_names, scores = per_dataset_means(all_results, metric=metric)
+    rows = []
+
+    if reference not in scores:
+        print(f"  {reference} is missing from the results; no tests run.")
+        return rows
+    if len(dataset_names) < 2:
+        print(f"  Only {len(dataset_names)} dataset(s); across-dataset inference needs >= 2.")
+        return rows
+
+    n = len(dataset_names)
+    print(f"Unit of analysis: {n} dataset(s) — {', '.join(dataset_names)}")
+    print(f"Each observation is a dataset's mean {metric} over outer folds.\n")
+
+    if n < MIN_DATASETS_FOR_INFERENCE:
+        print(
+            f"  ⚠ UNDERPOWERED: with {n} datasets the smallest attainable two-sided\n"
+            f"    signed-rank p-value is {2 / 2 ** n:.3f}. Reaching alpha={ALPHA} needs\n"
+            f"    >= {MIN_DATASETS_FOR_INFERENCE} datasets. Everything below is descriptive.\n"
+        )
+
+    # --- Wilcoxon signed-rank, reference vs each baseline, Holm-corrected ---
+    print(f"Wilcoxon signed-rank vs {reference} (Holm-corrected):")
+    for comparison in compare_all_to_reference(scores, reference):
+        if comparison.p_value is None:
+            print(f"  {comparison.method_b:24s}: not computable — {comparison.note}")
+        else:
+            verdict = "significant" if comparison.significant else "ns"
+            print(
+                f"  {comparison.method_b:24s}: mean diff={comparison.mean_difference:+.4f}, "
+                f"W={comparison.statistic:.1f}, p={comparison.p_value:.4f}, "
+                f"p_holm={comparison.p_adjusted:.4f} ({verdict}), "
+                f"d_z={comparison.effect_size:+.3f}"
+            )
+        rows.append(
+            {
+                "test": "wilcoxon_signed_rank",
+                "scope": "across_datasets",
+                "comparison": f"{comparison.method_a} vs {comparison.method_b}",
+                "n_datasets": comparison.n_datasets,
+                "statistic": comparison.statistic,
+                "p_value": comparison.p_value,
+                "p_adjusted": comparison.p_adjusted,
+                "effect_size": comparison.effect_size,
+                "effect_type": "cohens_dz",
+                "significant": comparison.significant,
+                "note": comparison.note,
+            }
+        )
+
+    # --- TOST equivalence against the pre-registered margin (H2) ---
+    if equivalence_baseline in scores:
+        equivalence = equivalence_test(
+            scores[reference],
+            scores[equivalence_baseline],
+            margin=DEFAULT_EQUIVALENCE_MARGIN,
+            method_a=reference,
+            method_b=equivalence_baseline,
+        )
+        print(
+            f"\nTOST equivalence vs {equivalence_baseline} "
+            f"(margin=±{equivalence.margin:.0%} absolute {metric}):"
+        )
+        print(
+            f"  mean diff={equivalence.mean_difference:+.4f}, "
+            f"{1 - 2 * ALPHA:.0%} CI=[{equivalence.ci_low:+.4f}, {equivalence.ci_high:+.4f}], "
+            f"p={equivalence.p_value:.4f} → "
+            f"{'EQUIVALENT' if equivalence.equivalent else 'NOT shown equivalent'}"
+        )
+        if not equivalence.equivalent:
+            print("  A non-significant difference is not equivalence; do not report it as one.")
+        rows.append(
+            {
+                "test": "tost_equivalence",
+                "scope": "across_datasets",
+                "comparison": f"{equivalence.method_a} vs {equivalence.method_b}",
+                "n_datasets": equivalence.n_datasets,
+                "statistic": "",
+                "p_value": equivalence.p_value,
+                "p_adjusted": "",
+                "effect_size": equivalence.mean_difference,
+                "effect_type": f"mean_difference (margin={equivalence.margin})",
+                "significant": equivalence.equivalent,
+                "note": equivalence.note,
+            }
+        )
+
+    # --- Friedman omnibus + Nemenyi critical difference (Demsar 2006) ---
+    friedman = friedman_nemenyi(scores)
+    print("\nFriedman + Nemenyi (all methods):")
+    ranked = sorted(friedman.average_ranks.items(), key=lambda kv: kv[1])
+    print("  Average ranks (1 = best): " + ", ".join(f"{m}={r:.2f}" for m, r in ranked))
+    if friedman.p_value is None:
+        print(f"  Omnibus test not run — {friedman.note}")
+    else:
+        print(f"  chi2={friedman.statistic:.3f}, p={friedman.p_value:.4f}")
+        print(f"  Nemenyi critical difference (alpha={ALPHA}): {friedman.critical_difference:.3f}")
+        if friedman.p_value < ALPHA:
+            for method in friedman.methods:
+                if method == reference:
+                    continue
+                gap = friedman.rank_gap(reference, method)
+                mark = "separated" if friedman.differs(reference, method) else "not separated"
+                print(f"    {reference} vs {method:20s}: rank gap={gap:.2f} ({mark})")
+        else:
+            print("  Omnibus not significant; pairwise post-hoc comparisons are not licensed.")
+    rows.append(
+        {
+            "test": "friedman",
+            "scope": "across_datasets",
+            "comparison": " vs ".join(friedman.methods),
+            "n_datasets": friedman.n_datasets,
+            "statistic": friedman.statistic,
+            "p_value": friedman.p_value,
+            "p_adjusted": "",
+            "effect_size": friedman.critical_difference,
+            "effect_type": "nemenyi_critical_difference",
+            "significant": (friedman.p_value is not None and friedman.p_value < ALPHA),
+            "note": friedman.note or "; ".join(f"{m}={r:.3f}" for m, r in ranked),
+        }
+    )
+
+    # --- Per-dataset differences, descriptive only ---
+    if equivalence_baseline in scores:
+        print("\nPer-dataset differences (descriptive — no fold-level p-values):")
+        for i, dataset_name in enumerate(dataset_names):
+            ref_score = scores[reference][i]
+            base_score = scores[equivalence_baseline][i]
+            print(
+                f"  {dataset_name:20s}: {reference}={ref_score:.4f}, "
+                f"{equivalence_baseline}={base_score:.4f}, diff={ref_score - base_score:+.4f}"
+            )
+
+    return rows
+
+
 def print_summary(all_results, config, config_name="default"):
     """Print summary with tree size analysis."""
     print(f"\n{'='*70}")
@@ -396,17 +632,15 @@ def print_summary(all_results, config, config_name="default"):
     data = []
     for dataset_name, models in all_results.items():
         for model_name, results in models.items():
-            acc_mean = np.mean(results["test_acc"])
-            acc_std = np.std(results["test_acc"])
-            f1_mean = np.mean(results["test_f1"])
-            f1_std = np.std(results["test_f1"])
+            acc = summarize(results["test_acc"])
+            f1 = summarize(results["test_f1"])
             time_mean = np.mean(results["time"])
 
             row = {
                 "Dataset": dataset_name,
                 "Model": model_name,
-                "Test Acc": f"{acc_mean:.4f} ± {acc_std:.4f}",
-                "Test F1": f"{f1_mean:.4f} ± {f1_std:.4f}",
+                "Test Acc": f"{acc.mean:.4f} ± {acc.std:.4f}",
+                "Test F1": f"{f1.mean:.4f} ± {f1.std:.4f}",
                 "Time (s)": f"{time_mean:.2f}",
             }
 
@@ -423,8 +657,6 @@ def print_summary(all_results, config, config_name="default"):
     print(f"\n{'='*70}")
     print("Tree Size Analysis (GA vs CART)")
     print(f"{'='*70}\n")
-
-    test_stats = []
 
     for dataset_name in all_results.keys():
         ga_nodes = np.mean(all_results[dataset_name]["GA-Optimized"]["nodes"])
@@ -444,49 +676,14 @@ def print_summary(all_results, config, config_name="default"):
             f"Ratio={ratio:.2f}x  {status}"
         )
 
-    # Statistical tests
-    print(f"\n{'='*70}")
-    print("Statistical Tests (GA vs CART)")
-    print(f"{'='*70}\n")
+    # Statistical analysis. Inference is across datasets, never across CV folds:
+    # folds share training data, so a paired test over them violates the
+    # independence assumption and its p-value is not interpretable
+    # (Dietterich 1998). The per-fold ttest_rel that used to live here is gone
+    # for that reason, along with every star it printed.
+    test_stats = run_statistical_analysis(all_results)
 
-    for dataset_name in all_results.keys():
-        ga_acc = all_results[dataset_name]["GA-Optimized"]["test_acc"]
-        cart_acc = all_results[dataset_name]["CART"]["test_acc"]
-
-        t_stat, p_value = stats.ttest_rel(ga_acc, cart_acc)
-
-        pooled_std = np.sqrt((np.var(ga_acc) + np.var(cart_acc)) / 2)
-        if pooled_std > 0:
-            cohens_d = (np.mean(ga_acc) - np.mean(cart_acc)) / pooled_std
-        else:
-            cohens_d = 0.0
-
-        sig = (
-            "***"
-            if p_value < 0.001
-            else ("**" if p_value < 0.01 else ("*" if p_value < 0.05 else "ns"))
-        )
-
-        print(f"{dataset_name:20s}: t={t_stat:6.3f}, p={p_value:.4f} {sig}, d={cohens_d:.3f}")
-
-        # collect stats for CSV export
-        test_stats.append(
-            {
-                "test_name": "GA vs CART",
-                "dataset": dataset_name,
-                "t": float(t_stat),
-                "p": float(p_value),
-                "d": float(cohens_d),
-            }
-        )
-
-    # Adjust p-values (Bonferroni) and write statistics CSV for auditability
     if test_stats:
-        m = len(test_stats)
-        for entry in test_stats:
-            entry["p_adjusted"] = min(entry["p"] * m, 1.0)
-
-        # ensure results directory exists
         output_dir = Path("results")
         output_dir.mkdir(exist_ok=True)
 
@@ -494,20 +691,10 @@ def print_summary(all_results, config, config_name="default"):
         stats_file = output_dir / f"stats-{config_name}-{stats_date}.csv"
 
         with open(stats_file, "w", newline="") as csvfile:
-            fieldnames = ["test_name", "dataset", "t", "p", "p_adjusted", "d"]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=STATS_CSV_FIELDS)
             writer.writeheader()
             for entry in test_stats:
-                writer.writerow(
-                    {
-                        "test_name": entry["test_name"],
-                        "dataset": entry["dataset"],
-                        "t": entry["t"],
-                        "p": entry["p"],
-                        "p_adjusted": entry["p_adjusted"],
-                        "d": entry["d"],
-                    }
-                )
+                writer.writerow({key: entry.get(key, "") for key in STATS_CSV_FIELDS})
 
         print(f"\n✓ Statistical test details saved to: {stats_file}")
 
@@ -522,10 +709,31 @@ def print_summary(all_results, config, config_name="default"):
     # Save configuration used
     config_file = output_dir / f"config-{config_name}-{date_str}.yaml"
     with open(config_file, "w") as f:
-        yaml.dump(config, f, default_flow_style=False)
+        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+
+    # Save the seeds actually used. Without this, "seeded" is an assertion rather
+    # than something a reader can check - see results/PROVENANCE.md.
+    base_seed = config["experiment"]["random_state"]
+    seeds_file = output_dir / f"seeds-{config_name}-{date_str}.json"
+    manifest = build_seed_manifest(
+        base_seed=base_seed,
+        dataset_names=list(all_results.keys()),
+        n_folds=config["experiment"]["cv_folds"],
+        methods=("ga",),
+    )
+    # The GA derives a per-fold seed; the sklearn baselines take base_seed
+    # directly, since their fits are deterministic given (data, random_state).
+    manifest["baseline_random_state"] = base_seed
+    manifest["recorded"] = {
+        dataset: {model: res["seeds"] for model, res in models.items() if res.get("seeds")}
+        for dataset, models in all_results.items()
+    }
+    with open(seeds_file, "w") as f:
+        json.dump(manifest, f, indent=2)
 
     print(f"\n✓ Results saved to: {results_file}")
     print(f"✓ Config saved to: {config_file}")
+    print(f"✓ Seeds saved to: {seeds_file}")
 
 
 def main():

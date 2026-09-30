@@ -148,12 +148,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .[docs]
 
+    # The site is MkDocs. This step used to run a Sphinx `make html` with no
+    # Makefile behind it, so it failed on every run, hidden by continue-on-error.
+    # --strict fails on broken links and nav entries.
     - name: Build documentation
-      run: |
-        cd docs
-        make html
-      # TODO: remove continue-on-error by 2026-06-01 once docs are stable
-      continue-on-error: true
+      run: mkdocs build --strict
 
   package:
     name: Build and Check Package

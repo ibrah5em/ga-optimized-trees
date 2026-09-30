@@ -308,7 +308,12 @@ def objective(
             },
         )
 
-        mutation = Mutation(n_features=n_features, feature_ranges=feature_ranges)
+        mutation = Mutation(
+            n_features=n_features,
+            feature_ranges=feature_ranges,
+            X=X_train,
+            min_samples_leaf=min_samples_leaf,
+        )
 
         try:
             ga_engine = GAEngine(ga_config, initializer, fitness_calc.calculate_fitness, mutation)

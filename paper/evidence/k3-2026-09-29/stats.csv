@@ -1,0 +1,7 @@
+test,scope,comparison,n_datasets,statistic,p_value,p_adjusted,effect_size,effect_type,significant,note
+wilcoxon_signed_rank,across_datasets,GA-Optimized vs CART (pruned),20,49.0,0.03623390197753906,0.07246780395507812,-0.48135778838037113,cohens_dz,False,
+wilcoxon_signed_rank,across_datasets,GA-Optimized vs CART (unconstrained),20,101.0,0.8983173370361328,0.8983173370361328,-0.21785785786112133,cohens_dz,False,
+wilcoxon_signed_rank,across_datasets,GA-Optimized vs Random Forest,20,21.0,0.000850677490234375,0.0034027099609375,-0.5599563887154985,cohens_dz,True,
+wilcoxon_signed_rank,across_datasets,GA-Optimized vs Random Search,20,22.0,0.0010166168212890625,0.0034027099609375,0.7162643477653706,cohens_dz,True,
+tost_equivalence,across_datasets,GA-Optimized vs CART (pruned),20,,0.842886046228388,,-0.03847753082639623,mean_difference (margin=0.02),False,
+friedman,across_datasets,CART (pruned) vs CART (unconstrained) vs GA-Optimized vs Random Forest vs Random Search,20,35.24000000000001,4.1467791430600877e-07,,1.3638871854351882,nemenyi_critical_difference,True,Random Forest=1.500; CART (pruned)=2.500; GA-Optimized=3.050; Random Search=3.950; CART (unconstrained)=4.000
