@@ -2789,13 +2789,10 @@ exist raises <code>FileNotFoundError</code> instead of being sent to OpenML.</p>
 <p>There is no validation split in the return value. If you want the GA to score fitness on
 held-out data (recommended — see <a href="../../user-guides/training/">Training</a>), split
 <code>X_train</code> yourself with <code>train_test_split</code>.</p>
-<blockquote>
-<p><strong>⚠️ <code>balance</code> resamples before the train/test split.</strong> Oversampling duplicates
-minority-class rows and then splits, so copies of the same row can end up in both train and
-test and inflate test accuracy. Use <code>balance</code> for exploration only. For an honest
-evaluation, split first and resample the training split yourself, or use a class-aware
-metric instead (<code>FitnessCalculator(classification_metric="balanced_accuracy")</code>).</p>
-</blockquote>
+<p><code>balance</code> resamples the training split only, after the train/test split, so the test split
+keeps the real class ratio and never contains copies of training rows. <code>train_size</code> in the
+metadata is the size after resampling. If you'd rather not resample at all, a class-aware
+metric does a similar job: <code>FitnessCalculator(classification_metric="balanced_accuracy")</code>.</p>
 <h2 id="validation-and-cleaning">Validation and cleaning<a class="headerlink" href="#validation-and-cleaning" title="Permanent link">&para;</a></h2>
 <p>Every load runs <code>DataValidator.validate_dataset</code> and logs (via <code>logging</code>, not <code>print</code>) any
 warnings:</p>
