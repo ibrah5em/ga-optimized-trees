@@ -71,6 +71,12 @@ optimization = [
 baselines = [
     "xgboost>=2.0.0",
     "lightgbm>=4.0.0",
+]
+
+# GOSDT frontier baseline for the paper's exploratory check. Kept out of `all`:
+# gosdt ships no wheel for Apple Silicon, so `pip install .[all]` would try a
+# C++ source build on macOS arm64.
+gosdt = [
     "gosdt>=1.0.4",
 ]
 

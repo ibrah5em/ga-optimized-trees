@@ -194,8 +194,10 @@ def main():
 
         cached = checkpoints / f"{name}.pkl"
         if cached.exists():
+            # Only ever reads a checkpoint this same script wrote into its own
+            # output directory, never external input.
             with open(cached, "rb") as handle:
-                return pickle.load(handle)
+                return pickle.load(handle)  # nosec B301
         X, y = load_dataset(name)
         results = run_nested_cv(
             X,
