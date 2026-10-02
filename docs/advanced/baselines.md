@@ -210,14 +210,8 @@ plt.title("Tree Size Comparison")
 plt.savefig("results/figures/size_comparison.png")
 ```
 
-## Benchmark Results
+## Making the CART comparison fair
 
-> **⚠️ Withdrawn.** The result table that stood here wasn't reproducible from the code on
-> `main`, and its size comparison used unpruned CART as the baseline.
-
-### Making the CART comparison fair
-
-Worth stating plainly, because it is the flaw that inflated every size claim on this project:
 `DecisionTreeClassifier(max_depth=6)` is not a pruned tree. Comparing an evolved tree that is
 explicitly penalised for node count against a greedy tree that is not penalised at all
 measures the absence of pruning.
