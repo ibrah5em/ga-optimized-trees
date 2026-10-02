@@ -3,10 +3,8 @@
 Every function here takes fold-level results produced by
 ``scripts/benchmark.py`` and returns a matplotlib axes. None of them accepts a
 literal, and there is no fallback that invents data: given no results, the
-loader raises. That is deliberate. The generator this module replaces carried
-its numbers as module-level dicts and printed claims — "46-82% smaller",
-"statistical equivalence to CART" — that were withdrawn as fabricated.
-Deleting the figures while leaving that generator in place fixed nothing.
+loader raises. That is deliberate: a figure that can be drawn without a run
+behind it isn't evidence of anything.
 
 What may be plotted is constrained by the pre-registered protocol:
 
@@ -301,8 +299,7 @@ def accuracy_complexity_frontier(
     This is the figure the frontier claim lives or dies on: a method is better
     only if it sits up and to the left. Comparing accuracy alone across methods
     that settle at different sizes compares points on different parts of the
-    trade-off, which is what the retired "equivalent accuracy at 46-82% smaller"
-    framing did.
+    trade-off.
 
     Parameters
     ----------

@@ -1,9 +1,7 @@
 """Unit tests for the figure generators.
 
 The point of most of these is negative: the module must refuse to draw anything
-when there is no run behind it. Its predecessor shipped two module-level result
-dicts and would happily render figures asserting withdrawn claims on a machine
-that had never executed an experiment.
+when there is no run behind it.
 """
 
 import matplotlib
@@ -268,8 +266,8 @@ class TestOtherFigures:
             )
 
     def test_no_significance_annotation_on_per_dataset_deltas(self, folds, axes):
-        # Cross-fold paired tests were retired as invalid; the figure must not
-        # smuggle them back in as stars or p-values.
+        # Cross-fold paired tests aren't valid (folds share training data); the
+        # figure must not smuggle them back in as stars or p-values.
         accuracy_delta_bars(
             load_fold_results(str(folds)),
             axes,

@@ -1,8 +1,7 @@
 name: Deploy docs
 
 # Publishes the MkDocs site to the gh-pages branch on every push to main that
-# touches the docs. The site used to be deployed by hand, and it kept showing
-# benchmark claims months after they were withdrawn from the repository.
+# touches the docs, so the site never falls behind the repository.
 on:
   push:
     branches: [ main ]

@@ -30,11 +30,6 @@ This framework evolves decision trees using genetic algorithms to balance **accu
 - **Objectives that need not decompose over splits**, which greedy induction cannot express
 - **Configuration-driven** experiments, so a run is described by a YAML file
 
-Note what is *not* on that list: benchmark claims. Earlier versions of these docs advertised
-46–82% smaller trees at equivalent accuracy. Those claims have been withdrawn — they were not
-reproducible from the code on `main`, the size baseline was unpruned CART, and no equivalence
-test was ever run.
-
 ### Is this ready for production use?
 
 The framework is research-oriented and ideal for:
@@ -358,7 +353,7 @@ TOST. See [Statistical Testing](../advanced/statistical-tests.md).
 
 Also: a paired t-test across CV folds is not valid, because folds are not independent
 (Dietterich 1998). Compare methods across datasets instead, one paired observation per
-dataset. This project's withdrawn results made both mistakes.
+dataset.
 
 ### Why is my GA accuracy lower than CART?
 

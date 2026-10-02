@@ -2,10 +2,6 @@
 
 Guide to statistical evaluation of GA-optimized trees.
 
-> **⚠️ This page previously recommended an invalid procedure** — a paired t-test across
-> cross-validation folds, with a non-significant result reported as equivalence. Both are
-> wrong, and both shaped this project's withdrawn results. The page has been rewritten.
-
 ## Two mistakes to avoid first
 
 **Do not run a paired t-test across CV folds.** Folds of a single cross-validation share
@@ -111,7 +107,7 @@ Report effect size alongside every p-value. Conventional thresholds (0.2 / 0.5 /
 rules of thumb, not decision rules.
 
 Use `ddof=1` for every standard deviation and variance you report. NumPy defaults to `ddof=0`,
-which biases the estimate low — the withdrawn results on this project were affected.
+which biases the estimate low.
 
 ## Confidence intervals
 

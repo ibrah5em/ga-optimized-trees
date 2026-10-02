@@ -5,8 +5,8 @@
 subtree built for one region of the data into another, and ``expand_leaf`` /
 ``feature_replacement`` choose splits without re-checking how many samples end
 up on each side, so evolved trees routinely contain leaves that no training
-sample — or only one or two — ever reaches. The claims audit recorded the
-configured constraints as FALSE for exactly this reason.
+sample — or only one or two — ever reaches. Without repair, the configured
+constraints describe the initial population, not the evolved trees.
 
 :func:`repair_constraints` routes the training data through a tree and collapses,
 top-down, every split that the constraints would not have allowed CART to make:
