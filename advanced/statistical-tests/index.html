@@ -2554,11 +2554,6 @@
 
 <h1 id="statistical-testing">Statistical Testing<a class="headerlink" href="#statistical-testing" title="Permanent link">&para;</a></h1>
 <p>Guide to statistical evaluation of GA-optimized trees.</p>
-<blockquote>
-<p><strong>⚠️ This page previously recommended an invalid procedure</strong> — a paired t-test across
-cross-validation folds, with a non-significant result reported as equivalence. Both are
-wrong, and both shaped this project's withdrawn results. The page has been rewritten.</p>
-</blockquote>
 <h2 id="two-mistakes-to-avoid-first">Two mistakes to avoid first<a class="headerlink" href="#two-mistakes-to-avoid-first" title="Permanent link">&para;</a></h2>
 <p><strong>Do not run a paired t-test across CV folds.</strong> Folds of a single cross-validation share
 training data, so fold scores are not independent draws. The test's assumptions fail and the
@@ -2641,7 +2636,7 @@ reasonable alternative and reports directly on the probability of practical equi
 <p>Report effect size alongside every p-value. Conventional thresholds (0.2 / 0.5 / 0.8) are
 rules of thumb, not decision rules.</p>
 <p>Use <code>ddof=1</code> for every standard deviation and variance you report. NumPy defaults to <code>ddof=0</code>,
-which biases the estimate low — the withdrawn results on this project were affected.</p>
+which biases the estimate low.</p>
 <h2 id="confidence-intervals">Confidence intervals<a class="headerlink" href="#confidence-intervals" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">confidence_interval</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">"""Two-sided t interval for the mean."""</span>

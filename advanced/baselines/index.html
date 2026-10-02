@@ -1816,18 +1816,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#benchmark-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benchmark Results
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Benchmark Results">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#making-the-cart-comparison-fair" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1835,11 +1823,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2854,18 +2837,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#benchmark-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benchmark Results
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Benchmark Results">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#making-the-cart-comparison-fair" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2873,11 +2844,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -3260,14 +3226,8 @@
 </span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Tree Size Comparison"</span><span class="p">)</span>
 </span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"results/figures/size_comparison.png"</span><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="benchmark-results">Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permanent link">&para;</a></h2>
-<blockquote>
-<p><strong>⚠️ Withdrawn.</strong> The result table that stood here wasn't reproducible from the code on
-<code>main</code>, and its size comparison used unpruned CART as the baseline.</p>
-</blockquote>
-<h3 id="making-the-cart-comparison-fair">Making the CART comparison fair<a class="headerlink" href="#making-the-cart-comparison-fair" title="Permanent link">&para;</a></h3>
-<p>Worth stating plainly, because it is the flaw that inflated every size claim on this project:
-<code>DecisionTreeClassifier(max_depth=6)</code> is not a pruned tree. Comparing an evolved tree that is
+<h2 id="making-the-cart-comparison-fair">Making the CART comparison fair<a class="headerlink" href="#making-the-cart-comparison-fair" title="Permanent link">&para;</a></h2>
+<p><code>DecisionTreeClassifier(max_depth=6)</code> is not a pruned tree. Comparing an evolved tree that is
 explicitly penalised for node count against a greedy tree that is not penalised at all
 measures the absence of pruning.</p>
 <p>A defensible comparison needs, at minimum:</p>

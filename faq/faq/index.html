@@ -3679,10 +3679,6 @@
 <li><strong>Objectives that need not decompose over splits</strong>, which greedy induction cannot express</li>
 <li><strong>Configuration-driven</strong> experiments, so a run is described by a YAML file</li>
 </ul>
-<p>Note what is <em>not</em> on that list: benchmark claims. Earlier versions of these docs advertised
-46–82% smaller trees at equivalent accuracy. Those claims have been withdrawn — they were not
-reproducible from the code on <code>main</code>, the size baseline was unpruned CART, and no equivalence
-test was ever run.</p>
 <h3 id="is-this-ready-for-production-use">Is this ready for production use?<a class="headerlink" href="#is-this-ready-for-production-use" title="Permanent link">&para;</a></h3>
 <p>The framework is research-oriented and ideal for:</p>
 <ul>
@@ -3946,7 +3942,7 @@ with a real difference that the test lacked power to detect.</p>
 TOST. See <a href="../../advanced/statistical-tests/">Statistical Testing</a>.</p>
 <p>Also: a paired t-test across CV folds is not valid, because folds are not independent
 (Dietterich 1998). Compare methods across datasets instead, one paired observation per
-dataset. This project's withdrawn results made both mistakes.</p>
+dataset.</p>
 <h3 id="why-is-my-ga-accuracy-lower-than-cart">Why is my GA accuracy lower than CART?<a class="headerlink" href="#why-is-my-ga-accuracy-lower-than-cart" title="Permanent link">&para;</a></h3>
 <p>This is expected when prioritizing interpretability:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># If GA accuracy is 2-3% lower</span>
