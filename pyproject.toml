@@ -124,10 +124,10 @@ full = [
 
 [project.urls]
 Homepage = "https://github.com/ibrah5em/ga-optimized-trees"
-Documentation = "https://github.com/ibrah5em/ga-optimized-trees/tree/main/docs"
+Documentation = "https://ibrah5em.github.io/ga-optimized-trees/"
 Repository = "https://github.com/ibrah5em/ga-optimized-trees"
 Issues = "https://github.com/ibrah5em/ga-optimized-trees/issues"
-Changelog = "https://github.com/ibrah5em/ga-optimized-trees/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/ibrah5em/ga-optimized-trees/releases"
 
 
 [tool.setuptools]
