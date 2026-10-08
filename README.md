@@ -203,12 +203,13 @@ pre-registered benchmark on 20 OpenML-CC18 datasets against CART and random sear
 results. It'll be linked here when it's out. Until then, please cite the software:
 
 ```bibtex
-@software{hasaki2025gatrees,
-  title  = {GA-Optimized Decision Trees},
-  author = {Hasaki, Ibrahem},
-  year   = {2025},
-  url    = {https://github.com/ibrah5em/ga-optimized-trees},
-  note   = {MIT License}
+@software{hasaki2026gatrees,
+  title   = {GA-Optimized Decision Trees},
+  author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/ibrah5em/ga-optimized-trees},
+  note    = {MIT License}
 }
 ```
 
