@@ -454,7 +454,7 @@ def run_xgboost_experiment(X, y, dataset_name, config, n_folds=5):
 #: Method every other method is tested against.
 REFERENCE_MODEL = "GA-Optimized"
 
-#: Baseline for the pre-registered H2 equivalence claim.
+#: Baseline for the TOST equivalence check.
 EQUIVALENCE_BASELINE = "CART"
 
 #: Columns of results/stats-*.csv. Wider than the old (t, p, d) schema because
@@ -490,7 +490,7 @@ def run_statistical_analysis(
         metric: Per-fold metric to aggregate and test on.
         reference: Method every other method is tested against. Defaults to
             ``REFERENCE_MODEL``.
-        equivalence_baseline: Baseline for the H2 TOST. Defaults to
+        equivalence_baseline: Baseline for the TOST equivalence check. Defaults to
             ``EQUIVALENCE_BASELINE``. The nested harness names its tuned CART
             "CART (pruned)", so callers must say which baseline they mean
             rather than have the equivalence test silently skip.
@@ -554,7 +554,7 @@ def run_statistical_analysis(
             }
         )
 
-    # --- TOST equivalence against the pre-registered margin (H2) ---
+    # --- TOST equivalence against a margin fixed in advance ---
     if equivalence_baseline in scores:
         equivalence = equivalence_test(
             scores[reference],

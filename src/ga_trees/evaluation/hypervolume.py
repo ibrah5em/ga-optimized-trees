@@ -1,14 +1,14 @@
 """Frontier quality: dominance filtering and 2-D hypervolume.
 
-This is the machinery behind the pre-registered hypothesis H1 — whether the
-evolved accuracy--complexity frontier dominates the one obtainable from CART's
+This is the machinery behind the frontier comparison — whether the evolved
+accuracy--complexity frontier dominates the one obtainable from CART's
 cost-complexity pruning path.
 
-Two things are fixed by the pre-registration and enforced here rather than left
-to the caller:
+Two things are fixed by the benchmark protocol and enforced here rather than
+left to the caller:
 
 * **The complexity axis is node count**, not the composite interpretability
-  score. The composite score is a search heuristic (K4) and may not appear as a
+  score. The composite score is a search heuristic and may not appear as a
   reported outcome.
 * **The reference point is (accuracy = 0, nodes = max over all methods on that
   dataset)**, so every method on a dataset is measured against the same box.
@@ -163,11 +163,11 @@ def hypervolume(front: Frontier, reference_nodes: float, reference_accuracy: flo
     front : Frontier
         Non-dominated points, node count ascending.
     reference_nodes : float
-        Node count of the worst acceptable model — per the pre-registration, the
+        Node count of the worst acceptable model — by the protocol, the
         maximum over *all* methods on that dataset. Must exceed every node count
         in *front*, or the excess points contribute nothing.
     reference_accuracy : float
-        Accuracy floor, 0.0 by the pre-registration.
+        Accuracy floor, 0.0 by the protocol.
 
     Returns
     -------
@@ -244,7 +244,7 @@ def cart_pruning_frontier(
 ) -> Tuple[Frontier, List[float]]:
     """The frontier CART's cost-complexity pruning path traces.
 
-    This is H1's comparator: sweeping ``ccp_alpha`` is the standard way to get a
+    This is the GA's comparator: sweeping ``ccp_alpha`` is the standard way to get a
     range of tree sizes out of CART, and it is what the GA's single-run frontier
     has to beat to make the claim.
 

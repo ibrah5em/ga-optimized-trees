@@ -204,7 +204,7 @@ class InterpretabilityCalculator:
     """Search-guidance terms for the weighted-sum fitness.
 
     Each sub-metric returns a value in ``[0, 1]``. Despite the class name, the
-    composite is a **search heuristic only** (Phase 3, kill criterion K4): it
+    composite is a **search heuristic only**: it
     has no claimed validity as a measure of human interpretability and must not
     be reported as an outcome. ``semantic_coherence`` is ungrounded, and
     ``feature_coherence`` scales with dataset dimensionality. Report node count,

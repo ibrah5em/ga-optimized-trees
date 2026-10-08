@@ -1,10 +1,9 @@
 # =============================================================================
 # Sensitivity variant of configs/paper.yaml — identical except that
-# tree.repair_constraints is on (Phase 2 item 4, src/ga_trees/ga/repair.py).
+# tree.repair_constraints is on (src/ga_trees/ga/repair.py).
 #
-# Written 2026-09-29, AFTER K1/K2 were observed. It may only be reported as a
-# sensitivity analysis next to the pre-registered result, never in place of it
-# (logged as a deviation from the pre-registered protocol).
+# Written after the paper.yaml results were in, so it may only be reported as a
+# sensitivity analysis next to them, never in place of them.
 # =============================================================================
 
 # Genetic Algorithm Parameters
@@ -28,7 +27,7 @@ tree:
   min_samples_split: 8
   min_samples_leaf: 3
   growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
-  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = draw over the range
   repair_constraints: true  # collapse splits that break min_samples_* after variation
 
 # Fitness Function
@@ -49,8 +48,8 @@ fitness:
 
 # Experiment Settings
 experiment:
-  # The pre-registered CC-18 selection (DatasetLoader.CC18_BENCHMARK).
-  # Do not edit without recording a deviation in that file.
+  # The 20 OpenML-CC18 benchmark datasets (DatasetLoader.CC18_BENCHMARK).
+  # Change this list and the benchmark no longer reproduces.
   datasets:
     - dresses_sales
     - kc2

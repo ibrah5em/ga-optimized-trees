@@ -17,8 +17,8 @@ advance.
 
 ## Use the implementation, not a hand-rolled copy
 
-`ga_trees.evaluation.statistics` implements everything on this page, with the
-pre-registered constants baked in and the underpowered cases flagged rather than silently
+`ga_trees.evaluation.statistics` implements everything on this page, with alpha
+and the equivalence margin fixed as constants and the underpowered cases flagged rather than silently
 reported. `scripts/experiment.py` calls it directly.
 
 ```python

@@ -4,7 +4,7 @@ The point of a shared interface is that ``nested_cv`` cannot treat one method
 more favourably than another by accident. Every method gets the same inner-CV
 tuning, the same seeds, and reports the same complexity measures.
 
-Reported interpretability is fixed by the pre-registered kill criterion K4: number of
+Reported interpretability is limited to structural measures: number of
 leaves, mean weighted decision-path length, and number of distinct features.
 The composite interpretability score is a search heuristic and deliberately not
 part of this interface.
@@ -26,7 +26,7 @@ class FittedModel:
     n_nodes : int
         Total nodes in the model. For ensembles, summed over estimators.
     n_leaves : int
-        Leaf count — the primary complexity axis under K4.
+        Leaf count — the primary reported complexity axis.
     max_depth : int
         Deepest root-to-leaf path.
     n_features_used : int

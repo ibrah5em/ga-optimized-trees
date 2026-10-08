@@ -1,10 +1,10 @@
 """Unit tests for the frontier-level benchmark.
 
-K1 and H1 are stated on hypervolume, so the properties that matter here are:
+The frontier comparisons are stated on hypervolume, so what matters here is that
 the GA and random search spend exactly the same number of evaluations, every
 method on a fold is scored against one shared reference point, and the objective
-pair is (accuracy, -nodes) rather than the composite interpretability score that
-K4 forbids as an outcome measure.
+pair is (accuracy, -nodes) rather than the composite interpretability score,
+which is never a reported outcome.
 """
 
 import pytest
@@ -93,7 +93,7 @@ class TestCountingObjective:
         assert objective.count == 7
 
     def test_composite_interpretability_is_not_an_objective(self, iris):
-        # K4: the composite score is a search heuristic, never a reported axis.
+        # The composite score is a search heuristic, never a reported axis.
         from ga_trees.ga.engine import TreeInitializer
 
         X, y = iris
@@ -201,7 +201,7 @@ class TestBudgetMatching:
 
 class TestSharedReferencePoint:
     def test_one_reference_for_the_whole_dataset(self, fold_results):
-        # The pre-registration fixes it at "max over all methods on that dataset",
+        # The protocol fixes it at "max over all methods on that dataset",
         # not per fold. A per-fold reference is a smaller box, and a smaller box
         # favours whichever method has the lower peak accuracy.
         references = {result.reference_nodes for result in fold_results}

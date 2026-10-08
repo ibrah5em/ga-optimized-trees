@@ -2,7 +2,7 @@
 """Publication figures, generated from committed benchmark output.
 
 Reads the fold-level CSV written by ``scripts/benchmark.py`` and draws only
-figures the pre-registration licenses. There are no numbers in this file. Given
+figures the benchmark protocol allows. There are no numbers in this file. Given
 no result file it exits with an error rather than drawing anything.
 
 Examples
@@ -76,7 +76,7 @@ def main() -> int:
         default="results/frontiers",
         help=(
             "frontier-folds-*.csv from scripts/frontier_benchmark.py, or a directory. "
-            "Drives the hypervolume figures that K1 and H1 are stated on."
+            "Drives the hypervolume figures."
         ),
     )
     args = parser.parse_args()
@@ -128,7 +128,7 @@ def main() -> int:
 
 
 def _frontier_figures(source: str, output_dir: Path) -> None:
-    """Hypervolume figures — the quantity K1 and H1 are actually stated on."""
+    """Hypervolume figures — the quantity the frontier comparisons are stated on."""
     try:
         frame = load_frontier_results(source)
     except (FileNotFoundError, ValueError) as exc:

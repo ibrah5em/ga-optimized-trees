@@ -1,8 +1,8 @@
 # =============================================================================
-# Paper Configuration - the config the pre-registered benchmark ran with.
+# Paper Configuration - the config the benchmark ran with.
 #
-# scripts/frontier_benchmark.py and scripts/benchmark.py read it for the K1/K2
-# and K3 runs. Change it and those runs no longer reproduce.
+# scripts/frontier_benchmark.py and scripts/benchmark.py read it for the
+# frontier and nested-CV runs. Change it and those runs no longer reproduce.
 #
 # Notes:
 #   - classification_metric now reaches FitnessCalculator, and the GA is seeded
@@ -35,7 +35,7 @@ tree:
   min_samples_split: 8
   min_samples_leaf: 3
   growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
-  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = draw over the range
 
 # Fitness Function
 fitness:
@@ -55,8 +55,8 @@ fitness:
 
 # Experiment Settings
 experiment:
-  # The pre-registered CC-18 selection (DatasetLoader.CC18_BENCHMARK).
-  # Do not edit without recording a deviation in that file.
+  # The 20 OpenML-CC18 benchmark datasets (DatasetLoader.CC18_BENCHMARK).
+  # Change this list and the benchmark no longer reproduces.
   datasets:
     - dresses_sales
     - kc2

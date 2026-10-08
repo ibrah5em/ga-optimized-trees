@@ -3,7 +3,7 @@
 Covers:
 - FittedModel / complexity reporting
 - sklearn_tree_complexity, ga_tree_complexity
-- ga_evaluation_budget (the K1 budget-matching formula)
+- ga_evaluation_budget (the GA vs random search budget-matching formula)
 - select_hyperparameters (inner CV, no outer leakage)
 - run_nested_cv (fold indexing, seeding, pairing)
 - verify_budget_match

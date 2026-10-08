@@ -22,7 +22,7 @@ tree:
   min_samples_split: 10
   min_samples_leaf: 5
   growth_stop_prob: 0.3  # P(stop growing) per node when seeding the population
-  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = pre-Phase-2 draw
+  split_strategy: midpoint  # 'midpoint' = observed split points, 'uniform' = draw over the range
 
 fitness:
   mode: weighted_sum

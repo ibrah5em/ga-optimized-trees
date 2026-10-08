@@ -1,26 +1,26 @@
-"""Frontier-level benchmark: the harness K1 and H1 are actually written against.
+"""Frontier-level benchmark: accuracy--complexity frontiers scored by hypervolume.
 
 ``benchmark/nested_cv.py`` reports one operating point per method per fold, which
-answers "is the GA's chosen tree as accurate as CART's" but not the
-pre-registered questions. Both K1 and H1 are stated on **hypervolume**:
+answers "is the GA's chosen tree as accurate as CART's" but not the two
+frontier questions, both stated on **hypervolume**:
 
-    K1 — if budget-matched random search matches the GA on hypervolume, the
-         evolutionary machinery contributes nothing.
-    H1 — the evolved frontier dominates the one from CART's ccp_alpha path.
+    1. Does the GA beat budget-matched random search? If not, the evolutionary
+       machinery contributes nothing.
+    2. Does the evolved frontier dominate the one from CART's ccp_alpha path?
 
 A hypervolume needs a *set* of models per fold, so this module runs each method
 in a mode that produces one:
 
-* :class:`ParetoGAFrontier` — NSGA-II over **(accuracy, −node count)**, which is
-  Phase 2 item 6. The shipped objective pair was (accuracy, composite
-  interpretability) on resubstitution data; the composite score may not be a
-  reported outcome under K4, and hypervolume against it would not be the
-  pre-registered measurement.
+* :class:`ParetoGAFrontier` — NSGA-II over **(accuracy, −node count)**. The
+  original objective pair was (accuracy, composite interpretability) on
+  resubstitution data; the composite score is a search heuristic, not a reported
+  outcome, so hypervolume against it would measure the wrong thing.
 * :class:`RandomSearchFrontier` — the same tree space and the same number of
   evaluations, keeping its whole non-dominated set rather than a single best.
   Giving random search only its best point would compare a frontier against a
   point and guarantee the GA wins, which is not a test.
-* :class:`CARTPathFrontier` — the cost-complexity pruning path, H1's comparator.
+* :class:`CARTPathFrontier` — the cost-complexity pruning path the GA's frontier
+  is compared against.
 
 Budget matching is done by *measurement, not prediction*: the GA runs first, its
 realised evaluation count is read off a counter, and random search is then given
@@ -33,8 +33,8 @@ is not cosmetic. An earlier version of this module returned all ~2,500 of random
 search's sampled trees and let the dominance filter run on their *test* scores,
 which is the maximum over thousands of test evaluations — a quantity no method
 can actually deliver, because choosing among those candidates needs the test
-labels. It inflated random search's hypervolume and produced a K1 result that
-was an artefact of the harness. Both searchers now maintain a non-dominated
+labels. It inflated random search's hypervolume and produced a random search
+result that was an artefact of the harness. Both searchers now maintain a non-dominated
 archive on training/validation objectives and hand over only that.
 
 **One asymmetry remains, and it is reported rather than resolved.** NSGA-II's
@@ -43,7 +43,7 @@ population, so its answer is necessarily an archive. A point the GA found in
 generation 3 and lost by generation 20 counts for random search's analogue but
 not for the GA. :class:`ParetoGAFrontier` therefore takes an ``archive`` flag:
 
-* ``archive=False`` — the final-population front. The pre-registered reading.
+* ``archive=False`` — the final-population front. The primary reading.
 * ``archive=True`` — the same run's non-dominated archive, exactly the
   bookkeeping random search gets.
 
@@ -74,14 +74,14 @@ logger = logging.getLogger(__name__)
 #: Added to the largest node count seen on a dataset to form the shared reference
 #: point, so the largest model still contributes non-zero area.
 #:
-#: The pre-registered protocol fixes the reference at "nodes = max over all
+#: The protocol fixes the reference at "nodes = max over all
 #: methods on that **dataset**", so it is computed once per dataset over every
 #: fold, not per fold. The distinction is not cosmetic: a per-fold reference is a
 #: smaller box, and since raising the reference adds ``max_accuracy x delta`` to a
 #: method's area, a smaller box favours whichever method has the lower peak
-#: accuracy. Measured on the real run it moved the K2 dominance rate from 45% to
-#: 70% — across the 60% threshold, in the GA's favour. The pre-registered
-#: definition is the one used.
+#: accuracy. On the real benchmark run the per-fold version flipped the outcome
+#: of the CART comparison, in the GA's favour. The per-dataset definition is the
+#: one used.
 REFERENCE_MARGIN = 1.0
 
 
@@ -148,7 +148,7 @@ class _CountingObjective:
             self.calculator.calculate_fitness(tree, X, y)
         # Maximise accuracy, minimise size. ParetoOptimizer maximises both
         # objectives, so size enters negated rather than as the composite
-        # interpretability score (Phase 2 item 6, and K4).
+        # interpretability score, which is never a reported outcome.
         objectives = (float(tree.accuracy_), -float(tree.get_num_nodes()))
         if self.archiving:
             self._offer(objectives, tree)
@@ -238,7 +238,7 @@ class ParetoGAFrontier(FrontierMethod):
     Parameters
     ----------
     archive : bool
-        When False (the pre-registered measurement) the frontier is the front of
+        When False (the primary measurement) the frontier is the front of
         the *final population*. When True it is the non-dominated set over every
         candidate the run ever scored, which is what random search implicitly
         gets. Run both: the difference between them is how much of any gap is
@@ -304,7 +304,7 @@ class RandomSearchFrontier(FrontierMethod):
         if self.budget is None:
             raise ValueError(
                 "RandomSearchFrontier.budget must be set from the GA's realised "
-                "evaluation count before build(); K1 is meaningless otherwise."
+                "evaluation count before build(); the comparison is meaningless otherwise."
             )
 
         initializer, _, objective, X_train, y_train = _make_search_pieces(
@@ -320,7 +320,7 @@ class RandomSearchFrontier(FrontierMethod):
 
 
 class CARTPathFrontier(FrontierMethod):
-    """Cost-complexity pruning path — H1's comparator."""
+    """Cost-complexity pruning path — the frontier the GA is compared against."""
 
     name = "CART (ccp path)"
 
@@ -448,7 +448,7 @@ def run_frontier_cv(
                 }
             )
 
-    # Pass 2 — one reference point for the dataset, per the pre-registration.
+    # Pass 2 — one reference point per dataset, not per fold (see REFERENCE_MARGIN).
     reference = reference_nodes_for(
         {f"{e['fold']}:{e['method']}": e["front"] for e in pending}, margin=REFERENCE_MARGIN
     )
@@ -498,10 +498,7 @@ def hypervolume_by_dataset(
 
 
 def dominance_rate(results: Sequence[FrontierFoldResult], method: str, baseline: str) -> float:
-    """Fraction of datasets where *method* has the larger mean hypervolume.
-
-    K2 rejects H1 below 60%.
-    """
+    """Fraction of datasets where *method* has the larger mean hypervolume."""
     nested = hypervolume_by_dataset(results)
     wins, total = 0, 0
     for methods in nested.values():

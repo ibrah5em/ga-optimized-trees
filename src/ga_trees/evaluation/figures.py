@@ -6,9 +6,9 @@ literal, and there is no fallback that invents data: given no results, the
 loader raises. That is deliberate: a figure that can be drawn without a run
 behind it isn't evidence of anything.
 
-What may be plotted is constrained by the pre-registered protocol:
+What may be plotted is constrained by the benchmark protocol:
 
-* K4 — reported interpretability is leaf count, mean weighted decision-path
+* Reported interpretability is leaf count, mean weighted decision-path
   length and distinct features used. The composite interpretability score is a
   search heuristic and is not an outcome measure, so nothing here plots it.
 * Cross-fold paired t-tests are gone (``0d446e7``). Folds of one CV are not
@@ -312,7 +312,7 @@ def accuracy_complexity_frontier(
         validates all-pairs at three slots and a fourth fails the separation
         floor for scatter.
     complexity : str
-        Complexity column — ``leaves`` (K4's primary axis) or
+        Complexity column — ``leaves`` (the primary axis) or
         ``mean_path_length``.
     """
     available = list(frame["method"].unique())

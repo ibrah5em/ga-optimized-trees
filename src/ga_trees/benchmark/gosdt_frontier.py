@@ -1,8 +1,8 @@
-"""GOSDT regularisation path as a frontier method (Phase 4, exploratory).
+"""GOSDT regularisation path as a frontier method (exploratory).
 
-The benchmark plan asked for GOSDT (Lin et al. 2020) "as a baseline where
-feasible". This is **not** part of the pre-registered protocol: it was added
-after K1/K2 were known and is reported as an exploratory comparison only.
+GOSDT (Lin et al. 2020) is included as a baseline where it is feasible to run.
+It is **not** part of the original protocol: it was added after the main
+benchmark results were in, so it is an exploratory comparison only.
 
 GOSDT solves for the provably optimal sparse tree over *binary* features under a
 per-leaf penalty ``regularization``. Following McTavish et al. (2022), numeric

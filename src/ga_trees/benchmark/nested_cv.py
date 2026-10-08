@@ -1,6 +1,6 @@
 """Nested cross-validation harness.
 
-The pre-registered protocol: an outer 10-fold × 3-repeat
+The protocol: an outer 10-fold × 3-repeat
 stratified CV for reporting, and an inner 5-fold CV for *all* hyperparameter
 selection, applied identically to every method.
 
@@ -31,7 +31,7 @@ from ga_trees.reproducibility import derive_fold_seed
 
 logger = logging.getLogger(__name__)
 
-#: Outer protocol, fixed by the pre-registration.
+#: Outer protocol, fixed before the benchmark was run.
 DEFAULT_OUTER_SPLITS = 10
 DEFAULT_OUTER_REPEATS = 3
 DEFAULT_INNER_SPLITS = 5
@@ -167,7 +167,7 @@ def run_nested_cv(
     base_seed : int
         Experiment-wide seed.
     outer_splits, outer_repeats, inner_splits : int
-        Protocol sizes. Defaults are the pre-registered values.
+        Protocol sizes. Defaults are the benchmark's values.
     progress : callable, optional
         Called with a status line after each (fold, method) cell.
 
@@ -266,7 +266,7 @@ def verify_budget_match(
 ) -> Dict[str, Any]:
     """Check that the budget-matched methods really did equal work.
 
-    K1 only means something if the GA and random search evaluated comparable
+    Comparing the GA with random search only means something if they evaluated comparable
     numbers of candidates. This reports what they actually spent rather than
     trusting the configuration.
 
