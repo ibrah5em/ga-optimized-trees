@@ -501,7 +501,8 @@ def per_dataset_means(
     -------
     tuple
         ``(dataset_names, {method: [mean per dataset]})``, restricted to the
-        methods present on *every* dataset so the pairing stays valid.
+        methods present on *every* dataset with a finite score on every fold,
+        so the pairing stays valid.
     """
     datasets = list(all_results.keys())
     if not datasets:
@@ -526,4 +527,20 @@ def per_dataset_means(
         for method in sorted(shared)
         if all(metric in all_results[d][method] for d in datasets)
     }
+
+    # A method that failed or was skipped on some fold (experiment.py records NaN
+    # when an optional baseline isn't installed) has no score to pair on. Left in,
+    # its NaN turns every Friedman rank into NaN and still counts towards Holm's
+    # family, inflating everyone else's adjusted p-values. nanmean isn't an option
+    # either: it would pair a mean over fewer folds against full means.
+    unscored = sorted(m for m, values in scores.items() if not np.all(np.isfinite(values)))
+    if unscored:
+        logger.warning(
+            "Excluding %s from across-dataset tests: no finite %s on every dataset.",
+            ", ".join(unscored),
+            metric,
+        )
+        for method in unscored:
+            del scores[method]
+
     return datasets, scores

@@ -395,6 +395,45 @@ class TestPerDatasetMeans:
         assert "XGBoost" not in scores
         assert "XGBoost" in caplog.text
 
+    def test_drops_methods_that_never_scored(self, caplog):
+        # experiment.py records NaN per fold when xgboost isn't installed.
+        results = self._results()
+        for dataset in results:
+            results[dataset]["XGBoost"] = {"test_acc": [float("nan"), float("nan")]}
+        with caplog.at_level("WARNING"):
+            _, scores = per_dataset_means(results)
+        assert sorted(scores) == ["CART", "GA"]
+        assert "XGBoost" in caplog.text
+
+    def test_drops_method_with_one_missing_fold(self):
+        # Averaging the surviving folds would pair a method's mean over fewer
+        # folds against everyone else's full mean.
+        results = self._results()
+        results["wine"]["GA"] = {"test_acc": [0.7, float("nan")]}
+        _, scores = per_dataset_means(results)
+        assert "GA" not in scores
+
+    def test_unscored_method_does_not_poison_the_tests(self):
+        results = {
+            name: {
+                "GA": {"test_acc": [ga]},
+                "CART": {"test_acc": [ga - 0.05]},
+                "RF": {"test_acc": [ga + 0.02]},
+                "XGBoost": {"test_acc": [float("nan")]},
+            }
+            for name, ga in (("iris", 0.9), ("wine", 0.8), ("cancer", 0.85))
+        }
+        _, scores = per_dataset_means(results)
+
+        friedman = friedman_nemenyi(scores)
+        assert all(np.isfinite(rank) for rank in friedman.average_ranks.values())
+        assert friedman.p_value is not None and np.isfinite(friedman.p_value)
+
+        # Holm's family is the comparisons that actually ran, not one per method.
+        comparisons = compare_all_to_reference(scores, "GA")
+        assert len(comparisons) == 2
+        assert all(c.p_adjusted <= min(1.0, 2 * c.p_value) + 1e-12 for c in comparisons)
+
     def test_empty_results(self):
         assert per_dataset_means({}) == ([], {})
 
