@@ -26,7 +26,12 @@ import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from ga_trees.fitness.calculator import FitnessCalculator
+from ga_trees.benchmark import holdout_split
+from ga_trees.fitness.calculator import (
+    VALID_CLASSIFICATION_METRICS,
+    FitnessCalculator,
+    TreePredictor,
+)
 from ga_trees.ga.engine import (
     DEFAULT_GROWTH_STOP_PROB,
     GAConfig,
@@ -34,6 +39,7 @@ from ga_trees.ga.engine import (
     Mutation,
     TreeInitializer,
 )
+from ga_trees.ga.split_points import MIDPOINT_STRATEGY, VALID_SPLIT_STRATEGIES
 
 
 def load_dataset(name: str, label_column=None):
@@ -150,8 +156,11 @@ def merge_config_with_args(config, args, defaults):
         "min_samples_split": ("tree", "min_samples_split"),
         "min_samples_leaf": ("tree", "min_samples_leaf"),
         "growth_stop_prob": ("tree", "growth_stop_prob"),
+        "split_strategy": ("tree", "split_strategy"),
         "accuracy_weight": ("fitness", "weights", "accuracy"),
         "interpretability_weight": ("fitness", "weights", "interpretability"),
+        "validation_fraction": ("fitness", "validation_fraction"),
+        "classification_metric": ("fitness", "classification_metric"),
     }
 
     for arg_name, config_path in mapping.items():
@@ -233,6 +242,12 @@ Examples:
         default=DEFAULT_GROWTH_STOP_PROB,
         help="Per-node probability of stopping growth when seeding the population",
     )
+    parser.add_argument(
+        "--split-strategy",
+        choices=sorted(VALID_SPLIT_STRATEGIES),
+        default=MIDPOINT_STRATEGY,
+        help="Where split thresholds come from: observed midpoints or a uniform draw",
+    )
 
     # Fitness args
     parser.add_argument(
@@ -243,6 +258,19 @@ Examples:
         type=float,
         default=0.3,
         help="Weight for interpretability in fitness",
+    )
+    parser.add_argument(
+        "--validation-fraction",
+        type=float,
+        default=0.2,
+        help="Share of the training data held out to score fitness on (0 = score on the "
+        "rows the leaves were fitted on)",
+    )
+    parser.add_argument(
+        "--classification-metric",
+        choices=sorted(VALID_CLASSIFICATION_METRICS),
+        default="accuracy",
+        help="Metric the accuracy term of fitness is computed with",
     )
 
     # Output args
@@ -311,7 +339,19 @@ Examples:
         X_train = scaler.fit_transform(X_train)
         X_test = scaler.transform(X_test)
 
-    print(f"Train: {len(X_train)} samples, Test: {len(X_test)} samples")
+    # Without a held-out split, fitness fits the leaves and scores them on the same
+    # rows, so the search rewards whichever tree memorises the training set.
+    X_fit, y_fit, X_val, y_val = holdout_split(
+        X_train, y_train, fraction=args.validation_fraction, seed=args.seed
+    )
+
+    if X_val is None:
+        print(f"Train: {len(X_train)} samples, Test: {len(X_test)} samples")
+    else:
+        print(
+            f"Train: {len(X_train)} samples ({len(X_fit)} fit / {len(X_val)} validation), "
+            f"Test: {len(X_test)} samples"
+        )
 
     # Get feature ranges
     feature_ranges = get_feature_ranges(X_train)
@@ -346,6 +386,7 @@ Examples:
         min_samples_leaf=args.min_samples_leaf,
         task_type="classification",
         growth_stop_prob=args.growth_stop_prob,
+        split_strategy=args.split_strategy,
     )
 
     # Get interpretability weights if available
@@ -358,13 +399,17 @@ Examples:
         accuracy_weight=args.accuracy_weight,
         interpretability_weight=args.interpretability_weight,
         interpretability_weights=interp_weights,
+        classification_metric=args.classification_metric,
     )
 
+    # Thresholds come from the fit split only; drawing them from validation values
+    # would leak the split the search is meant to hold out.
     mutation = Mutation(
         n_features=n_features,
-        feature_ranges=feature_ranges,
-        X=X_train,
+        feature_ranges=get_feature_ranges(X_fit),
+        X=X_fit,
         min_samples_leaf=args.min_samples_leaf,
+        split_strategy=args.split_strategy,
     )
 
     # Create GA engine
@@ -379,17 +424,20 @@ Examples:
     print("\n" + "=" * 70)
     print("Starting evolution...")
     print("=" * 70)
-    best_tree = ga_engine.evolve(X_train, y_train, verbose=args.verbose)
+    best_tree = ga_engine.evolve(X_fit, y_fit, verbose=args.verbose, X_val=X_val, y_val=y_val)
 
     print("\n" + "=" * 60)
     print("Evolution complete!")
     print("=" * 60)
 
-    # Evaluate on test set
-    from ga_trees.fitness.calculator import TreePredictor
-
     predictor = TreePredictor()
 
+    # The structure was chosen on the validation split, so refitting the leaves on
+    # all the training data makes no new structural choice and loses nothing.
+    if X_val is not None:
+        predictor.fit_leaf_predictions(best_tree, X_train, y_train)
+
+    # Evaluate on test set
     y_train_pred = predictor.predict(best_tree, X_train)
     y_test_pred = predictor.predict(best_tree, X_test)
 
@@ -410,7 +458,8 @@ Examples:
     print(f"  Train Accuracy: {train_acc:.4f}")
     print(f"  Test Accuracy:  {test_acc:.4f}")
     print(f"  Test F1 Score:  {test_f1:.4f}")
-    print(f"  Fitness Score:  {best_tree.fitness_:.4f}")
+    fitness_split = "training" if X_val is None else "validation"
+    print(f"  Fitness Score:  {best_tree.fitness_:.4f} (on the {fitness_split} split)")
     print(f"  Interpretability: {best_tree.interpretability_:.4f}")
 
     # Print rules

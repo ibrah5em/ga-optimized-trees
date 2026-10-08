@@ -26,6 +26,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from ga_trees.baselines import XGBoostBaseline
+from ga_trees.benchmark import holdout_split
 from ga_trees.data.dataset_loader import DatasetLoader
 from ga_trees.evaluation.statistics import (
     ALPHA,
@@ -79,6 +80,7 @@ def load_config(config_path=None):
                 "tree_balance": 0.1,
                 "semantic_coherence": 0.1,
             },
+            "validation_fraction": 0.2,
         },
         "experiment": {
             "datasets": ["iris", "wine", "breast_cancer"],
@@ -219,13 +221,22 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         # Setup
         n_features = X_train.shape[1]
         n_classes = len(np.unique(y))
-        feature_ranges = {i: (X_train[:, i].min(), X_train[:, i].max()) for i in range(n_features)}
 
         # Distinct per fold, but fixed across invocations. Reusing base_seed for
         # every fold would make all folds repeat one search, because
         # GAEngine.evolve seeds random/numpy globally.
         fold_seed = derive_fold_seed(base_seed, dataset_name, fold, method="ga")
         results["seeds"].append(fold_seed)
+
+        # Without a held-out split, fitness fits the leaves and scores them on the
+        # same rows, so the search rewards whichever tree memorises the fold.
+        X_fit, y_fit, X_val, y_val = holdout_split(
+            X_train,
+            y_train,
+            fraction=float(config["fitness"].get("validation_fraction", 0.0)),
+            seed=fold_seed,
+        )
+        feature_ranges = {i: (X_fit[:, i].min(), X_fit[:, i].max()) for i in range(n_features)}
 
         # Use configuration
         ga_config = GAConfig(
@@ -269,10 +280,12 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
             regression_metric=fitness_config.get("regression_metric", "neg_mse"),
         )
 
+        # Thresholds come from the fit split only; drawing them from validation
+        # values would leak the split the search is meant to hold out.
         mutation = Mutation(
             n_features=n_features,
             feature_ranges=feature_ranges,
-            X=X_train,
+            X=X_fit,
             min_samples_leaf=config["tree"]["min_samples_leaf"],
             split_strategy=config["tree"].get("split_strategy", MIDPOINT_STRATEGY),
         )
@@ -280,11 +293,15 @@ def run_ga_experiment(X, y, dataset_name, config, n_folds=5):
         # Train
         start = time.time()
         ga_engine = GAEngine(ga_config, initializer, fitness_calc.calculate_fitness, mutation)
-        best_tree = ga_engine.evolve(X_train, y_train, verbose=False)
+        best_tree = ga_engine.evolve(X_fit, y_fit, verbose=False, X_val=X_val, y_val=y_val)
+        predictor = TreePredictor()
+        # Structure was chosen on the validation split, so refitting the leaves on
+        # the whole fold makes no new structural choice.
+        if X_val is not None:
+            predictor.fit_leaf_predictions(best_tree, X_train, y_train)
         elapsed = time.time() - start
 
         # Evaluate
-        predictor = TreePredictor()
         y_pred = predictor.predict(best_tree, X_test)
 
         results["test_acc"].append(accuracy_score(y_test, y_pred))
