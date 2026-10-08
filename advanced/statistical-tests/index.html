@@ -2565,8 +2565,8 @@ for it; a non-significant result is equally consistent with a real difference th
 power to detect. Claiming equivalence requires an equivalence test against a margin chosen in
 advance.</p>
 <h2 id="use-the-implementation-not-a-hand-rolled-copy">Use the implementation, not a hand-rolled copy<a class="headerlink" href="#use-the-implementation-not-a-hand-rolled-copy" title="Permanent link">&para;</a></h2>
-<p><code>ga_trees.evaluation.statistics</code> implements everything on this page, with the
-pre-registered constants baked in and the underpowered cases flagged rather than silently
+<p><code>ga_trees.evaluation.statistics</code> implements everything on this page, with alpha
+and the equivalence margin fixed as constants and the underpowered cases flagged rather than silently
 reported. <code>scripts/experiment.py</code> calls it directly.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ga_trees.evaluation.statistics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">compare_all_to_reference</span><span class="p">,</span>
