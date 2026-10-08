@@ -122,6 +122,7 @@ tree:
 ```yaml
 fitness:
   mode: weighted_sum           # 'weighted_sum' or 'pareto'
+  validation_fraction: 0.2     # Held out from the training data to score fitness on (0-1)
   classification_metric: accuracy  # 'accuracy', 'f1_macro', 'f1_weighted', 'balanced_accuracy'
   regression_metric: neg_mse       # 'neg_mse', 'r2'
   weights:                     # Must sum to 1.0
@@ -137,6 +138,12 @@ fitness:
 
 > **Tip:** For imbalanced datasets, use `classification_metric: f1_weighted` or
 > `balanced_accuracy` to prevent the GA from evolving majority-class-only trees.
+
+`validation_fraction` controls what fitness is scored on. The leaves are fitted on the rest of
+the training data and the tree is scored on the held-out share, so the search can't win by
+memorising its own training rows. Once evolution ends, `train.py` and `experiment.py` refit the
+winning tree's leaves on all the training data. `0.0` scores fitness on the rows the leaves were
+fitted on. `train.py --validation-fraction` overrides it.
 
 ## Choosing the Right Configuration
 
