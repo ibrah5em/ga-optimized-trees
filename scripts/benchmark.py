@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-"""Nested cross-validation benchmark — the harness that produces paper numbers.
+"""Nested cross-validation benchmark.
 
-Runs the pre-registered protocol: outer 10-fold × 3
+Runs the benchmark protocol: outer 10-fold × 3
 repeats for reporting, inner 5-fold for all hyperparameter selection, applied
 identically to every method.
 
 ``scripts/experiment.py`` remains for quick flat-CV screening. Nothing from it
-belongs in the paper.
+should be reported as a result.
 
 Examples
 --------
-    # Full pre-registered protocol on the pre-registered dataset list
+    # Full protocol on the 20 OpenML-CC18 benchmark datasets
     python scripts/benchmark.py --config configs/paper.yaml
 
     # Cheap smoke run
@@ -51,7 +51,7 @@ from ga_trees.reproducibility import build_seed_manifest  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from experiment import load_dataset, run_statistical_analysis  # noqa: E402
 
-#: Methods that must spend the same number of candidate evaluations (K1).
+#: Methods that must spend the same number of candidate evaluations.
 BUDGET_MATCHED = ("GA-Optimized", "Random Search")
 
 
@@ -106,7 +106,10 @@ def main():
     parser.add_argument(
         "--no-tune",
         action="store_true",
-        help="Skip inner tuning for the GA and random search (screening only, not for the paper)",
+        help=(
+            "Skip inner tuning for the GA and random search "
+            "(screening only, not for reported results)"
+        ),
     )
     parser.add_argument("--no-forest", action="store_true", help="Skip the random forest reference")
     parser.add_argument(
@@ -114,8 +117,7 @@ def main():
         action="store_true",
         help=(
             "Tune the GA and random search over accuracy weight only, at the configured "
-            "depth (a third of the fits). CART is still tuned over depth and ccp_alpha. "
-            "Recorded as a deviation for the K3 run."
+            "depth (a third of the fits). CART is still tuned over depth and ccp_alpha."
         ),
     )
     parser.add_argument(
@@ -240,14 +242,14 @@ def main():
 
     nested = results_to_nested_dict(all_results)
 
-    # K1 depends on the two searching methods having spent equal effort.
+    # The GA vs random search comparison depends on both having spent equal effort.
     budget = verify_budget_match(all_results, BUDGET_MATCHED)
     print(f"\n{'=' * 70}\nBudget match ({' vs '.join(BUDGET_MATCHED)})\n{'=' * 70}")
     for name, mean in budget["mean_evaluations"].items():
         print(f"  {name:24s} {mean:,.1f} evaluations/fit (mean)")
     print(f"  matched={budget['matched']} (relative spread {budget['spread']:.3%})")
     if not budget["matched"]:
-        print("  ⚠ Budgets differ — the K1 comparison is not valid until they match.")
+        print("  ⚠ Budgets differ — the random search comparison is not valid until they match.")
 
     stats_rows = run_statistical_analysis(
         nested, reference="GA-Optimized", equivalence_baseline=PrunedCARTMethod.name

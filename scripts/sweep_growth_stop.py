@@ -14,8 +14,8 @@ Two things are reported, because they answer different questions:
   whether 0.3 is a defensible default.
 * **Held-out accuracy** — a flat stratified CV of the full GA at each setting.
   This is a *screening* measurement, deliberately not the nested protocol: its
-  job is to choose a sensible default before the pre-registered run, and no
-  number from it belongs in the paper.
+  job is to choose a sensible default before the main benchmark run, and no
+  number from it should be reported as a result.
 
 Examples
 --------

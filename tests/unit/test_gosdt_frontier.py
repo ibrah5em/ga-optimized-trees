@@ -1,4 +1,4 @@
-"""GOSDT frontier adapter (Phase 4, exploratory)."""
+"""GOSDT frontier adapter (exploratory)."""
 
 import numpy as np
 import pytest

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-"""Frontier benchmark — the run that answers K1 and H1 as pre-registered.
+"""Frontier benchmark — accuracy--complexity frontiers compared by hypervolume.
 
 ``scripts/benchmark.py`` reports one operating point per method and answers the
-accuracy questions. Both K1 and H1 are stated on **hypervolume**, which needs a
-set of models per fold, so they need this run instead:
+accuracy questions. The frontier questions are stated on **hypervolume**, which
+needs a set of models per fold, so they need this run instead:
 
-    K1 — if budget-matched random search matches the GA on hypervolume
-         (Wilcoxon across datasets, alpha = 0.05), there is no paper.
-    K2 — if the GA frontier fails to dominate CART's ccp_alpha frontier on
-         >= 60% of datasets, H1 is rejected.
+    1. Does the GA beat budget-matched random search on hypervolume (Wilcoxon
+       across datasets, alpha = 0.05)? If not, the evolutionary machinery
+       contributes nothing.
+    2. Does the GA frontier dominate CART's ccp_alpha frontier on at least 60%
+       of datasets?
 
 Examples
 --------
@@ -51,8 +52,9 @@ GA_ARCHIVED_NAME = "GA (NSGA-II, archived)"
 RANDOM_NAME = RandomSearchFrontier.name
 CART_NAME = CARTPathFrontier.name
 
-#: K2 rejects H1 below this dominance rate over CART's pruning path.
-K2_DOMINANCE_THRESHOLD = 0.60
+#: Share of datasets on which the GA's frontier must beat CART's pruning path
+#: for the GA to count as dominating it.
+DOMINANCE_THRESHOLD = 0.60
 
 
 def main() -> int:
@@ -86,12 +88,12 @@ def main() -> int:
 
     folds = args.outer_splits * args.outer_repeats
     print("=" * 70)
-    print("FRONTIER BENCHMARK — hypervolume (K1, H1/K2)")
+    print("FRONTIER BENCHMARK — hypervolume")
     print("=" * 70)
     print(f"Datasets  : {len(datasets)} — {', '.join(datasets)}")
     print(f"Outer     : {args.outer_splits}-fold x {args.outer_repeats} repeat(s) = {folds} folds")
     print(f"Methods   : {GA_NAME}, {RANDOM_NAME}, {CART_NAME}")
-    print("Objectives: (accuracy, -node count)   [K4: not the composite score]")
+    print("Objectives: (accuracy, -node count)   [not the composite score]")
     print(f"NSGA-II   : pop={config['ga']['population_size']} gen={config['ga']['n_generations']}")
     print(f"Runs      : {len(datasets) * folds} folds x 3 methods")
     if len(datasets) < MIN_DATASETS_FOR_INFERENCE:
@@ -159,7 +161,8 @@ def main() -> int:
 
     nested = hypervolume_by_dataset(results)
 
-    # Budget match is what makes K1 mean anything; verify per fold, not on average.
+    # Budget match is what makes the random search comparison mean anything; verify
+    # per fold, not on average.
     mismatches = 0
     by_fold = {}
     for result in results:
@@ -170,7 +173,7 @@ def main() -> int:
     print(f"\n{'=' * 70}\nBudget match ({GA_NAME} vs {RANDOM_NAME})\n{'=' * 70}")
     print(f"  folds with unequal evaluation counts: {mismatches} of {len(by_fold)}")
     if mismatches:
-        print("  ! K1 is not valid until every fold matches.")
+        print("  ! The random search comparison is not valid until every fold matches.")
 
     present = [
         name
@@ -212,32 +215,31 @@ def main() -> int:
     if random_comparison is not None:
         if random_comparison.underpowered:
             # A null result from an underpowered run is not evidence of no
-            # effect, and reading it as one would be the exact failure the
-            # pre-registration exists to prevent.
+            # effect, and reading it as one is exactly the mistake that fixing the
+            # protocol in advance is meant to prevent.
             verdict = (
                 f"UNDECIDED — {random_comparison.n_datasets} datasets cannot reach alpha=0.05. "
-                f"K1 needs at least {MIN_DATASETS_FOR_INFERENCE}. This run decides nothing."
+                f"It needs at least {MIN_DATASETS_FOR_INFERENCE}. This run decides nothing."
             )
         elif random_comparison.significant and random_comparison.mean_difference > 0:
-            verdict = "K1 NOT triggered — the GA beats budget-matched random search."
+            verdict = "The GA beats budget-matched random search."
         elif random_comparison.significant:
-            verdict = "K1 TRIGGERED, and worse: random search significantly beats the GA."
+            verdict = "Random search significantly beats the GA."
         else:
             verdict = (
-                "K1 TRIGGERED — no significant hypervolume difference from random search. "
-                "Per the pre-registration: publish as software (JOSS) and stop."
+                "No significant hypervolume difference from random search: the "
+                "evolutionary machinery adds nothing measurable here."
             )
         print(f"\n  => {verdict}")
 
     rate = dominance_rate(results, GA_NAME, CART_NAME)
-    print(f"\n{'=' * 70}\nK2 — GA frontier vs CART ccp path\n{'=' * 70}")
+    print(f"\n{'=' * 70}\nGA frontier vs CART ccp path\n{'=' * 70}")
     print(
         f"  GA has the larger hypervolume on {rate:.0%} of datasets "
-        f"(threshold {K2_DOMINANCE_THRESHOLD:.0%})"
+        f"(threshold {DOMINANCE_THRESHOLD:.0%})"
     )
-    print(
-        f"  => {'H1 survives' if rate >= K2_DOMINANCE_THRESHOLD else 'K2 TRIGGERED — H1 rejected'}"
-    )
+    dominates = rate >= DOMINANCE_THRESHOLD
+    print(f"  => GA frontier {'dominates' if dominates else 'does not dominate'} CART's path")
 
     friedman = friedman_nemenyi(means)
     print(f"\n{'=' * 70}\nFriedman + Nemenyi on hypervolume\n{'=' * 70}")

@@ -1,7 +1,7 @@
 """Where split thresholds come from.
 
 CART enumerates every midpoint between consecutive distinct observed values of a
-feature and keeps the best one. Until Phase 2 item 2 this package drew thresholds
+feature and keeps the best one. This package originally drew thresholds
 from ``uniform(feature_min, feature_max)``, which is a different and much weaker
 distribution:
 
@@ -15,8 +15,8 @@ distribution:
   effective search space is far smaller than the sampling suggests while the
   *cost* of exploring it is not.
 
-That last point is why this matters for kill criterion K1. Random search and the
-GA drew from the same threshold distribution, so a handicap here suppresses both
+That last point is why this matters when the GA is compared against random
+search. Both drew from the same threshold distribution, so a handicap here suppresses both
 equally and makes them look alike. Sampling from observed midpoints gives both
 methods the same candidate set CART chooses from, which is the honest version of
 the comparison.
@@ -119,7 +119,7 @@ def sample_threshold(
         min_samples_leaf: Minimum samples each side of the split must retain.
             Ignored under the ``uniform`` strategy, which cannot honour it.
         strategy: ``"midpoint"`` to draw uniformly from the observed candidate
-            midpoints, ``"uniform"`` for the pre-Phase-2 draw across the
+            midpoints, ``"uniform"`` for a uniform draw across the
             observed range.
 
     Returns:
@@ -182,7 +182,7 @@ def step_threshold(
     Gaussian jitter on its own usually leaves the threshold inside the same gap
     between observed values, where the partition — and so the fitness — is
     unchanged. The mutation still costs a fitness evaluation, which is the
-    currency the K1 budget match is denominated in. Snapping onto a candidate
+    currency the GA vs random search budget match is denominated in. Snapping onto a candidate
     makes the step real, and the one-index nudge guarantees it is never a no-op.
 
     Args:

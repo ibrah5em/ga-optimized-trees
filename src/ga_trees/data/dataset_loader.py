@@ -173,7 +173,7 @@ class DatasetLoader:
     # Built-in scikit-learn datasets
     SKLEARN_DATASETS = {"iris", "wine", "breast_cancer", "digits", "diabetes"}
 
-    # The 20 OpenML-CC18 datasets pre-registered for the benchmark. Every ID
+    # The 20 OpenML-CC18 datasets the benchmark uses, fixed before any run. Every ID
     # was resolved against the live OpenML API on 2026-08-07 and confirmed to be
     # a member of study 99 (OpenML-CC18); names here match `details["name"]`.
     CC18_BENCHMARK = {
@@ -205,11 +205,11 @@ class DatasetLoader:
     # the wrong data: "heart" pointed at ID 4, which is `labor`, not heart
     # disease; "mammographic" pointed at ID 310, which is `mammography` (11183
     # rows), not Mammographic Mass (~960 rows). Both are corrected below.
-    # Neither is in CC-18, so neither is used by the pre-registered benchmark.
+    # Neither is in CC-18, so neither is used by the benchmark.
     OPENML_DATASETS = dict(
         CC18_BENCHMARK,
         **{
-            # Not CC-18 — available for exploration, not for the paper.
+            # Not CC-18 — available for exploration, not part of the benchmark.
             "heart": 53,  # heart-statlog (was 4 = labor)
             "mammography": 310,  # mammography (was keyed "mammographic")
             "ionosphere": 59,

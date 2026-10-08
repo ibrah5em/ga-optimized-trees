@@ -2,9 +2,8 @@
 
 The budget-matched pair is :class:`GATreeMethod` and :class:`RandomTreeSearch`:
 both draw from the same tree space, both are given the same number of candidate
-evaluations, and both select by the same fitness. That comparison is kill
-criterion K1 in the pre-registered protocol — if random search matches the GA,
-the evolutionary machinery contributes nothing.
+evaluations, and both select by the same fitness. If random search matches the
+GA under those conditions, the evolutionary machinery contributes nothing.
 """
 
 import logging
@@ -36,8 +35,8 @@ DEFAULT_DEPTH_GRID = (3, 4, 5, 6, 8)
 #: has one entry per merge and is far too long to tune over on large datasets.
 MAX_CCP_ALPHAS = 12
 
-#: Fraction of the fitting data held out to score fitness on. 0.0 reproduces the
-#: pre-Phase-2 resubstitution fitness and is the code default so that library
+#: Fraction of the fitting data held out to score fitness on. 0.0 gives the
+#: original resubstitution fitness and is the code default so that library
 #: users and the existing tests are not silently switched onto a different
 #: objective; the shipped configs set it explicitly.
 DEFAULT_VALIDATION_FRACTION = 0.0
@@ -120,9 +119,9 @@ def ga_evaluation_budget(ga_config: Dict[str, Any]) -> int:
     anything already scored), so each generation only pays for its non-elite
     offspring.
 
-    Getting this wrong breaks K1: budget-matching random search to the naive
-    product handed it ~9% fewer evaluations than the GA in a smoke run, which
-    would have quietly biased the comparison toward the GA.
+    Getting this wrong breaks the random search comparison: budget-matching it to
+    the naive product handed random search ~9% fewer evaluations than the GA in a
+    smoke run, which would have quietly biased the comparison toward the GA.
 
     Early stopping can end a run below this figure, so treat it as the ceiling
     and read the realised counts from ``verify_budget_match``.
@@ -136,7 +135,7 @@ def ga_evaluation_budget(ga_config: Dict[str, Any]) -> int:
 class _SearchContext:
     """The tree space, fitness and data split shared by the GA and random search.
 
-    K1 asks whether the evolutionary machinery contributes anything over random
+    Comparing the two asks whether the evolutionary machinery contributes anything over random
     sampling of the same space. Any asymmetry between the two — a different
     candidate distribution, a different fitness, a different validation split —
     would surface as an algorithmic effect. Building both from this one object
@@ -221,8 +220,8 @@ def search_grid(tune_depth: bool = True) -> List[Dict[str, Any]]:
 
     One function, so the two budget-matched methods cannot drift onto different
     grids. With ``tune_depth=False`` only the accuracy weighting is tuned and
-    depth stays at the configured ``tree.max_depth`` — the reduced K3 grid
-    recorded as a deviation from the pre-registered protocol (2026-09-29).
+    depth stays at the configured ``tree.max_depth``, which costs a third of
+    the fits.
     """
     depths = SEARCH_DEPTH_GRID if tune_depth else (None,)
     grid = []
@@ -345,7 +344,7 @@ class RandomTreeSearch(BenchmarkMethod):
     gap between the two is attributable to the evolutionary machinery and
     nothing else.
 
-    This is the K1 kill criterion: if this matches the GA, there is no paper.
+    If this matches the GA, the evolutionary machinery contributes nothing.
     """
 
     name = "Random Search"
@@ -373,7 +372,7 @@ class RandomTreeSearch(BenchmarkMethod):
 
     def evaluation_budget(self, params: Dict[str, Any]) -> Optional[int]:
         # Deliberately the GA's formula, not pop * gens: the two must spend the
-        # same number of evaluations for K1 to mean anything.
+        # same number of evaluations for the comparison to mean anything.
         return ga_evaluation_budget(self.ga_config)
 
     def fit(self, X: np.ndarray, y: np.ndarray, params: Dict[str, Any], seed: int) -> FittedModel:

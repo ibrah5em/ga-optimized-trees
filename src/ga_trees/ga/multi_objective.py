@@ -59,7 +59,7 @@ class ParetoOptimizer:
             fills with clones (see ``_deduplicate``).
         repair_fn: Optional in-place ``(tree) -> tree`` applied to every
             offspring changed by crossover or mutation, before it is evaluated
-            (Phase 2 item 4, see ``ga_trees.ga.repair``). ``None`` keeps the
+            (see ``ga_trees.ga.repair``). ``None`` keeps the
             original behaviour.
     """
 

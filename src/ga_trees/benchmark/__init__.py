@@ -1,16 +1,17 @@
 """Nested cross-validation benchmark harness.
 
 Separate from ``scripts/experiment.py``, which runs a flat single-level CV and
-is kept for quick screening. Anything reported in the paper comes from here.
+is kept for quick screening. Reported benchmark results come from here.
 
 Two harnesses live here and they answer different questions:
 
 * :mod:`~ga_trees.benchmark.nested_cv` reports one tuned operating point per
-  method per fold — accuracy, leaf count, path length. This is what H2/K3 (TOST
-  equivalence against inner-CV-tuned CART) is written against.
+  method per fold — accuracy, leaf count, path length. This is what the TOST
+  equivalence check against inner-CV-tuned CART is written against.
 * :mod:`~ga_trees.benchmark.frontiers` reports a *frontier* per method per fold
-  and scores it by hypervolume. **K1 and H1/K2 are stated on hypervolume**, so
-  the point-estimate harness alone cannot decide them.
+  and scores it by hypervolume. **The comparisons against random search and
+  CART's pruning path are stated on hypervolume**, so the point-estimate harness
+  alone cannot decide them.
 """
 
 from .frontiers import (

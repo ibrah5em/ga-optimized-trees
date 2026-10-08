@@ -1,4 +1,4 @@
-"""Data-aware constraint repair (Phase 2 item 4).
+"""Data-aware constraint repair.
 
 ``min_samples_split`` and ``min_samples_leaf`` are enforced by
 :class:`~ga_trees.ga.engine.TreeInitializer` and nowhere else. Crossover grafts a
@@ -19,8 +19,8 @@ that reach it. Collapsing only ever removes nodes, so repair cannot grow a tree
 and cannot break ``max_depth``.
 
 Repair is a correctness fix, not a performance lever, and it is *off* by
-default (``tree.repair_constraints``) so that the pre-registered configuration
-still reproduces the committed frontier run bit for bit.
+default (``tree.repair_constraints``) so that ``configs/paper.yaml`` still
+reproduces the original benchmark run bit for bit.
 """
 
 from typing import Optional

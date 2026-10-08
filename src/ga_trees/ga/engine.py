@@ -117,7 +117,7 @@ class TreeInitializer:
             [0, 1). Defaults to :data:`DEFAULT_GROWTH_STOP_PROB`.
         split_strategy: Where thresholds come from — ``"midpoint"`` samples the
             observed midpoints of the data reaching the node, ``"uniform"`` is
-            the pre-Phase-2 draw across the feature's range. See
+            a uniform draw across the feature's range. See
             :mod:`ga_trees.ga.split_points`.
     """
 
@@ -174,9 +174,9 @@ class TreeInitializer:
             prediction = self._calculate_prediction(y)
             return create_leaf_node(prediction, depth)
 
-        # Create internal node. The feature is drawn uniformly, as it always
-        # was — Phase 2 item 2 changes where the *threshold* comes from and
-        # nothing else, so the ablation attributes the effect to one change.
+        # Create internal node. The feature is drawn uniformly under either split
+        # strategy: the strategy changes where the *threshold* comes from and
+        # nothing else, so comparing strategies isolates that one change.
         feature_idx = random.randint(0, self.n_features - 1)
 
         threshold = sample_threshold(
@@ -322,7 +322,7 @@ class Mutation:
             strategy and as the fallback when no training matrix is supplied.
         X: Training design matrix. Supplying it lets the threshold operators
             draw from the values actually reaching the node being mutated
-            instead of the feature's global range (Phase 2 item 2). Pass the
+            instead of the feature's global range. Pass the
             GA-training split, never the validation split — a threshold chosen
             from data the fitness is scored on leaks it into the search.
         min_samples_leaf: Minimum samples a split must leave on each side.
@@ -517,7 +517,7 @@ class GAEngine:
         self.fitness_function = fitness_function
         self.mutation = mutation
         # Optional in-place repair applied to every offspring after variation
-        # (Phase 2 item 4, see ga_trees.ga.repair). None keeps the original
+        # (see ga_trees.ga.repair). None keeps the original
         # behaviour, where the sample-count constraints hold only at init.
         self.repair = repair
         self.population: List[TreeGenotype] = []
@@ -576,8 +576,8 @@ class GAEngine:
             X: Training features — leaf predictions are fitted on these.
             y: Training labels.
             verbose: Print progress.
-            X_val: Optional held-out features to score fitness on (Phase 2
-                item 1). Without them, fitness is resubstitution: leaves are
+            X_val: Optional held-out features to score fitness on. Without
+                them, fitness is resubstitution: leaves are
                 fitted and scored on the same rows, so the search rewards
                 memorisation and prefers whichever tree overfits hardest.
                 Structure and thresholds are chosen from ``X``/``y`` alone, so

@@ -19,7 +19,7 @@ These are properties of the tree that anyone can recompute. None of them is clai
 interpretability; they are the size- and length-based proxies that the comprehensibility
 literature most often uses, and every one is reported for every method, including CART.
 
-The frontier benchmark uses **node count** as its complexity axis, as pre-registered.
+The frontier benchmark uses **node count** as its complexity axis, fixed before the benchmark was run.
 
 ## The composite score is a search heuristic
 

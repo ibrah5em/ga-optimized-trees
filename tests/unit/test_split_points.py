@@ -1,4 +1,4 @@
-"""Unit tests for data-driven split points (Phase 2 item 2).
+"""Unit tests for data-driven split points.
 
 Covers:
 - candidate_thresholds: midpoint enumeration and the min_samples_leaf filter

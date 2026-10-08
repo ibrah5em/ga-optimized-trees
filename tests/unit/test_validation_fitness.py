@@ -1,10 +1,10 @@
-"""Unit tests for validation-based fitness (Phase 2 item 1).
+"""Unit tests for validation-based fitness.
 
 Fitness used to be resubstitution: leaf predictions were fitted on the same rows
 the tree was then scored on, so the search ranked individuals by how well they
 memorised the fitting set. These tests pin down that the GA-validation split is
 held out from every part of the search — initialization, thresholds and scoring —
-and that random search is treated identically, which is what K1 requires.
+and that random search is treated identically, so the comparison stays fair.
 """
 
 import numpy as np
@@ -201,7 +201,7 @@ class TestBudgetMatchedMethodsShareTheSplit:
         assert ga.initializer.split_strategy == rs.initializer.split_strategy
 
     def test_validation_split_does_not_change_the_evaluation_budget(self, iris):
-        # K1 is only meaningful if both methods spend the same number of
+        # The GA vs random search comparison needs both to spend the same number of
         # evaluations, with or without the holdout.
         X, y = iris
         without = dict(FITNESS_CONFIG, validation_fraction=0.0)
