@@ -638,13 +638,17 @@ Open an issue describing:
 Yes! The framework is MIT licensed. Please cite:
 
 ```bibtex
-@software{ga_optimized_trees,
-  title={GA-Optimized Decision Trees: Multi-Objective Evolution for Interpretable Machine Learning},
-  author={Your Research Team},
-  year={2025},
-  url={https://github.com/ibrah5em/ga-optimized-trees}
+@software{hasaki2026gatrees,
+  title   = {GA-Optimized Decision Trees},
+  author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/ibrah5em/ga-optimized-trees},
+  note    = {MIT License}
 }
 ```
+
+GitHub's "Cite this repository" button gives the same entry, from `CITATION.cff`.
 
 ### Is there a paper?
 

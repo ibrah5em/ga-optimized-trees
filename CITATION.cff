@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "GA-Optimized Decision Trees"
+abstract: >-
+  A genetic algorithm framework for evolving interpretable decision trees. It trades
+  accuracy against tree complexity with weighted-sum fitness or NSGA-II multi-objective
+  search, and ships a nested cross-validation and hypervolume benchmark harness against
+  CART, random search and other baselines.
+authors:
+  - given-names: Ibrahem
+    family-names: Hasaki
+    affiliation: "Antioch (Antakya) Syrian Private University, Syria"
+  - given-names: Abd Alrazak
+    family-names: Qahwaji
+    affiliation: "Antioch (Antakya) Syrian Private University, Syria"
+  - given-names: Yousef
+    family-names: Deeb
+    affiliation: "Antioch (Antakya) Syrian Private University, Syria"
+version: 1.0.0
+date-released: 2026-10-08
+license: MIT
+repository-code: "https://github.com/ibrah5em/ga-optimized-trees"
+url: "https://ibrah5em.github.io/ga-optimized-trees/"
+keywords:
+  - genetic algorithms
+  - decision trees
+  - interpretable machine learning
+  - multi-objective optimization
+  - NSGA-II
