@@ -643,6 +643,7 @@ Yes! The framework is MIT licensed. Please cite:
   author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
   year    = {2026},
   version = {1.0.0},
+  doi     = {10.5281/zenodo.23245686},
   url     = {https://github.com/ibrah5em/ga-optimized-trees},
   note    = {MIT License}
 }

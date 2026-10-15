@@ -3,6 +3,7 @@
 [![CI](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23245686.svg)](https://doi.org/10.5281/zenodo.23245686)
 [![Docs](https://img.shields.io/badge/docs-ibrah5em.github.io-informational)](https://ibrah5em.github.io/ga-optimized-trees/)
 
 A Python framework for evolving decision trees with a genetic algorithm.
@@ -208,6 +209,7 @@ results. It'll be linked here when it's out. Until then, please cite the softwar
   author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
   year    = {2026},
   version = {1.0.0},
+  doi     = {10.5281/zenodo.23245686},
   url     = {https://github.com/ibrah5em/ga-optimized-trees},
   note    = {MIT License}
 }

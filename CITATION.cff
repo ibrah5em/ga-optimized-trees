@@ -20,6 +20,7 @@ authors:
 version: 1.0.0
 date-released: 2026-10-08
 license: MIT
+doi: 10.5281/zenodo.23245686
 repository-code: "https://github.com/ibrah5em/ga-optimized-trees"
 url: "https://ibrah5em.github.io/ga-optimized-trees/"
 keywords:
