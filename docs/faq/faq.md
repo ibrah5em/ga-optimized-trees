@@ -50,7 +50,7 @@ For production deployment:
 
 ### What Python version is required?
 
-Python 3.8 or higher. Tested on 3.8, 3.9, 3.10, and 3.11.
+Python 3.9 or higher. Tested on 3.9, 3.10, 3.11 and 3.12.
 
 ```bash
 python --version  # Check your version
@@ -642,7 +642,7 @@ Yes! The framework is MIT licensed. Please cite:
   title   = {GA-Optimized Decision Trees},
   author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.0.1},
   doi     = {10.5281/zenodo.23245686},
   url     = {https://github.com/ibrah5em/ga-optimized-trees},
   note    = {MIT License}

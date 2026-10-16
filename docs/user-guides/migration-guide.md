@@ -46,7 +46,7 @@ tqdm>=4.65.0
 Updated `.github/workflows/ci.yml` with:
 
 - Multi-platform testing (Ubuntu, Windows, macOS)
-- Python 3.8-3.12 support
+- Python 3.9-3.12 support
 - Code quality checks
 - Package building and validation
 

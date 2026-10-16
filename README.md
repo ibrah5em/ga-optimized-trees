@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrah5em/ga-optimized-trees/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23245686.svg)](https://doi.org/10.5281/zenodo.23245686)
 [![Docs](https://img.shields.io/badge/docs-ibrah5em.github.io-informational)](https://ibrah5em.github.io/ga-optimized-trees/)
 
@@ -45,6 +45,12 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -e .           # core
 pip install -e .[all]      # plots, Optuna, XGBoost/LightGBM baselines, SHAP/LIME
 pip install -e .[dev]      # tests and linting
+```
+
+Or install straight from GitHub, without cloning:
+
+```bash
+pip install git+https://github.com/ibrah5em/ga-optimized-trees
 ```
 
 CI tests Python 3.9–3.12 on Linux, and 3.11 on macOS and Windows.
@@ -208,7 +214,7 @@ results. It'll be linked here when it's out. Until then, please cite the softwar
   title   = {GA-Optimized Decision Trees},
   author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.0.1},
   doi     = {10.5281/zenodo.23245686},
   url     = {https://github.com/ibrah5em/ga-optimized-trees},
   note    = {MIT License}

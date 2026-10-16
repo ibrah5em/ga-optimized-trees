@@ -54,6 +54,9 @@ repos:
     rev: 0.7.17
     hooks:
       - id: mdformat
+        # The JOSS paper is Pandoc markdown: mdformat would flatten its YAML front matter
+        # and escape every [@citation], which breaks the JOSS build.
+        exclude: ^joss/
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black

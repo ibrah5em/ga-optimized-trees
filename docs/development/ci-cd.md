@@ -13,7 +13,7 @@ Location: `.github/workflows/ci.yml`
 Runs on multiple platforms and Python versions:
 
 - **Platforms**: Ubuntu, Windows, macOS
-- **Python**: 3.8, 3.9, 3.10, 3.11, 3.12
+- **Python**: 3.9, 3.10, 3.11, 3.12
 
 **Steps:**
 
