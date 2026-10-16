@@ -178,6 +178,14 @@ jobs:
     - name: Check package
       run: twine check dist/*
 
+    # The test jobs use an editable install, which hides anything missing from the wheel.
+    - name: Smoke-test the built wheel
+      run: |
+        python -m venv /tmp/wheel-venv
+        /tmp/wheel-venv/bin/pip install dist/*.whl
+        cd /tmp
+        /tmp/wheel-venv/bin/python -c "import ga_trees, ga_trees.ga, ga_trees.genotype, ga_trees.fitness, ga_trees.evaluation, ga_trees.benchmark, ga_trees.data, ga_trees.baselines; from ga_trees import GAEngine, GAConfig; print(ga_trees.__file__)"
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
