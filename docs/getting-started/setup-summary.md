@@ -38,7 +38,7 @@ This update modernizes the package configuration to follow current Python packag
 ### 5. **Enhanced CI/CD**
 
 - ✅ Multi-platform testing (Ubuntu, Windows, macOS)
-- ✅ Python 3.8-3.12 support
+- ✅ Python 3.9-3.12 support
 - ✅ Code quality checks (black, isort, flake8, mypy)
 - ✅ Integration tests
 - ✅ Package building and validation
@@ -129,7 +129,7 @@ python validate_setup.py
 
 This checks:
 
-- ✓ Python version (3.8+)
+- ✓ Python version (3.9+)
 - ✓ Core dependencies
 - ✓ Package installation
 - ✓ Optional dependencies (reports status)

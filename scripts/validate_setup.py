@@ -73,10 +73,10 @@ def main():
     print_header("Python Version")
     version = sys.version_info
     print(f"Python {version.major}.{version.minor}.{version.micro}")
-    if version >= (3, 8):
+    if version >= (3, 9):
         print("✓ Python version OK")
     else:
-        print("✗ Python 3.8+ required")
+        print("✗ Python 3.9+ required")
         all_passed = False
 
     # 2. Core Dependencies

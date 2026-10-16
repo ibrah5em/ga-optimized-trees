@@ -24,7 +24,7 @@ Search the accuracy–complexity spectrum directly and choose the operating poin
 <div class="stat-desc">Loadable datasets</div>
 </div>
 <div class="stat-card" markdown>
-<div class="stat-num">3.8–3.12</div>
+<div class="stat-num">3.9–3.12</div>
 <div class="stat-desc">Python support</div>
 </div>
 </div>
@@ -200,7 +200,7 @@ ______________________________________________________________________
 ## 🔗 Links
 
 <span class="badge badge-slate">v1.0.0</span>
-<span class="badge badge-blue">Python 3.8+</span>
+<span class="badge badge-blue">Python 3.9+</span>
 <span class="badge badge-muted">MIT License</span>
 
 - **GitHub**: [ibrah5em/ga-optimized-trees](https://github.com/ibrah5em/ga-optimized-trees)
