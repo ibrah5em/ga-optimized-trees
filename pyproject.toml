@@ -131,8 +131,12 @@ Changelog = "https://github.com/ibrah5em/ga-optimized-trees/releases"
 
 
 [tool.setuptools]
-packages = ["ga_trees"]
 package-dir = {"" = "src"}
+
+# A plain `packages = ["ga_trees"]` list ships only the top-level package, so every
+# subpackage was missing from the wheel. Discover them instead.
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 ga_trees = ["py.typed"]
