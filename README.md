@@ -47,6 +47,12 @@ pip install -e .[all]      # plots, Optuna, XGBoost/LightGBM baselines, SHAP/LIM
 pip install -e .[dev]      # tests and linting
 ```
 
+Or install straight from GitHub, without cloning:
+
+```bash
+pip install git+https://github.com/ibrah5em/ga-optimized-trees
+```
+
 CI tests Python 3.9–3.12 on Linux, and 3.11 on macOS and Windows.
 
 ## Quick start
