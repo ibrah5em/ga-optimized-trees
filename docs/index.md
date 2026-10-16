@@ -199,7 +199,7 @@ ______________________________________________________________________
 
 ## 🔗 Links
 
-<span class="badge badge-slate">v1.0.0</span>
+<span class="badge badge-slate">v1.0.1</span>
 <span class="badge badge-blue">Python 3.9+</span>
 <span class="badge badge-muted">MIT License</span>
 

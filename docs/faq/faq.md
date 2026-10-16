@@ -642,7 +642,7 @@ Yes! The framework is MIT licensed. Please cite:
   title   = {GA-Optimized Decision Trees},
   author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.0.1},
   doi     = {10.5281/zenodo.23245686},
   url     = {https://github.com/ibrah5em/ga-optimized-trees},
   note    = {MIT License}
