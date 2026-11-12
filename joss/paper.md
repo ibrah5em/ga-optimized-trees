@@ -110,7 +110,7 @@ returned front collapses to repeated copies of a single point within a few gener
 
 # Availability
 
-`ga-optimized-trees` v1.0.1 is available on GitHub at
+`ga-optimized-trees` v1.0.2 is available on GitHub at
 <https://github.com/ibrah5em/ga-optimized-trees> under the MIT licence and archived on
 Zenodo (<https://doi.org/10.5281/zenodo.23245686>). It installs from GitHub with
 `pip install git+https://github.com/ibrah5em/ga-optimized-trees` and is tested in continuous integration on Python 3.9--3.12 across
