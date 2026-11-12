@@ -16,13 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: '3.9'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: '3.10'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: '3.11'
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             python-version: '3.12'
           - os: windows-latest
             python-version: '3.11'
@@ -62,7 +62,7 @@ jobs:
       shell: bash
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      if: matrix.os == 'ubuntu-24.04' && matrix.python-version == '3.11'
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
@@ -71,7 +71,7 @@ jobs:
 
   lint:
     name: Code Quality Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-24.04, windows-latest, macos-latest]
         python-version: ['3.11']
 
     steps:
@@ -132,7 +132,7 @@ jobs:
 
   docs:
     name: Documentation Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -156,7 +156,7 @@ jobs:
 
   package:
     name: Build and Check Package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -194,7 +194,7 @@ jobs:
 
   notify:
     name: Status Notification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [test, lint, integration, docs, package]
     if: always()
 
