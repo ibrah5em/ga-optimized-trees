@@ -369,6 +369,21 @@ class TestGAEngineEvolve:
             mutation=mutation,
         )
 
+    def test_evolve_considers_the_last_generation(self):
+        """Regression: offspring scored in the final pass used to be ignored."""
+        calls = []
+
+        def increasing_fitness(tree, X, y):
+            calls.append(None)
+            return float(len(calls))  # every new evaluation beats all earlier ones
+
+        engine = self._make_engine(random_state=0, pop_size=10, n_gen=1)
+        engine.fitness_function = increasing_fitness
+        X = np.random.rand(30, 4)
+        y = np.random.randint(0, 2, 30)
+        best = engine.evolve(X, y, verbose=False)
+        assert best.fitness_ == float(len(calls))
+
     def test_evolve_returns_best_individual(self):
         X = np.random.rand(30, 4)
         y = np.random.randint(0, 2, 30)

@@ -693,6 +693,16 @@ class GAEngine:
             # Evaluate new individuals
             self.evaluate_population(X, y, X_val, y_val)
 
+        # The best is recorded at the top of each generation, so without this the
+        # offspring scored in the last pass were paid for and never considered.
+        scored = [ind for ind in self.population if ind.fitness_ is not None]
+        if scored:
+            best_ind = max(scored, key=_fitness_key)
+            if self.best_individual is None or _fitness_key(best_ind) > _fitness_key(
+                self.best_individual
+            ):
+                self.best_individual = best_ind.copy()
+
         return self.best_individual
 
     def get_history(self) -> Dict[str, List]:
