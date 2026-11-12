@@ -476,7 +476,9 @@ class Mutation:
     def expand_leaf(self, tree: TreeGenotype) -> TreeGenotype:
         """Convert random leaf to internal node (if depth allows)."""
         leaves = tree.get_all_leaves()
-        expandable_leaves = [leaf for leaf in leaves if leaf.depth < tree.max_depth - 1]
+        # Depth counts from 0 at the root, so a leaf above max_depth can still split and
+        # its children land at max_depth, which the initialiser and crossover also allow.
+        expandable_leaves = [leaf for leaf in leaves if leaf.depth < tree.max_depth]
 
         if not expandable_leaves:
             return tree
@@ -498,6 +500,10 @@ class Mutation:
         node.right_child = create_leaf_node(node.prediction, node.depth + 1)
         node.prediction = None
 
+        # New nodes start at node_id 0. Leaf fitting keys rows by node_id, so without
+        # renumbering both children would share one prediction and the split would be
+        # inert; crossover and pruning also skip anything sharing the root's ID.
+        tree._assign_node_ids(tree.root, 0)
         return tree
 
 

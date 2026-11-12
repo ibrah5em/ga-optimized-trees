@@ -274,16 +274,51 @@ class TestRepairTree:
 
 class TestMutationExpandLeafEdgeCases:
     def test_no_expandable_leaves_returns_tree_unchanged(self):
-        """When all leaves are at or beyond max_depth-1, expand_leaf returns unchanged tree."""
-        # Leaf at depth=4, max_depth=5 → depth < max_depth-1=4 → NOT expandable
-        # Leaf at depth=4, max_depth=5: 4 < 5-1=4 is False → no expandable leaves
-        root = create_leaf_node(0, depth=4)
+        """A leaf already at max_depth cannot split."""
+        root = create_leaf_node(0, depth=5)
         tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
         mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
         original_nodes = tree.get_num_nodes()
         result = mutation.expand_leaf(tree)
-        # Should return unchanged (leaf depth 4 >= max_depth-1=4)
         assert result.get_num_nodes() == original_nodes
+
+    def test_leaf_one_above_max_depth_expands_to_max_depth(self):
+        """Regression: leaves at max_depth - 1 used to be excluded."""
+        root = create_leaf_node(0, depth=4)
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        result = mutation.expand_leaf(tree)
+        assert result.get_num_nodes() == 3
+        assert {leaf.depth for leaf in result.get_all_leaves()} == {5}
+
+    def test_expanded_tree_has_unique_node_ids(self):
+        """Regression: the two new leaves used to keep the default node_id 0."""
+        random.seed(0)
+        root = create_internal_node(
+            0, 0.5, create_leaf_node(0, depth=1), create_leaf_node(1, depth=1), depth=0
+        )
+        tree = TreeGenotype(root=root, n_features=4, n_classes=2, max_depth=5)
+        mutation = Mutation(n_features=4, feature_ranges={i: (0.0, 1.0) for i in range(4)})
+        result = mutation.expand_leaf(tree)
+        ids = [node.node_id for node in result.get_all_nodes()]
+        assert len(ids) == 5
+        assert len(set(ids)) == len(ids)
+
+    def test_expanded_split_can_separate_classes(self):
+        """Regression: with shared IDs, leaf fitting gave both new leaves one class."""
+        from ga_trees.fitness.calculator import TreePredictor
+
+        X = np.array([[0.1], [0.2], [0.8], [0.9]])
+        y = np.array([0, 0, 1, 1])
+        tree = TreeGenotype(
+            root=create_leaf_node(0, depth=0), n_features=1, n_classes=2, max_depth=3
+        )
+        mutation = Mutation(n_features=1, feature_ranges={0: (0.0, 1.0)}, X=X)
+        result = mutation.expand_leaf(tree)
+        result.root.threshold = 0.5  # pin the split; the draw is not under test
+        predictor = TreePredictor()
+        predictor.fit_leaf_predictions(result, X, y)
+        assert list(predictor.predict(result, X)) == [0, 0, 1, 1]
 
     def test_expand_leaf_with_feature_not_in_ranges(self):
         """When chosen feature_idx not in feature_ranges, threshold defaults to 0.0."""
