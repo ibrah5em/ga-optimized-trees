@@ -18,7 +18,7 @@ authors:
     family-names: Deeb
     affiliation: "Antioch (Antakya) Syrian Private University, Syria"
 version: 1.0.2
-date-released: 2026-11-12
+date-released: 2026-11-13
 license: MIT
 doi: 10.5281/zenodo.23245686
 repository-code: "https://github.com/ibrah5em/ga-optimized-trees"
