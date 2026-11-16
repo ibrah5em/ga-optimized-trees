@@ -173,9 +173,11 @@ class DatasetLoader:
     # Built-in scikit-learn datasets
     SKLEARN_DATASETS = {"iris", "wine", "breast_cancer", "digits", "diabetes"}
 
-    # The 20 OpenML-CC18 datasets the benchmark uses, fixed before any run. Every ID
+    # The 22 OpenML-CC18 datasets the benchmark uses. Every ID
     # was resolved against the live OpenML API on 2026-08-07 and confirmed to be
     # a member of study 99 (OpenML-CC18); names here match `details["name"]`.
+    # cmc and cylinder-bands meet the selection rule too and were missed when the
+    # list was first drawn up; added 2026-11-16.
     CC18_BENCHMARK = {
         "dresses_sales": 23381,
         "kc2": 1063,
@@ -197,6 +199,8 @@ class DatasetLoader:
         "pc1": 1068,
         "banknote": 1462,
         "pc4": 1049,
+        "cmc": 23,
+        "cylinder_bands": 6332,
     }
 
     # OpenML dataset IDs (curated selection).

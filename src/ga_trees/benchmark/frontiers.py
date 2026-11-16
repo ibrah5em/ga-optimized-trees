@@ -50,6 +50,15 @@ not for the GA. :class:`ParetoGAFrontier` therefore takes an ``archive`` flag:
 Run both. The difference between them is how much of any gap is the search and
 how much is the bookkeeping, and reporting only whichever is more flattering
 would be the failure this whole plan exists to correct.
+
+**Every searcher delivers one tree per validation objective vector.** Until
+2026-11 the final-population front kept every structurally distinct tree, so
+trees tied on (validation accuracy, node count) all reached the test fold, while
+the archive keeps one per vector. Since the dominance filter keeps the best
+*test* accuracy at each size, the GA got the best of ~2 trees wherever it had a
+tie and random search never did. That is selection on test again, applied to
+one method only, and it inflated the GA's lead over random search on every
+dataset of the benchmark. ``delivery="all_ties"`` reproduces the earlier runs.
 """
 
 import abc
@@ -84,6 +93,11 @@ logger = logging.getLogger(__name__)
 #: one used.
 REFERENCE_MARGIN = 1.0
 
+#: Delivery rules for the final-population front, see the module docstring.
+DELIVERY_ONE_PER_VECTOR = "one_per_vector"
+DELIVERY_ALL_TIES = "all_ties"
+DELIVERY_RULES = (DELIVERY_ONE_PER_VECTOR, DELIVERY_ALL_TIES)
+
 
 @dataclass
 class FrontierFoldResult:
@@ -103,6 +117,10 @@ class FrontierFoldResult:
     best_accuracy: float
     smallest_nodes: float
     points: List[Tuple[float, float]] = field(default_factory=list)
+    #: Every delivered model as (validation accuracy, nodes, test accuracy), before
+    #: the dominance filter. Validation accuracy is NaN for CART, which has no
+    #: validation split. Without this no label-free score can be computed later.
+    delivered: List[Tuple[float, float, float]] = field(default_factory=list)
 
     def as_row(self) -> Dict[str, Any]:
         """Flatten for CSV. The point list is kept out; it goes to its own file."""
@@ -139,6 +157,9 @@ class _CountingObjective:
         self.count = 0
         self.archiving = archive
         self.archive: List[Tuple[float, float, Any]] = []
+        # The fitting rows, for rescore(); set by _make_search_pieces.
+        self.X_fit = None
+        self.y_fit = None
 
     def __call__(self, tree, X, y) -> Tuple[float, float]:
         self.count += 1
@@ -180,6 +201,34 @@ class _CountingObjective:
 
     def archived_trees(self) -> List[Any]:
         return [tree for _, _, tree in self.archive]
+
+    def rescore(self, tree) -> Tuple[float, float]:
+        """Objectives for *tree* without counting an evaluation.
+
+        Used on the delivered front after the run, so the validation accuracy
+        read off each tree is known to belong to that tree as it now is.
+        """
+        if self.X_val is not None:
+            self.calculator.calculate_fitness(tree, self.X_fit, self.y_fit, self.X_val, self.y_val)
+        else:
+            self.calculator.calculate_fitness(tree, self.X_fit, self.y_fit)
+        return float(tree.accuracy_), -float(tree.get_num_nodes())
+
+
+def _one_per_vector(trees: Sequence, objective: "_CountingObjective") -> List[Any]:
+    """Keep the first tree for each validation objective vector, in input order.
+
+    The search cannot tell tied trees apart, so handing over more than one of
+    them only lets the test fold choose; that is the asymmetry this removes.
+    """
+    seen = set()
+    kept = []
+    for tree in trees:
+        key = objective.rescore(tree)
+        if key not in seen:
+            seen.add(key)
+            kept.append(tree)
+    return kept
 
 
 class FrontierMethod(abc.ABC):
@@ -229,6 +278,7 @@ def _make_search_pieces(tree_config, fitness_config, X, y, seed, archive: bool =
         classification_metric=fitness_config.get("classification_metric", "accuracy"),
     )
     objective = _CountingObjective(calculator, X_val, y_val, archive=archive)
+    objective.X_fit, objective.y_fit = X_train, y_train
     return initializer, mutation, objective, X_train, y_train
 
 
@@ -243,13 +293,28 @@ class ParetoGAFrontier(FrontierMethod):
         candidate the run ever scored, which is what random search implicitly
         gets. Run both: the difference between them is how much of any gap is
         the algorithm and how much is the bookkeeping.
+    delivery : str
+        ``"one_per_vector"`` (default) hands over one tree per validation
+        objective vector, as the archive does. ``"all_ties"`` keeps every
+        structurally distinct tree on the final front, which is how the first
+        committed run scored the GA. Ignored when ``archive`` is True.
     """
 
-    def __init__(self, ga_config, tree_config, fitness_config, archive: bool = False):
+    def __init__(
+        self,
+        ga_config,
+        tree_config,
+        fitness_config,
+        archive: bool = False,
+        delivery: str = DELIVERY_ONE_PER_VECTOR,
+    ):
+        if delivery not in DELIVERY_RULES:
+            raise ValueError(f"delivery must be one of {DELIVERY_RULES}, got {delivery!r}.")
         self.ga_config = dict(ga_config)
         self.tree_config = dict(tree_config)
         self.fitness_config = dict(fitness_config)
         self.archive = archive
+        self.delivery = delivery
         self.name = "GA (NSGA-II, archived)" if archive else "GA (NSGA-II)"
 
     def build(self, X, y, seed):
@@ -276,6 +341,10 @@ class ParetoGAFrontier(FrontierMethod):
         )
         if self.archive:
             return objective.archived_trees(), objective.count
+        if self.delivery == DELIVERY_ONE_PER_VECTOR:
+            return _one_per_vector(front, objective), objective.count
+        for tree in front:
+            objective.rescore(tree)  # so the recorded validation accuracy is current
         return front, objective.count
 
 
@@ -320,13 +389,21 @@ class RandomSearchFrontier(FrontierMethod):
 
 
 class CARTPathFrontier(FrontierMethod):
-    """Cost-complexity pruning path — the frontier the GA is compared against."""
+    """Cost-complexity pruning path — the frontier the GA is compared against.
+
+    ``max_alphas=12`` (the default, kept so earlier runs reproduce) samples the path by
+    index; ``max_alphas=None`` uses every alpha. Sampling can only lower CART's
+    hypervolume, so the full path is the fair comparator.
+    """
 
     name = "CART (ccp path)"
+    FULL_PATH_NAME = "CART (full ccp path)"
 
-    def __init__(self, tree_config, max_alphas: int = 12):
+    def __init__(self, tree_config, max_alphas: Optional[int] = 12):
         self.tree_config = dict(tree_config)
         self.max_alphas = max_alphas
+        if max_alphas is None:
+            self.name = self.FULL_PATH_NAME
 
     def build(self, X, y, seed):
         from sklearn.tree import DecisionTreeClassifier
@@ -341,7 +418,7 @@ class CARTPathFrontier(FrontierMethod):
             alphas = alphas[alphas >= 0]
         except (ValueError, AttributeError):
             alphas = np.array([0.0])
-        if len(alphas) > self.max_alphas:
+        if self.max_alphas is not None and len(alphas) > self.max_alphas:
             alphas = alphas[np.linspace(0, len(alphas) - 1, self.max_alphas).astype(int)]
 
         estimators = []
@@ -359,9 +436,12 @@ def _score_candidates(
 ) -> List[Tuple[float, float]]:
     """Test-set (accuracy, node count) for each candidate model.
 
-    Candidates are chosen on training data; this only measures them. Filtering
-    for dominance afterwards is a property of the point set, not a selection
-    step, so it does not leak the test fold.
+    Leaves of evolved trees are refitted on the whole training fold, validation
+    rows included, before scoring; the structure is what was selected.
+
+    Filtering for dominance afterwards keeps the best test accuracy per size, so
+    it selects on test whenever a method delivers more than one tree the search
+    could not tell apart. Delivery rules exist to keep that equal across methods.
     """
     predictor = TreePredictor()
     points = []
@@ -436,6 +516,14 @@ def run_frontier_cv(
                 random_method.budget = evaluations
 
             points = _score_candidates(candidates, X_train, y_train, X_test, y_test)
+            delivered = [
+                (
+                    float("nan") if hasattr(c, "tree_") else float(getattr(c, "accuracy_", np.nan)),
+                    nodes,
+                    accuracy,
+                )
+                for c, (accuracy, nodes) in zip(candidates, points)
+            ]
             pending.append(
                 {
                     "fold": fold,
@@ -445,6 +533,7 @@ def run_frontier_cv(
                     "candidates": len(candidates),
                     "evaluations": evaluations,
                     "elapsed": elapsed,
+                    "delivered": delivered,
                 }
             )
 
@@ -473,6 +562,7 @@ def run_frontier_cv(
                 best_accuracy=float(front.accuracies.max()) if len(front) else 0.0,
                 smallest_nodes=float(front.node_counts.min()) if len(front) else 0.0,
                 points=[(float(a), float(n)) for a, n in front.points],
+                delivered=entry["delivered"],
             )
         )
         if progress is not None:

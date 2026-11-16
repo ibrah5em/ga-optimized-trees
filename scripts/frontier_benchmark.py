@@ -30,6 +30,8 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from ga_trees.benchmark.frontiers import (  # noqa: E402
+    DELIVERY_ONE_PER_VECTOR,
+    DELIVERY_RULES,
     CARTPathFrontier,
     ParetoGAFrontier,
     RandomSearchFrontier,
@@ -48,6 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from experiment import load_dataset  # noqa: E402
 
 GA_NAME = "GA (NSGA-II)"
+CART_FULL_NAME = CARTPathFrontier.FULL_PATH_NAME
 GA_ARCHIVED_NAME = "GA (NSGA-II, archived)"
 RANDOM_NAME = RandomSearchFrontier.name
 CART_NAME = CARTPathFrontier.name
@@ -73,6 +76,15 @@ def main() -> int:
             "Skip the archived-GA row. It is on by default because random search "
             "necessarily delivers an archive, and comparing it against NSGA-II's "
             "final population alone confounds the search with the bookkeeping."
+        ),
+    )
+    parser.add_argument(
+        "--delivery",
+        choices=DELIVERY_RULES,
+        default=DELIVERY_ONE_PER_VECTOR,
+        help=(
+            "How the GA's final front is handed over. 'all_ties' reproduces the "
+            "first committed run, which scored the GA's tied trees on test."
         ),
     )
     parser.add_argument("--dry-run", action="store_true")
@@ -112,7 +124,9 @@ def main() -> int:
 
     def run_one(name):
         X, y = load_dataset(name)
-        others = [CARTPathFrontier(config["tree"])]
+        # The full path is the fair comparator; the 12-alpha sample is kept so
+        # earlier runs can still be reproduced.
+        others = [CARTPathFrontier(config["tree"]), CARTPathFrontier(config["tree"], None)]
         if not args.no_archived_ga:
             others.insert(
                 0, ParetoGAFrontier(config["ga"], config["tree"], config["fitness"], archive=True)
@@ -120,7 +134,9 @@ def main() -> int:
         return run_frontier_cv(
             X,
             y,
-            ParetoGAFrontier(config["ga"], config["tree"], config["fitness"]),
+            ParetoGAFrontier(
+                config["ga"], config["tree"], config["fitness"], delivery=args.delivery
+            ),
             RandomSearchFrontier(config["ga"], config["tree"], config["fitness"]),
             others,
             dataset_name=name,
@@ -159,6 +175,26 @@ def main() -> int:
             for accuracy, nodes in result.points:
                 writer.writerow([result.dataset, result.method, result.fold, accuracy, nodes])
 
+    delivered_file = output_dir / f"frontier-delivered-{config_name}-{stamp}.csv"
+    with open(delivered_file, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(
+            ["dataset", "method", "fold", "index", "val_accuracy", "nodes", "test_accuracy"]
+        )
+        for result in results:
+            for index, (val_accuracy, nodes, test_accuracy) in enumerate(result.delivered):
+                writer.writerow(
+                    [
+                        result.dataset,
+                        result.method,
+                        result.fold,
+                        index,
+                        val_accuracy,
+                        nodes,
+                        test_accuracy,
+                    ]
+                )
+
     nested = hypervolume_by_dataset(results)
 
     # Budget match is what makes the random search comparison mean anything; verify
@@ -177,7 +213,7 @@ def main() -> int:
 
     present = [
         name
-        for name in (GA_NAME, GA_ARCHIVED_NAME, RANDOM_NAME, CART_NAME)
+        for name in (GA_NAME, GA_ARCHIVED_NAME, RANDOM_NAME, CART_NAME, CART_FULL_NAME)
         if any(name in methods for methods in nested.values())
     ]
 
@@ -232,11 +268,13 @@ def main() -> int:
             )
         print(f"\n  => {verdict}")
 
-    rate = dominance_rate(results, GA_NAME, CART_NAME)
-    print(f"\n{'=' * 70}\nGA frontier vs CART ccp path\n{'=' * 70}")
+    rate = dominance_rate(results, GA_NAME, CART_FULL_NAME)
+    sampled_rate = dominance_rate(results, GA_NAME, CART_NAME)
+    print(f"\n{'=' * 70}\nGA frontier vs CART's full ccp path\n{'=' * 70}")
     print(
         f"  GA has the larger hypervolume on {rate:.0%} of datasets "
-        f"(threshold {DOMINANCE_THRESHOLD:.0%})"
+        f"(threshold {DOMINANCE_THRESHOLD:.0%}); against the 12-alpha sample: "
+        f"{sampled_rate:.0%}"
     )
     dominates = rate >= DOMINANCE_THRESHOLD
     print(f"  => GA frontier {'dominates' if dominates else 'does not dominate'} CART's path")
@@ -259,7 +297,7 @@ def main() -> int:
         base_seed=config["experiment"]["random_state"],
         dataset_names=datasets,
         n_folds=folds,
-        methods=(GA_NAME, RANDOM_NAME, CART_NAME),
+        methods=(GA_NAME, GA_ARCHIVED_NAME, RANDOM_NAME, CART_NAME, CART_FULL_NAME),
     )
     manifest["protocol"] = {
         "outer_splits": args.outer_splits,
@@ -267,6 +305,8 @@ def main() -> int:
         "objectives": "(accuracy, -node_count)",
         "budget_mismatched_folds": mismatches,
         "k2_dominance_rate": rate,
+        "dominance_rate_12_alphas": sampled_rate,
+        "delivery": args.delivery,
     }
     with open(output_dir / f"frontier-seeds-{config_name}-{stamp}.json", "w") as handle:
         json.dump(manifest, handle, indent=2)
@@ -276,6 +316,7 @@ def main() -> int:
     print(f"\n{'=' * 70}")
     print(f"✓ Fold hypervolumes : {folds_file}  ({len(rows)} rows)")
     print(f"✓ Frontier points   : {points_file}")
+    print(f"✓ Delivered models  : {delivered_file}")
     return 0
 
 
