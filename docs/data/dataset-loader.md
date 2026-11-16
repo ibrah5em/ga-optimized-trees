@@ -28,11 +28,11 @@ print(
 
 **scikit-learn:** `iris`, `wine`, `breast_cancer`, `digits`, `diabetes` (regression).
 
-**OpenML-CC18 benchmark set** — 20 datasets chosen for benchmarking, keyed by name in `DatasetLoader.CC18_BENCHMARK`:
+**OpenML-CC18 benchmark set** — 22 datasets chosen for benchmarking, keyed by name in `DatasetLoader.CC18_BENCHMARK`:
 `dresses_sales`, `kc2`, `climate_crashes`, `wdbc`, `ilpd`, `balance_scale`,
 `credit_approval`, `breast_w`, `eucalyptus`, `blood_transfusion`, `diabetes_pima`,
 `analcatdata_dmft`, `vehicle`, `tic_tac_toe`, `vowel`, `credit_g`, `qsar_biodeg`, `pc1`,
-`banknote`, `pc4`.
+`banknote`, `pc4`, `cmc`, `cylinder_bands`.
 
 **Other OpenML datasets** (not in the benchmark set): `heart`,
 `mammography`, `ionosphere`, `sonar`, `hepatitis`, `titanic`, `adult`, `mnist`,
