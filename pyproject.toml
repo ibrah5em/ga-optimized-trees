@@ -11,8 +11,7 @@ requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
     {name = "Ibrahem Hasaki", email = "ibrah5em@github.com"},
-    {name = "Abd Alrazak Qahwaji"},
-    {name = "Yousef Deeb"}
+    {name = "Abd Alrazak Qahwaji"}
 ]
 maintainers = [
     {name = "Ibrahem Hasaki", email = "ibrah5em@github.com"}

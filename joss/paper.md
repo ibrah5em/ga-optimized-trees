@@ -13,8 +13,6 @@ authors:
     affiliation: 1
   - name: Abd Alrazak Qahwaji
     affiliation: 1
-  - name: Yousef Deeb
-    affiliation: 1
 affiliations:
   - name: Antioch (Antakya) Syrian Private University, Syria
     index: 1
