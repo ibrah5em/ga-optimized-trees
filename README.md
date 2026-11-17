@@ -212,7 +212,7 @@ results. It'll be linked here when it's out. Until then, please cite the softwar
 ```bibtex
 @software{hasaki2026gatrees,
   title   = {GA-Optimized Decision Trees},
-  author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak and Deeb, Yousef},
+  author  = {Hasaki, Ibrahem and Qahwaji, Abd Alrazak},
   year    = {2026},
   version = {1.0.3},
   doi     = {10.5281/zenodo.23245686},

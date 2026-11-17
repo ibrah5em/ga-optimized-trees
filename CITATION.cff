@@ -10,12 +10,9 @@ abstract: >-
 authors:
   - given-names: Ibrahem
     family-names: Hasaki
-    affiliation: "Antioch (Antakya) Syrian Private University, Syria"
+    affiliation: "Independent Researcher"
   - given-names: Abd Alrazak
     family-names: Qahwaji
-    affiliation: "Antioch (Antakya) Syrian Private University, Syria"
-  - given-names: Yousef
-    family-names: Deeb
     affiliation: "Antioch (Antakya) Syrian Private University, Syria"
 version: 1.0.3
 date-released: 2026-11-17
