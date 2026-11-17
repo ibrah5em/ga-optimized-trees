@@ -10,7 +10,7 @@ should be reported as a result.
 
 Examples
 --------
-    # Full protocol on the 20 OpenML-CC18 benchmark datasets
+    # Full protocol on the 22 OpenML-CC18 benchmark datasets
     python scripts/benchmark.py --config configs/paper.yaml
 
     # Cheap smoke run

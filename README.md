@@ -30,7 +30,7 @@ run and pick the tree you want.
   true after every crossover and mutation, not just at initialisation.
 - **A benchmarking harness:** nested cross-validation, baselines matched to the GA's exact
   evaluation budget, CART's full pruning path, hypervolume, and across-dataset statistics.
-- **Dataset loading** from scikit-learn, OpenML (including a 20-dataset CC-18 benchmark
+- **Dataset loading** from scikit-learn, OpenML (including a 22-dataset CC-18 benchmark
   set), CSV and Excel.
 - **YAML configs**, so a run is described by one file.
 
@@ -184,7 +184,7 @@ Every script takes `--config`:
 | `balanced.yaml`                 | Equal weight on accuracy and the size heuristic              |
 | `interpretability_focused.yaml` | Weight mostly on the size heuristic; expect very small trees |
 | `optimized.yaml`                | GA settings from an earlier Optuna search, not re-validated  |
-| `paper.yaml`                    | The benchmark configuration: 20 CC-18 datasets, nested CV    |
+| `paper.yaml`                    | The benchmark configuration: 22 CC-18 datasets, nested CV    |
 | `paper-repair.yaml`             | Same, with constraint repair on                              |
 
 ## Benchmarking
@@ -201,12 +201,12 @@ python scripts/benchmark.py --config configs/paper.yaml --datasets wdbc,vehicle 
 python scripts/frontier_benchmark.py --config configs/paper.yaml --datasets wdbc,vehicle
 ```
 
-Leave out `--datasets` to run the full 20-dataset set. That takes hours.
+Leave out `--datasets` to run the full 22-dataset set. That takes hours.
 
 ## Research paper
 
 A paper on the full study behind this framework is in preparation: the method, a
-pre-registered benchmark on 20 OpenML-CC18 datasets against CART and random search, and the
+pre-registered benchmark on 22 OpenML-CC18 datasets against CART and random search, and the
 results. It'll be linked here when it's out. Until then, please cite the software:
 
 ```bibtex

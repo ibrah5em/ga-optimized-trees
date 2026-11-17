@@ -280,3 +280,60 @@ def test_shipped_config_loads_into_the_harness():
     ParetoGAFrontier(config["ga"], config["tree"], config["fitness"])
     RandomSearchFrontier(config["ga"], config["tree"], config["fitness"])
     CARTPathFrontier(config["tree"])
+
+
+class TestDelivery:
+    """The GA must hand over one tree per validation objective vector, as the archive does.
+
+    Tied trees are indistinguishable to the search, so delivering several of them
+    lets the test-fold dominance filter pick the best one for the GA only.
+    """
+
+    def _vectors(self, trees, X, y):
+        from ga_trees.benchmark.frontiers import _make_search_pieces
+
+        _, _, objective, _, _ = _make_search_pieces(TREE_CONFIG, FITNESS_CONFIG, X, y, seed=3)
+        return [objective.rescore(tree) for tree in trees]
+
+    def test_default_delivers_one_tree_per_validation_vector(self, iris):
+        X, y = iris
+        method = ParetoGAFrontier(GA_CONFIG, TREE_CONFIG, FITNESS_CONFIG)
+        trees, _ = method.build(X, y, seed=3)
+        vectors = self._vectors(trees, X, y)
+        assert len(vectors) == len(set(vectors))
+
+    def test_one_per_vector_is_a_subset_of_all_ties_on_the_same_run(self, iris):
+        X, y = iris
+        one, spent_one = ParetoGAFrontier(GA_CONFIG, TREE_CONFIG, FITNESS_CONFIG).build(X, y, 3)
+        ties, spent_ties = ParetoGAFrontier(
+            GA_CONFIG, TREE_CONFIG, FITNESS_CONFIG, delivery="all_ties"
+        ).build(X, y, 3)
+        # Same search, same budget: only the hand-over differs.
+        assert spent_one == spent_ties
+        signatures = {t.structural_signature() for t in ties}
+        assert {t.structural_signature() for t in one} <= signatures
+        assert set(self._vectors(one, X, y)) == set(self._vectors(ties, X, y))
+
+    def test_unknown_delivery_rule_is_rejected(self):
+        with pytest.raises(ValueError, match="delivery"):
+            ParetoGAFrontier(GA_CONFIG, TREE_CONFIG, FITNESS_CONFIG, delivery="best_on_test")
+
+    def test_delivered_models_are_recorded_before_the_dominance_filter(self, fold_results):
+        for result in fold_results:
+            assert len(result.delivered) == result.n_candidates
+            assert len(result.points) <= len(result.delivered)
+            for val_accuracy, nodes, test_accuracy in result.delivered:
+                assert 0.0 <= test_accuracy <= 1.0 and nodes >= 1
+                if result.method.startswith("CART"):
+                    assert val_accuracy != val_accuracy  # NaN: CART has no validation split
+                else:
+                    assert 0.0 <= val_accuracy <= 1.0
+
+
+class TestFullCARTPath:
+    def test_full_path_uses_every_alpha_and_has_its_own_name(self, iris):
+        X, y = iris
+        sampled = CARTPathFrontier(TREE_CONFIG, max_alphas=2)
+        full = CARTPathFrontier(TREE_CONFIG, max_alphas=None)
+        assert full.name == CARTPathFrontier.FULL_PATH_NAME != sampled.name
+        assert len(full.build(X, y, 0)[0]) > len(sampled.build(X, y, 0)[0]) == 2

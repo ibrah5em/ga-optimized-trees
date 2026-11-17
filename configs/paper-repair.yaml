@@ -48,7 +48,7 @@ fitness:
 
 # Experiment Settings
 experiment:
-  # The 20 OpenML-CC18 benchmark datasets (DatasetLoader.CC18_BENCHMARK).
+  # The 22 OpenML-CC18 benchmark datasets (DatasetLoader.CC18_BENCHMARK).
   # Change this list and the benchmark no longer reproduces.
   datasets:
     - dresses_sales
@@ -71,5 +71,7 @@ experiment:
     - pc1
     - banknote
     - pc4
+    - cmc
+    - cylinder_bands
   cv_folds: 20
   random_state: 42
