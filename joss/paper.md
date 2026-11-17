@@ -12,10 +12,12 @@ authors:
     orcid: 0009-0005-7934-1733
     affiliation: 1
   - name: Abd Alrazak Qahwaji
-    affiliation: 1
+    affiliation: 2
 affiliations:
-  - name: Antioch (Antakya) Syrian Private University, Syria
+  - name: Independent Researcher
     index: 1
+  - name: Antioch (Antakya) Syrian Private University, Syria
+    index: 2
 date: 17 October 2026
 bibliography: paper.bib
 ---
