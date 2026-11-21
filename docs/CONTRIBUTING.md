@@ -227,8 +227,7 @@ For feature requests, please describe:
 
 ### Discussion Channels
 
-- [GitHub Discussions](https://github.com/ibrah5em/ga-optimized-trees/discussions) for questions and ideas
-- [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues) for bugs and feature requests
+- [GitHub Issues](https://github.com/ibrah5em/ga-optimized-trees/issues) for bugs, questions and feature requests
 
 ## 📄 License
 
